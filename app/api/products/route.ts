@@ -1,0 +1,22 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
+
+const WC = `${process.env.NEXT_PUBLIC_WP_API_URL?.replace('/wp-json', '/wp-json/wc/v3') ?? 'https://central.prag.global/wp-json/wc/v3'}`;
+const AUTH = `consumer_key=${process.env.WC_CONSUMER_KEY}&consumer_secret=${process.env.WC_CONSUMER_SECRET}`;
+
+export async function PUT(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { id, ...data } = await req.json();
+  if (!id) return NextResponse.json({ error: 'Missing product id' }, { status: 400 });
+
+  const res = await fetch(`${WC}/products/${id}?${AUTH}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) return NextResponse.json({ error: 'WC update failed' }, { status: res.status });
+  return NextResponse.json(await res.json());
+}
