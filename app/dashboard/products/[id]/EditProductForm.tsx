@@ -148,7 +148,7 @@ export default function EditProductForm({ product }: { product: Record<string, a
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button type="button" onClick={() => setFeatured(f => !f)}
+              <button type="button" onClick={() => setFeatured((f: boolean) => !f)}
                 className={`w-10 h-6 rounded-full transition-colors relative ${featured ? 'bg-sky-700' : 'bg-gray-200'}`}>
                 <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${featured ? 'left-5' : 'left-1'}`} />
               </button>
