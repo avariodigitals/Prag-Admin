@@ -108,6 +108,13 @@ export default async function ProductsPage({ searchParams }: Props) {
                           label={p.status === 'publish' ? 'Unpublish' : 'Publish'}
                           toggleValue={p.status === 'publish' ? 'draft' : 'publish'}
                         />
+                        <ProductActions
+                          id={p.id}
+                          field="delete"
+                          value={false}
+                          label="Delete"
+                          productName={p.name}
+                        />
                       </div>
                     </td>
                   </tr>

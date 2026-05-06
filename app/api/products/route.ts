@@ -51,3 +51,25 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(created);
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const id = req.nextUrl.searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'Missing product id' }, { status: 400 });
+
+  const res = await fetch(`${WC}/products/${id}?force=true&${AUTH}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${session.token}` },
+  });
+
+  if (!res.ok) return NextResponse.json({ error: 'WC delete failed' }, { status: res.status });
+  await appendAuditLog({
+    actorEmail: session.user?.user_email ?? 'unknown',
+    action: 'product.deleted',
+    target: `product:${id}`,
+    details: `Deleted product #${id}`,
+  });
+  return NextResponse.json({ success: true });
+}
