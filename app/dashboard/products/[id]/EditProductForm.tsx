@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Save, CheckCircle2, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 
+const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
+
 const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
 const labelCls = 'text-sm font-semibold text-gray-700';
 const TABS = ['General', 'Description', 'Specifications', 'Images', 'Documents'];
@@ -166,50 +168,49 @@ export default function EditProductForm({
     setDocError('');
     setDocStatus('idle');
     setUploadingDoc(true);
-    const uploadFormData = new FormData();
-    uploadFormData.append('file', docFile);
+    const tokenRes = await fetch('/api/auth/client-token', { cache: 'no-store' });
+    if (!tokenRes.ok) {
+      setUploadingDoc(false);
+      setDocError('Could not authorize document upload. Please sign in again.');
+      setDocStatus('error');
+      setTimeout(() => setDocStatus('idle'), 3000);
+      return;
+    }
 
-    const uploadRes = await fetch('/api/media/upload', {
+    const { token } = await tokenRes.json() as { token?: string };
+    if (!token) {
+      setUploadingDoc(false);
+      setDocError('Missing upload token. Please sign in again.');
+      setDocStatus('error');
+      setTimeout(() => setDocStatus('idle'), 3000);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('title', docTitle.trim() || docFile.name);
+    formData.append('product_id', String(product.id));
+    formData.append('file', docFile, docFile.name);
+
+    const uploadRes = await fetch(`${WP_API_URL}/prag-core/v1/product-document`, {
       method: 'POST',
-      body: uploadFormData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
     });
 
     if (!uploadRes.ok) {
-      const err = await uploadRes.json().catch(() => ({ error: 'Media upload failed' }));
+      const err = await uploadRes.json().catch(() => ({ error: 'Document upload failed' }));
       setUploadingDoc(false);
-      setDocError(String(err.error ?? 'Media upload failed'));
+      setDocError(String(err.error ?? 'Document upload failed'));
       setDocStatus('error');
       setTimeout(() => setDocStatus('idle'), 3000);
       return;
     }
 
-    const media = await uploadRes.json() as { id?: number; source_url?: string };
-    const ext = docFile.name.includes('.') ? docFile.name.split('.').pop()?.toLowerCase() ?? 'file' : 'file';
-    const sizeMb = (docFile.size / (1024 * 1024)).toFixed(2);
-
-    const createRes = await fetch('/api/docs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: docTitle.trim() || docFile.name,
-        file_url: media.source_url ?? '',
-        file_type: ext,
-        file_size: `${sizeMb} MB`,
-        pages: '',
-        product_id: product.id,
-      }),
-    });
     setUploadingDoc(false);
 
-    if (!createRes.ok) {
-      const err = await createRes.json().catch(() => ({ error: 'Document record creation failed' }));
-      setDocError(String(err.error ?? 'Document record creation failed'));
-      setDocStatus('error');
-      setTimeout(() => setDocStatus('idle'), 3000);
-      return;
-    }
-
-    const created = await createRes.json();
+    const created = await uploadRes.json();
     setDocs((prev) => [created, ...prev]);
     setDocTitle('');
     setDocFile(null);
