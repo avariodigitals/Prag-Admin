@@ -17,16 +17,19 @@ export default function ProductActions({ id, field, value, label, toggleValue }:
 
   async function handleToggle() {
     setLoading(true);
+    const currentFeatured =
+      typeof value === 'boolean' ? value : String(value).toLowerCase() === 'true';
     const body = field === 'featured'
-      ? { id, featured: !value }
+      ? { id, featured: !currentFeatured }
       : { id, status: toggleValue };
 
-    await fetch('/api/products', {
+    const res = await fetch('/api/products', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     setLoading(false);
+    if (!res.ok) return;
     router.refresh();
   }
 

@@ -78,25 +78,45 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const ext = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() ?? '' : '';
   const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
 
-  const docRes = await fetch(`${WP}/prag_document`, {
+  const baseDocPayload = {
+    title: title || file.name,
+    status: 'publish',
+    meta: {
+      file_url: media.source_url,
+      file_type: ext || 'file',
+      file_size: `${sizeMb} MB`,
+      pages: '',
+      product_id: Number(id),
+    },
+  };
+
+  // Some WordPress setups don't expose custom meta keys like media_id for prag_document.
+  // Try with media_id first, then retry without it to keep uploads working consistently.
+  let docRes = await fetch(`${WP}/prag_document`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${session.token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      title: title || file.name,
-      status: 'publish',
+      ...baseDocPayload,
       meta: {
-        file_url: media.source_url,
-        file_type: ext || 'file',
-        file_size: `${sizeMb} MB`,
-        pages: '',
-        product_id: Number(id),
+        ...baseDocPayload.meta,
         media_id: media.id,
       },
     }),
   });
+
+  if (!docRes.ok) {
+    docRes = await fetch(`${WP}/prag_document`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(baseDocPayload),
+    });
+  }
 
   if (!docRes.ok) {
     const detail = await docRes.text();
@@ -111,7 +131,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     details: `Uploaded ${file.name}`,
   });
 
-  return NextResponse.json(mapDoc(doc));
+  return NextResponse.json({
+    ...mapDoc(doc),
+    media_id: Number(doc?.meta?.media_id ?? media.id ?? 0),
+  });
 }
 
 export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {

@@ -43,10 +43,13 @@ async function wcFetch<T>(path: string, fallback: T): Promise<T> {
   } catch { return fallback; }
 }
 
-async function wcFetchWithTotal<T>(path: string): Promise<{ data: T[]; total: number }> {
+async function wcFetchWithTotal<T>(
+  path: string,
+  init: RequestInit = { next: { revalidate: 30 } },
+): Promise<{ data: T[]; total: number }> {
   try {
     const sep = path.includes('?') ? '&' : '?';
-    const res = await fetchWithTimeout(`${wcBase()}${path}${sep}${auth()}`, { next: { revalidate: 30 } }, 1);
+    const res = await fetchWithTimeout(`${wcBase()}${path}${sep}${auth()}`, init, 1);
     if (!res.ok) return { data: [], total: 0 };
     return { data: await res.json(), total: Number(res.headers.get('X-WP-Total') ?? 0) };
   } catch { return { data: [], total: 0 }; }
@@ -73,7 +76,7 @@ export async function getDashboardStats() {
 // ── Products ───────────────────────────────────────────────
 export async function getProducts(page = 1, search = '', status = 'any') {
   const qs = new URLSearchParams({ per_page: '20', page: String(page), ...(search && { search }), ...(status !== 'any' && { status }) });
-  return wcFetchWithTotal<WCProduct>(`/products?${qs}`);
+  return wcFetchWithTotal<WCProduct>(`/products?${qs}`, { cache: 'no-store' });
 }
 
 export async function updateProduct(id: number, data: Partial<WCProduct>) {

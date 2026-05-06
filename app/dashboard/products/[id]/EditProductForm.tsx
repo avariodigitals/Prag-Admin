@@ -68,6 +68,7 @@ export default function EditProductForm({
   const [newCategoryName, setNewCategoryName] = useState('');
   const [docs, setDocs] = useState<ProductDoc[]>([]);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [docError, setDocError] = useState('');
   const [docTitle, setDocTitle] = useState('');
   const [docFile, setDocFile] = useState<File | null>(null);
 
@@ -161,6 +162,7 @@ export default function EditProductForm({
 
   async function uploadDocument() {
     if (!product.id || !docFile) return;
+    setDocError('');
     setUploadingDoc(true);
     const formData = new FormData();
     formData.append('title', docTitle);
@@ -173,6 +175,8 @@ export default function EditProductForm({
     setUploadingDoc(false);
 
     if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Upload failed' }));
+      setDocError(String(err.error ?? 'Upload failed'));
       setStatus('error');
       setTimeout(() => setStatus('idle'), 2500);
       return;
@@ -188,10 +192,13 @@ export default function EditProductForm({
 
   async function deleteDocument(doc: ProductDoc) {
     if (!product.id) return;
+    setDocError('');
     const res = await fetch(`/api/products/${product.id}/documents?docId=${doc.id}&mediaId=${doc.media_id ?? ''}`, {
       method: 'DELETE',
     });
     if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Delete failed' }));
+      setDocError(String(err.error ?? 'Delete failed'));
       setStatus('error');
       setTimeout(() => setStatus('idle'), 2500);
       return;
@@ -461,6 +468,11 @@ export default function EditProductForm({
               <>
                 <div className="space-y-3">
                   <label className={labelCls}>Upload Technical Document</label>
+                  {docError && (
+                    <div className="p-2.5 rounded-lg border border-red-100 bg-red-50 text-red-600 text-xs">
+                      {docError}
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <input value={docTitle} onChange={(e) => setDocTitle(e.target.value)} className={`${inputCls} md:col-span-2`} placeholder="Document title (optional)" />
                     <input type="file" onChange={(e) => setDocFile(e.target.files?.[0] ?? null)} className="h-11 px-3 rounded-xl border border-gray-200 text-sm" />
