@@ -22,6 +22,7 @@ export interface TrackingConfig {
 
 export interface SmtpConfig {
   provider: 'microsoft365';
+  useWordPressMailer: boolean;
   host: string;
   port: number;
   secure: boolean;
@@ -116,6 +117,7 @@ const DEFAULT_STORE: AdminConfigStore = {
   },
   smtp: {
     provider: 'microsoft365',
+    useWordPressMailer: false,
     host: 'smtp.office365.com',
     port: 587,
     secure: false,
@@ -273,8 +275,12 @@ export async function updateAdminStore(
 
 export async function appendAuditLog(record: Omit<AuditRecord, 'id' | 'at'>) {
   await updateAdminStore((current) => {
+    const entryId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
     const entry: AuditRecord = {
-      id: crypto.randomUUID(),
+      id: entryId,
       at: new Date().toISOString(),
       ...record,
     };

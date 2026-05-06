@@ -117,6 +117,7 @@ export async function PUT(req: NextRequest) {
       smtp: {
         ...current.smtp,
         ...(body.smtp ?? {}),
+        useWordPressMailer: Boolean(body?.smtp?.useWordPressMailer ?? current.smtp.useWordPressMailer),
       },
       forms: Array.isArray(body.forms)
         ? (body.forms as FormPayload[]).map((f) => ({

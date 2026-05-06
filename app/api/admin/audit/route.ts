@@ -10,7 +10,25 @@ export async function GET() {
   if (!ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const store = await readAdminStore();
-  return NextResponse.json({ logs: store.audit });
+  if (store.audit.length > 0) {
+    return NextResponse.json({ logs: store.audit });
+  }
+
+  try {
+    const actor = await getCurrentWpUser(session.token);
+    await appendAuditLog({
+      actorEmail: actor?.email ?? session.user?.user_email ?? 'unknown',
+      action: 'audit.initialized',
+      target: 'audit',
+      details: 'Audit trail initialized.',
+    });
+
+    const refreshed = await readAdminStore();
+    return NextResponse.json({ logs: refreshed.audit });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'Could not persist audit logs.';
+    return NextResponse.json({ error: detail, logs: [] }, { status: 500 });
+  }
 }
 
 export async function DELETE() {

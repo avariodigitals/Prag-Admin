@@ -17,6 +17,21 @@ export async function POST(req: NextRequest) {
   const store = await readAdminStore();
   const smtp = store.smtp;
 
+  if (smtp.useWordPressMailer) {
+    const actor = await getCurrentWpUser(session.token);
+    await appendAuditLog({
+      actorEmail: actor?.email ?? session.user?.user_email ?? 'unknown',
+      action: 'smtp.test.skipped-wordpress-mailer',
+      target: to,
+      details: 'SMTP test skipped because WordPress mailer override is enabled.',
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'WordPress mailer override is enabled. SMTP transport is bypassed and emails are handled by WordPress.',
+    });
+  }
+
   if (!smtp.host || !smtp.port || !smtp.username || !smtp.password || !smtp.fromEmail) {
     return NextResponse.json({ error: 'SMTP settings are incomplete. Save host, port, username, password, and from email first.' }, { status: 400 });
   }

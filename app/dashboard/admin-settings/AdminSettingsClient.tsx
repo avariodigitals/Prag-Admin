@@ -48,6 +48,7 @@ type SettingsPayload = {
   };
   smtp: {
     provider: 'microsoft365';
+    useWordPressMailer: boolean;
     host: string;
     port: number;
     secure: boolean;
@@ -104,7 +105,6 @@ export default function AdminSettingsClient() {
   const [auditActionLoading, setAuditActionLoading] = useState<'pdf' | 'excel' | 'clear' | null>(null);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('');
-  const [applyingWpEmail, setApplyingWpEmail] = useState(false);
 
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
@@ -234,82 +234,16 @@ export default function AdminSettingsClient() {
     }
   }
 
-  async function applyWordPressAdminEmail() {
-    if (!settings) return;
-    setApplyingWpEmail(true);
-    setStatusMessage('');
-
-    try {
-      const res = await fetch('/api/admin/wp-admin-email', { cache: 'no-store' });
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.email) {
-        setStatus('error');
-        setStatusMessage(String(data?.error ?? 'Unable to resolve WordPress admin email.'));
-        setTimeout(() => {
-          setStatus('idle');
-          setStatusMessage('');
-        }, 2600);
-        return;
-      }
-
-      const wpEmail = String(data.email).trim();
-      if (!wpEmail) {
-        setStatus('error');
-        setStatusMessage('WordPress admin email is empty.');
-        setTimeout(() => {
-          setStatus('idle');
-          setStatusMessage('');
-        }, 2600);
-        return;
-      }
-
-      const next: SettingsPayload = {
-        ...settings,
-        smtp: {
-          ...settings.smtp,
-          fromEmail: wpEmail,
-        },
-        forms: settings.forms.map((rule) => ({
-          ...rule,
-          fromEmail: wpEmail,
-          recipients: [wpEmail],
-        })),
-      };
-
-      setSettings(next);
-
-      const saveRes = await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(next),
-      });
-      const saveData = await saveRes.json().catch(() => null);
-
-      setStatus(saveRes.ok ? 'success' : 'error');
-      setStatusMessage(
-        saveRes.ok
-          ? `Using WordPress admin email (${wpEmail}) for SMTP + all form routing.`
-          : String(saveData?.error ?? 'Failed to save WordPress admin email settings.'),
-      );
-
-      if (saveRes.ok) {
-        await loadData();
-      }
-
-      setTimeout(() => {
-        setStatus('idle');
-        setStatusMessage('');
-      }, 3200);
-    } catch {
-      setStatus('error');
-      setStatusMessage('Failed to apply WordPress admin email settings.');
-      setTimeout(() => {
-        setStatus('idle');
-        setStatusMessage('');
-      }, 2600);
-    } finally {
-      setApplyingWpEmail(false);
-    }
+  async function toggleWordPressMailerOverride(enabled: boolean) {
+    setSettings((prev) => (prev
+      ? {
+          ...prev,
+          smtp: {
+            ...prev.smtp,
+            useWordPressMailer: enabled,
+          },
+        }
+      : prev));
   }
 
   async function saveMaintenance() {
@@ -869,35 +803,43 @@ export default function AdminSettingsClient() {
         {activeTab === 'smtp' && (
           <div className="space-y-4">
             <h2 className="text-base font-semibold text-gray-900">Microsoft 365 SMTP</h2>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={applyWordPressAdminEmail}
-                disabled={applyingWpEmail}
-                className="px-4 py-2 bg-white border border-sky-200 text-sky-700 rounded-lg text-sm font-medium hover:bg-sky-50 disabled:opacity-60"
-              >
-                {applyingWpEmail ? 'Applying...' : 'Use WordPress admin email'}
-              </button>
-              <span className="text-xs text-gray-500">Applies to SMTP from-email and all form-routing recipients.</span>
-            </div>
+            <label className="flex items-start gap-3 p-3 border border-sky-100 rounded-xl bg-sky-50/40">
+              <input
+                type="checkbox"
+                checked={settings.smtp.useWordPressMailer}
+                onChange={(e) => void toggleWordPressMailerOverride(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span className="text-sm text-sky-900">
+                <span className="font-semibold">Send all emails using WordPress</span>
+                <span className="block text-xs text-sky-800/80 mt-1">
+                  When enabled, WordPress handles order confirmations and all other email delivery. SMTP fields below are bypassed.
+                </span>
+              </span>
+            </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input className={inputCls} value={settings.smtp.host} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, host: e.target.value } } : p)} placeholder="smtp.office365.com" />
-              <input className={inputCls} value={settings.smtp.port} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, port: Number(e.target.value) || 587 } } : p)} placeholder="587" />
-              <input className={inputCls} value={settings.smtp.username} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, username: e.target.value } } : p)} placeholder="SMTP Username" />
-              <input className={inputCls} type="password" value={settings.smtp.password} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, password: e.target.value } } : p)} placeholder="SMTP Password" />
-              <input className={inputCls} value={settings.smtp.fromEmail} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromEmail: e.target.value } } : p)} placeholder="From Email" />
-              <input className={inputCls} value={settings.smtp.fromName} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromName: e.target.value } } : p)} placeholder="Sender Name" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.host} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, host: e.target.value } } : p)} placeholder="smtp.office365.com" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.port} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, port: Number(e.target.value) || 587 } } : p)} placeholder="587" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.username} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, username: e.target.value } } : p)} placeholder="SMTP Username" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} type="password" value={settings.smtp.password} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, password: e.target.value } } : p)} placeholder="SMTP Password" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.fromEmail} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromEmail: e.target.value } } : p)} placeholder="From Email" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.fromName} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromName: e.target.value } } : p)} placeholder="Sender Name" />
             </div>
             <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input type="checkbox" checked={settings.smtp.secure} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, secure: e.target.checked } } : p)} /> Use secure TLS
+              <input disabled={settings.smtp.useWordPressMailer} type="checkbox" checked={settings.smtp.secure} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, secure: e.target.checked } } : p)} /> Use secure TLS
             </label>
             <div className="pt-4 border-t border-gray-100 space-y-3">
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">Test Email Deliverability</h3>
-                <p className="text-xs text-gray-500 mt-1">Save the SMTP settings first, then send a test message to confirm delivery.</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {settings.smtp.useWordPressMailer
+                    ? 'WordPress mailer override is enabled. SMTP test is bypassed.'
+                    : 'Save the SMTP settings first, then send a test message to confirm delivery.'}
+                </p>
               </div>
               <div className="flex flex-col md:flex-row gap-3">
                 <input
+                  disabled={settings.smtp.useWordPressMailer}
                   className={inputCls}
                   type="email"
                   value={testEmail}
@@ -907,7 +849,7 @@ export default function AdminSettingsClient() {
                 <button
                   type="button"
                   onClick={sendTestEmail}
-                  disabled={testEmailStatus === 'sending'}
+                  disabled={testEmailStatus === 'sending' || settings.smtp.useWordPressMailer}
                   className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-black disabled:opacity-60"
                 >
                   {testEmailStatus === 'sending' ? 'Sending...' : 'Send Test Email'}
@@ -923,18 +865,21 @@ export default function AdminSettingsClient() {
         {activeTab === 'forms' && (
           <div className="space-y-4">
             <h2 className="text-base font-semibold text-gray-900">Forms Delivery Routing</h2>
-            <p className="text-xs text-gray-500">Configure sender and recipients per form to deliver each form to separate mailbox lists.</p>
+            <p className="text-xs text-gray-500">
+              Configure sender and recipients per form to deliver each form to separate mailbox lists.
+              {settings.smtp.useWordPressMailer ? ' WordPress override is ON: only recipients are editable.' : ''}
+            </p>
             {settings.forms.map((rule, idx) => (
               <div key={rule.formKey} className="p-4 border border-gray-200 rounded-xl space-y-3">
                 <p className="text-sm font-semibold text-gray-900">{rule.formName}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input className={inputCls} value={rule.fromEmail} onChange={(e) => setSettings((p) => {
+                  <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={rule.fromEmail} onChange={(e) => setSettings((p) => {
                     if (!p) return p;
                     const forms = [...p.forms];
                     forms[idx] = { ...forms[idx], fromEmail: e.target.value };
                     return { ...p, forms };
                   })} placeholder="From Email" />
-                  <input className={inputCls} value={rule.senderName} onChange={(e) => setSettings((p) => {
+                  <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={rule.senderName} onChange={(e) => setSettings((p) => {
                     if (!p) return p;
                     const forms = [...p.forms];
                     forms[idx] = { ...forms[idx], senderName: e.target.value };
