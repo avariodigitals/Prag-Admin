@@ -69,6 +69,7 @@ export default function EditProductForm({
   const [docs, setDocs] = useState<ProductDoc[]>([]);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [docError, setDocError] = useState('');
+  const [docStatus, setDocStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [docTitle, setDocTitle] = useState('');
   const [docFile, setDocFile] = useState<File | null>(null);
 
@@ -163,31 +164,57 @@ export default function EditProductForm({
   async function uploadDocument() {
     if (!product.id || !docFile) return;
     setDocError('');
+    setDocStatus('idle');
     setUploadingDoc(true);
-    const formData = new FormData();
-    formData.append('title', docTitle);
-    formData.append('file', docFile);
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', docFile);
 
-    const res = await fetch(`/api/products/${product.id}/documents`, {
+    const uploadRes = await fetch('/api/media/upload', {
       method: 'POST',
-      body: formData,
+      body: uploadFormData,
     });
-    setUploadingDoc(false);
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: 'Upload failed' }));
-      setDocError(String(err.error ?? 'Upload failed'));
-      setStatus('error');
-      setTimeout(() => setStatus('idle'), 2500);
+    if (!uploadRes.ok) {
+      const err = await uploadRes.json().catch(() => ({ error: 'Media upload failed' }));
+      setUploadingDoc(false);
+      setDocError(String(err.error ?? 'Media upload failed'));
+      setDocStatus('error');
+      setTimeout(() => setDocStatus('idle'), 3000);
       return;
     }
 
-    const created = await res.json();
+    const media = await uploadRes.json() as { id?: number; source_url?: string };
+    const ext = docFile.name.includes('.') ? docFile.name.split('.').pop()?.toLowerCase() ?? 'file' : 'file';
+    const sizeMb = (docFile.size / (1024 * 1024)).toFixed(2);
+
+    const createRes = await fetch('/api/docs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: docTitle.trim() || docFile.name,
+        file_url: media.source_url ?? '',
+        file_type: ext,
+        file_size: `${sizeMb} MB`,
+        pages: '',
+        product_id: product.id,
+      }),
+    });
+    setUploadingDoc(false);
+
+    if (!createRes.ok) {
+      const err = await createRes.json().catch(() => ({ error: 'Document record creation failed' }));
+      setDocError(String(err.error ?? 'Document record creation failed'));
+      setDocStatus('error');
+      setTimeout(() => setDocStatus('idle'), 3000);
+      return;
+    }
+
+    const created = await createRes.json();
     setDocs((prev) => [created, ...prev]);
     setDocTitle('');
     setDocFile(null);
-    setStatus('success');
-    setTimeout(() => setStatus('idle'), 1800);
+    setDocStatus('success');
+    setTimeout(() => setDocStatus('idle'), 1800);
   }
 
   async function deleteDocument(doc: ProductDoc) {
@@ -199,8 +226,8 @@ export default function EditProductForm({
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: 'Delete failed' }));
       setDocError(String(err.error ?? 'Delete failed'));
-      setStatus('error');
-      setTimeout(() => setStatus('idle'), 2500);
+      setDocStatus('error');
+      setTimeout(() => setDocStatus('idle'), 2500);
       return;
     }
     setDocs((prev) => prev.filter((d) => d.id !== doc.id));
@@ -468,6 +495,11 @@ export default function EditProductForm({
               <>
                 <div className="space-y-3">
                   <label className={labelCls}>Upload Technical Document</label>
+                  {docStatus === 'success' && (
+                    <div className="p-2.5 rounded-lg border border-green-100 bg-green-50 text-green-700 text-xs">
+                      Document uploaded successfully.
+                    </div>
+                  )}
                   {docError && (
                     <div className="p-2.5 rounded-lg border border-red-100 bg-red-50 text-red-600 text-xs">
                       {docError}
