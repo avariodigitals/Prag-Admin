@@ -84,8 +84,22 @@ const FULL_ACCESS: Record<AdminModuleKey, boolean> = {
   adminSettings: true,
 };
 
-const STORE_BASE_PATH = process.env.VERCEL ? '/tmp' : process.cwd();
-const STORE_PATH = path.join(STORE_BASE_PATH, '.admin-data', 'ecommerce-admin-config.json');
+// ─── WordPress persistence (production) ──────────────────────────────────────
+// When running on Vercel, adminStore reads/writes to WordPress via REST API
+// so all data survives deployments. Set WP_APP_USER and WP_APP_PASSWORD
+// (a WordPress Application Password) in your Vercel environment variables.
+const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
+const WP_APP_USER = process.env.WP_APP_USER || '';
+const WP_APP_PASSWORD = process.env.WP_APP_PASSWORD || '';
+
+function wpAuthHeader(): Record<string, string> {
+  if (!WP_APP_USER || !WP_APP_PASSWORD) return {};
+  const encoded = Buffer.from(`${WP_APP_USER}:${WP_APP_PASSWORD}`).toString('base64');
+  return { Authorization: `Basic ${encoded}` };
+}
+
+// ─── Local filesystem (development) ──────────────────────────────────────────
+const STORE_PATH = path.join(process.cwd(), '.admin-data', 'ecommerce-admin-config.json');
 
 const DEFAULT_STORE: AdminConfigStore = {
   users: {},
@@ -161,6 +175,46 @@ const DEFAULT_STORE: AdminConfigStore = {
   audit: [],
 };
 
+function mergeWithDefaults(parsed: Partial<AdminConfigStore>): AdminConfigStore {
+  return {
+    ...DEFAULT_STORE,
+    ...parsed,
+    users: parsed.users ?? {},
+    tracking: { ...DEFAULT_STORE.tracking, ...(parsed.tracking ?? {}) },
+    smtp: { ...DEFAULT_STORE.smtp, ...(parsed.smtp ?? {}) },
+    forms: Array.isArray(parsed.forms) ? parsed.forms : DEFAULT_STORE.forms,
+    roleModuleVisibility: {
+      ...DEFAULT_STORE.roleModuleVisibility,
+      ...(parsed.roleModuleVisibility ?? {}),
+    },
+    audit: Array.isArray(parsed.audit) ? parsed.audit : [],
+  };
+}
+
+// ─── WordPress-backed read/write ──────────────────────────────────────────────
+
+async function readFromWordPress(): Promise<AdminConfigStore> {
+  const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+    headers: { 'Content-Type': 'application/json', ...wpAuthHeader() },
+    cache: 'no-store',
+  });
+  if (res.status === 204 || res.status === 404) return DEFAULT_STORE;
+  if (!res.ok) throw new Error(`WP admin-config GET failed: ${res.status}`);
+  const parsed = (await res.json()) as Partial<AdminConfigStore>;
+  return mergeWithDefaults(parsed);
+}
+
+async function writeToWordPress(data: AdminConfigStore): Promise<void> {
+  const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...wpAuthHeader() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`WP admin-config POST failed: ${res.status}`);
+}
+
+// ─── Local filesystem read/write (dev) ───────────────────────────────────────
+
 async function ensureStoreFile() {
   try {
     const dir = path.dirname(STORE_PATH);
@@ -170,41 +224,45 @@ async function ensureStoreFile() {
     try {
       await fs.writeFile(STORE_PATH, JSON.stringify(DEFAULT_STORE, null, 2), 'utf8');
     } catch {
-      // In serverless read-only environments, skip local file initialization.
+      // Read-only env — skip initialization.
     }
   }
 }
 
+async function readFromFile(): Promise<AdminConfigStore> {
+  await ensureStoreFile();
+  const raw = await fs.readFile(STORE_PATH, 'utf8');
+  const parsed = JSON.parse(raw) as Partial<AdminConfigStore>;
+  return mergeWithDefaults(parsed);
+}
+
+async function writeToFile(data: AdminConfigStore): Promise<void> {
+  await ensureStoreFile();
+  await fs.writeFile(STORE_PATH, JSON.stringify(data, null, 2), 'utf8');
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
 export async function readAdminStore(): Promise<AdminConfigStore> {
   try {
-    await ensureStoreFile();
-    const raw = await fs.readFile(STORE_PATH, 'utf8');
-    const parsed = JSON.parse(raw) as Partial<AdminConfigStore>;
-    return {
-      ...DEFAULT_STORE,
-      ...parsed,
-      users: parsed.users ?? {},
-      tracking: { ...DEFAULT_STORE.tracking, ...(parsed.tracking ?? {}) },
-      smtp: { ...DEFAULT_STORE.smtp, ...(parsed.smtp ?? {}) },
-      forms: Array.isArray(parsed.forms) ? parsed.forms : DEFAULT_STORE.forms,
-      roleModuleVisibility: {
-        ...DEFAULT_STORE.roleModuleVisibility,
-        ...(parsed.roleModuleVisibility ?? {}),
-      },
-      audit: Array.isArray(parsed.audit) ? parsed.audit : [],
-    };
+    if (process.env.VERCEL) {
+      return await readFromWordPress();
+    }
+    return await readFromFile();
   } catch {
-    // Never block auth/settings reads when local FS is unavailable.
     return DEFAULT_STORE;
   }
 }
 
-export async function writeAdminStore(next: AdminConfigStore) {
+export async function writeAdminStore(next: AdminConfigStore): Promise<void> {
   try {
-    await ensureStoreFile();
-    await fs.writeFile(STORE_PATH, JSON.stringify(next, null, 2), 'utf8');
+    if (process.env.VERCEL) {
+      await writeToWordPress(next);
+    } else {
+      await writeToFile(next);
+    }
   } catch {
-    // Best-effort write for serverless environments without durable local storage.
+    // Best-effort write.
   }
 }
 
@@ -230,3 +288,4 @@ export async function appendAuditLog(record: Omit<AuditRecord, 'id' | 'at'>) {
     };
   });
 }
+
