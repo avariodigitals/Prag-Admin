@@ -164,19 +164,32 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Missing userId or userIds.' }, { status: 400 });
   }
 
-  if (typeof body.role === 'string' && targetIds.length === 1) {
+  const nextPassword = typeof body.password === 'string' ? body.password.trim() : '';
+  if (nextPassword && nextPassword.length < 8) {
+    return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
+  }
+
+  if ((typeof body.role === 'string' || Boolean(nextPassword)) && targetIds.length === 1) {
+    const wpUpdatePayload: { roles?: string[]; password?: string } = {};
+    if (typeof body.role === 'string') {
+      wpUpdatePayload.roles = [sanitizeRole(body.role)];
+    }
+    if (nextPassword) {
+      wpUpdatePayload.password = nextPassword;
+    }
+
     const wpRes = await fetch(`${WP_API_URL}/wp/v2/users/${targetIds[0]}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${session.token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ roles: [sanitizeRole(body.role)] }),
+      body: JSON.stringify(wpUpdatePayload),
     });
 
     if (!wpRes.ok) {
       const err = await wpRes.text();
-      return NextResponse.json({ error: err || 'Failed to update role.' }, { status: wpRes.status });
+      return NextResponse.json({ error: err || 'Failed to update user.' }, { status: wpRes.status });
     }
   }
 
@@ -206,7 +219,7 @@ export async function PUT(req: NextRequest) {
     actorEmail: actor?.email ?? session.user?.user_email ?? 'unknown',
     action: targetIds.length > 1 ? 'user.bulk.updated' : 'user.updated',
     target: targetIds.length > 1 ? `users:${targetIds.join(',')}` : `user:${targetIds[0]}`,
-    details: `Updated access state. active=${typeof body.active === 'boolean' ? (body.active ? 'yes' : 'no') : 'unchanged'}.`,
+    details: `Updated access state. active=${typeof body.active === 'boolean' ? (body.active ? 'yes' : 'no') : 'unchanged'}. password=${nextPassword ? 'reset' : 'unchanged'}.`,
   });
 
   return NextResponse.json({

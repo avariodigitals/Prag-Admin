@@ -224,11 +224,15 @@ export default function AdminSettingsClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(maintenance),
       });
+      const data = await res.json().catch(() => null);
       setSavingMaintenance(false);
       setStatus(res.ok ? 'success' : 'error');
       setTimeout(() => setStatus('idle'), 2200);
-      if (res.ok) {
-        await loadData();
+      if (res.ok && data?.data) {
+        setMaintenance((prev) => ({
+          ...prev,
+          ...data.data,
+        }));
       }
     } catch (err) {
       console.error('Save maintenance failed:', err);
@@ -301,6 +305,29 @@ export default function AdminSettingsClient() {
           };
         }));
       }
+    } finally {
+      setUpdatingUserIds((prev) => prev.filter((id) => id !== user.id));
+    }
+  }
+
+  async function resetUserPassword(user: ManagedUser) {
+    const nextPassword = window.prompt(`Set a new temporary password for ${user.email}:`);
+    if (!nextPassword) return;
+    if (nextPassword.trim().length < 8) {
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 2200);
+      return;
+    }
+
+    setUpdatingUserIds((prev) => (prev.includes(user.id) ? prev : [...prev, user.id]));
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, password: nextPassword.trim() }),
+      });
+      setStatus(res.ok ? 'success' : 'error');
+      setTimeout(() => setStatus('idle'), 2200);
     } finally {
       setUpdatingUserIds((prev) => prev.filter((id) => id !== user.id));
     }
@@ -607,7 +634,17 @@ export default function AdminSettingsClient() {
                             </button>
                           </td>
                           <td className="px-3 py-3 text-xs text-gray-500">
-                            {updatingUserIds.includes(u.id) ? 'Saving...' : 'WP privileges follow assigned role.'}
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => resetUserPassword(u)}
+                                disabled={updatingUserIds.includes(u.id)}
+                                className="px-2.5 py-1 rounded border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+                              >
+                                Reset Password
+                              </button>
+                              <span>{updatingUserIds.includes(u.id) ? 'Saving...' : 'WP privileges follow assigned role.'}</span>
+                            </div>
                           </td>
                         </tr>
                       ))

@@ -3,6 +3,18 @@ import { readAdminStore } from './adminStore';
 
 const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
 
+async function getCookieUserInfo(): Promise<Record<string, unknown> | null> {
+  try {
+    const cookieStore = await cookies();
+    const userInfoStr = cookieStore.get('admin_user')?.value;
+    if (!userInfoStr) return null;
+    const parsed = JSON.parse(userInfoStr);
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function login(username: string, password: string) {
   const res = await fetch(`${WP_API_URL}/jwt-auth/v1/token`, {
     method: 'POST',
@@ -22,16 +34,21 @@ export async function getSession() {
 }
 
 export async function isAdmin(token: string): Promise<boolean> {
-  try {
-    const cookieStore = await cookies();
-    const userInfoStr = cookieStore.get('admin_user')?.value;
-    if (userInfoStr) {
-      const userInfo = JSON.parse(userInfoStr);
-      if (typeof userInfo.isAdmin === 'boolean') {
-        return userInfo.isAdmin;
-      }
+  const cookieUser = await getCookieUserInfo();
+  if (cookieUser && typeof cookieUser.isAdmin === 'boolean') {
+    const allowedByRole = cookieUser.isAdmin;
+    if (!allowedByRole) return false;
+
+    const userId = Number(cookieUser.id);
+    if (Number.isFinite(userId) && userId > 0) {
+      const store = await readAdminStore();
+      const state = store.users[String(userId)];
+      if (!state) return true;
+      return state.active;
     }
-  } catch {}
+
+    return true;
+  }
 
   try {
     const res = await fetch(`${WP_API_URL}/wp/v2/users/me?context=edit`, {
@@ -71,6 +88,11 @@ export async function getCurrentWpUser(token: string): Promise<{ id: number; ema
 }
 
 export async function isSuperAdmin(token: string): Promise<boolean> {
+  const cookieUser = await getCookieUserInfo();
+  if (cookieUser && Array.isArray(cookieUser.roles)) {
+    return cookieUser.roles.some((role) => String(role).toLowerCase() === 'administrator');
+  }
+
   const user = await getCurrentWpUser(token);
   return user?.roles?.some((role) => role.toLowerCase() === 'administrator') ?? false;
 }

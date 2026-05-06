@@ -11,13 +11,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!admin) redirect('/login?error=unauthorized');
   const superAdmin = await isSuperAdmin(session.token);
 
-  const store = await readAdminStore();
-  const roles = Array.isArray(session.user?.roles) ? session.user.roles.map((r: string) => String(r).toLowerCase()) : [];
-  const primaryRole = roles[0] ?? 'shop_manager';
-  const roleVisibility = store.roleModuleVisibility[primaryRole] ?? {};
-  const allowedModules = Object.entries(roleVisibility)
-    .filter(([, enabled]) => Boolean(enabled))
-    .map(([module]) => module);
+  let allowedModules: string[] | undefined;
+  if (!superAdmin) {
+    const store = await readAdminStore();
+    const roles = Array.isArray(session.user?.roles) ? session.user.roles.map((r: string) => String(r).toLowerCase()) : [];
+    const primaryRole = roles[0] ?? 'shop_manager';
+    const roleVisibility = store.roleModuleVisibility[primaryRole] ?? {};
+    allowedModules = Object.entries(roleVisibility)
+      .filter(([, enabled]) => Boolean(enabled))
+      .map(([module]) => module);
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
@@ -25,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         displayName={session.user?.user_display_name ?? 'Admin'}
         email={session.user?.user_email ?? ''}
         canManageAccess={superAdmin}
-        allowedModules={superAdmin ? undefined : allowedModules}
+        allowedModules={allowedModules}
       />
       <main className="flex-1 overflow-auto pt-16 md:pt-0">
         <div className="p-4 md:p-8">{children}</div>
