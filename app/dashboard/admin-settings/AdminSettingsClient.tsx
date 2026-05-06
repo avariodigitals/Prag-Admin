@@ -114,6 +114,7 @@ export default function AdminSettingsClient() {
   });
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [roleFilter, setRoleFilter] = useState<string>('all');
   const [testEmail, setTestEmail] = useState('');
   const [testEmailStatus, setTestEmailStatus] = useState<TestEmailStatus>('idle');
   const [testEmailMessage, setTestEmailMessage] = useState('');
@@ -138,6 +139,21 @@ export default function AdminSettingsClient() {
       { key: 'audit', label: 'Audit Trail' },
     ],
     [],
+  );
+
+  const filteredUsers = useMemo(() => {
+    if (roleFilter === 'all') return users;
+    return users.filter((user) => (user.roles[0] ?? 'customer') === roleFilter);
+  }, [users, roleFilter]);
+
+  const allVisibleUsersSelected = useMemo(
+    () => filteredUsers.length > 0 && filteredUsers.every((user) => selectedUserIds.includes(user.id)),
+    [filteredUsers, selectedUserIds],
+  );
+
+  const selectedVisibleCount = useMemo(
+    () => filteredUsers.filter((user) => selectedUserIds.includes(user.id)).length,
+    [filteredUsers, selectedUserIds],
   );
 
   useEffect(() => {
@@ -282,8 +298,14 @@ export default function AdminSettingsClient() {
 
   function toggleSelectAllUsers() {
     setSelectedUserIds((prev) => {
-      if (prev.length === users.length) return [];
-      return users.map((user) => user.id);
+      const visibleIds = filteredUsers.map((user) => user.id);
+      if (visibleIds.length === 0) return prev;
+
+      if (allVisibleUsersSelected) {
+        return prev.filter((id) => !visibleIds.includes(id));
+      }
+
+      return Array.from(new Set([...prev, ...visibleIds]));
     });
   }
 
@@ -437,6 +459,19 @@ export default function AdminSettingsClient() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
                 <h3 className="text-base font-semibold text-gray-900">Existing WordPress Users</h3>
                 <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Role:</span>
+                    <select
+                      className="h-9 px-2 rounded-lg border border-gray-200 text-xs text-gray-700 bg-white"
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                    >
+                      <option value="all">All Roles</option>
+                      {roles.map((role) => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                  </div>
                   <button
                     type="button"
                     onClick={() => runBulkAccessUpdate(true)}
@@ -480,7 +515,9 @@ export default function AdminSettingsClient() {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mb-3">
-                {selectedUserIds.length === 0 ? 'No users selected.' : `${selectedUserIds.length} user(s) selected.`}
+                {selectedUserIds.length === 0
+                  ? `No users selected. Showing ${filteredUsers.length} user(s).`
+                  : `${selectedVisibleCount} selected in view (${selectedUserIds.length} total selected).`}
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -489,7 +526,7 @@ export default function AdminSettingsClient() {
                       <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
                         <input
                           type="checkbox"
-                          checked={users.length > 0 && selectedUserIds.length === users.length}
+                          checked={allVisibleUsersSelected}
                           onChange={toggleSelectAllUsers}
                           aria-label="Select all users"
                         />
@@ -500,42 +537,48 @@ export default function AdminSettingsClient() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {users.map((u) => (
-                      <tr key={u.id}>
-                        <td className="px-3 py-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedUserIds.includes(u.id)}
-                            onChange={() => toggleSelectUser(u.id)}
-                          />
-                        </td>
-                        <td className="px-3 py-3 text-gray-900 font-medium">{u.name || u.username}</td>
-                        <td className="px-3 py-3 text-gray-600">{u.email}</td>
-                        <td className="px-3 py-3">
-                          <select className="h-9 px-2 rounded border border-gray-200 text-sm" value={u.roles[0] ?? 'customer'} onChange={(e) => updateUser(u, { role: e.target.value })}>
-                            {roles.map((role) => (
-                              <option key={role} value={role}>{role}</option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-3 text-xs">
-                            <label className="flex items-center gap-1.5"><input type="checkbox" checked={u.portals.includes('b2c')} onChange={() => updateUser(u, { portals: togglePortal(u.portals, 'b2c') })} />B2C</label>
-                            <label className="flex items-center gap-1.5"><input type="checkbox" checked={u.portals.includes('b2b')} onChange={() => updateUser(u, { portals: togglePortal(u.portals, 'b2b') })} />B2B</label>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3">
-                          <button
-                            type="button"
-                            onClick={() => updateUser(u, { active: !u.active })}
-                            className={`px-2.5 py-1 rounded text-xs font-medium ${u.active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}
-                          >
-                            {u.active ? 'Active' : 'Deactivated'}
-                          </button>
-                        </td>
-                        <td className="px-3 py-3 text-xs text-gray-500">WP privileges follow assigned role.</td>
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-3 py-6 text-center text-gray-400">No users found for the selected role filter.</td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredUsers.map((u) => (
+                        <tr key={u.id}>
+                          <td className="px-3 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedUserIds.includes(u.id)}
+                              onChange={() => toggleSelectUser(u.id)}
+                            />
+                          </td>
+                          <td className="px-3 py-3 text-gray-900 font-medium">{u.name || u.username}</td>
+                          <td className="px-3 py-3 text-gray-600">{u.email}</td>
+                          <td className="px-3 py-3">
+                            <select className="h-9 px-2 rounded border border-gray-200 text-sm" value={u.roles[0] ?? 'customer'} onChange={(e) => updateUser(u, { role: e.target.value })}>
+                              {roles.map((role) => (
+                                <option key={role} value={role}>{role}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-3 text-xs">
+                              <label className="flex items-center gap-1.5"><input type="checkbox" checked={u.portals.includes('b2c')} onChange={() => updateUser(u, { portals: togglePortal(u.portals, 'b2c') })} />B2C</label>
+                              <label className="flex items-center gap-1.5"><input type="checkbox" checked={u.portals.includes('b2b')} onChange={() => updateUser(u, { portals: togglePortal(u.portals, 'b2b') })} />B2B</label>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3">
+                            <button
+                              type="button"
+                              onClick={() => updateUser(u, { active: !u.active })}
+                              className={`px-2.5 py-1 rounded text-xs font-medium ${u.active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}
+                            >
+                              {u.active ? 'Active' : 'Deactivated'}
+                            </button>
+                          </td>
+                          <td className="px-3 py-3 text-xs text-gray-500">WP privileges follow assigned role.</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
