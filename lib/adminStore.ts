@@ -16,6 +16,9 @@ export interface TrackingConfig {
   googleSearchConsoleVerification: string;
   metaPixelId: string;
   tiktokPixelId: string;
+  whatsappChatEnabled: boolean;
+  whatsappChatNumber: string;
+  whatsappChatText: string;
   customHeadScripts: string;
   customBodyScripts: string;
   customFooterScripts: string;
@@ -122,6 +125,9 @@ const DEFAULT_STORE: AdminConfigStore = {
     googleSearchConsoleVerification: '',
     metaPixelId: '',
     tiktokPixelId: '',
+    whatsappChatEnabled: false,
+    whatsappChatNumber: '',
+    whatsappChatText: 'Chat with us on WhatsApp',
     customHeadScripts: '',
     customBodyScripts: '',
     customFooterScripts: '',

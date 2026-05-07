@@ -42,6 +42,9 @@ type SettingsPayload = {
     googleSearchConsoleVerification: string;
     metaPixelId: string;
     tiktokPixelId: string;
+    whatsappChatEnabled: boolean;
+    whatsappChatNumber: string;
+    whatsappChatText: string;
     customHeadScripts: string;
     customBodyScripts: string;
     customFooterScripts: string;
@@ -793,6 +796,36 @@ export default function AdminSettingsClient() {
               <input className={inputCls} value={settings.tracking.googleSearchConsoleVerification} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, googleSearchConsoleVerification: e.target.value } } : p)} placeholder="Search Console verification token" />
               <input className={inputCls} value={settings.tracking.metaPixelId} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, metaPixelId: e.target.value } } : p)} placeholder="Meta Pixel ID" />
               <input className={inputCls} value={settings.tracking.tiktokPixelId} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, tiktokPixelId: e.target.value } } : p)} placeholder="TikTok Pixel ID" />
+            </div>
+            <div className="p-4 border border-gray-200 rounded-xl space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">WhatsApp Floating Chat Button</h3>
+                  <p className="text-xs text-gray-500">Show a floating WhatsApp chat button on the ecommerce site.</p>
+                </div>
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(settings.tracking.whatsappChatEnabled)}
+                    onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, whatsappChatEnabled: e.target.checked } } : p)}
+                  />
+                  Enable
+                </label>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input
+                  className={inputCls}
+                  value={settings.tracking.whatsappChatNumber}
+                  onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, whatsappChatNumber: e.target.value } } : p)}
+                  placeholder="WhatsApp Number (e.g. +2348032170129)"
+                />
+                <input
+                  className={inputCls}
+                  value={settings.tracking.whatsappChatText}
+                  onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, whatsappChatText: e.target.value } } : p)}
+                  placeholder="Button Text (e.g. Chat with us on WhatsApp)"
+                />
+              </div>
             </div>
             <textarea className={areaCls} value={settings.tracking.customHeadScripts} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, customHeadScripts: e.target.value } } : p)} placeholder="Custom scripts for <head>" />
             <textarea className={areaCls} value={settings.tracking.customBodyScripts} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, customBodyScripts: e.target.value } } : p)} placeholder="Custom scripts after opening <body>" />
