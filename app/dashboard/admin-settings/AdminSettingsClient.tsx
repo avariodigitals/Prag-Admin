@@ -225,6 +225,19 @@ export default function AdminSettingsClient() {
       }, 2600);
       if (res.ok) {
         await loadData();
+        // Trigger frontend cache revalidation immediately
+        try {
+          await fetch(
+            `https://prag.global/api/revalidate?secret=${process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret'}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: '/' }),
+            }
+          );
+        } catch {
+          // Silently fail if revalidation doesn't work
+        }
       }
     } catch {
       setSaving(false);
@@ -266,6 +279,19 @@ export default function AdminSettingsClient() {
           ...prev,
           ...data.data,
         }));
+        // Trigger frontend cache revalidation immediately
+        try {
+          await fetch(
+            `https://prag.global/api/revalidate?secret=${process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret'}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: '/' }),
+            }
+          );
+        } catch {
+          // Silently fail if revalidation doesn't work
+        }
       }
     } catch (err) {
       console.error('Save maintenance failed:', err);
