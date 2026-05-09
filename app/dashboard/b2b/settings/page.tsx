@@ -20,6 +20,8 @@ interface B2BSettings {
   socials: B2BSocialLinks;
 }
 
+type B2BTextSettingKey = Exclude<keyof B2BSettings, 'socials'>;
+
 const EMPTY_SOCIALS: B2BSocialLinks = {
   facebook: '',
   instagram: '',
@@ -99,7 +101,7 @@ export default function B2BSettingsPage() {
     }
   }
 
-  function field(label: string, key: keyof B2BSettings, type = 'text') {
+  function field(label: string, key: B2BTextSettingKey, type = 'text') {
     return (
       <div key={key}>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
