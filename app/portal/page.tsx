@@ -1,9 +1,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { startTransition, useState } from 'react';
 
 export default function PortalPage() {
   const router = useRouter();
+  const [activePortal, setActivePortal] = useState<'b2c' | 'b2b' | null>(null);
+
+  function enterPortal(target: '/dashboard' | '/dashboard/b2b', portal: 'b2c' | 'b2b') {
+    setActivePortal(portal);
+    startTransition(() => {
+      router.push(target);
+    });
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -46,9 +55,21 @@ export default function PortalPage() {
 
           {/* B2C Card */}
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => enterPortal('/dashboard', 'b2c')}
             className="group flex-1 relative bg-white border-2 border-gray-100 hover:border-sky-700 rounded-3xl p-8 text-left transition-all duration-200 hover:shadow-xl hover:shadow-sky-700/10 hover:-translate-y-1"
           >
+            {activePortal === 'b2c' && (
+              <div className="absolute inset-0 z-10 rounded-3xl bg-white/85 backdrop-blur-sm flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative w-10 h-10">
+                    <div className="absolute inset-0 rounded-full border-3 border-sky-100"></div>
+                    <div className="absolute inset-0 rounded-full border-3 border-sky-700 border-t-transparent animate-spin"></div>
+                  </div>
+                  <p className="text-xs font-semibold text-sky-700 font-['Space_Grotesk']">Opening store portal...</p>
+                </div>
+              </div>
+            )}
+
             <div className="w-12 h-12 bg-sky-50 group-hover:bg-sky-700 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200">
               <svg className="w-6 h-6 text-sky-700 group-hover:text-white transition-colors duration-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -66,7 +87,7 @@ export default function PortalPage() {
             </div>
 
             <div className="flex items-center gap-2 text-sky-700 text-sm font-semibold font-['Space_Grotesk'] group-hover:gap-3 transition-all">
-              Enter portal
+              {activePortal === 'b2c' ? 'Loading...' : 'Enter portal'}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
@@ -75,9 +96,21 @@ export default function PortalPage() {
 
           {/* B2B Card */}
           <button
-            onClick={() => router.push('/dashboard/b2b')}
+            onClick={() => enterPortal('/dashboard/b2b', 'b2b')}
             className="group flex-1 relative bg-white border-2 border-gray-100 hover:border-amber-600 rounded-3xl p-8 text-left transition-all duration-200 hover:shadow-xl hover:shadow-amber-600/10 hover:-translate-y-1"
           >
+            {activePortal === 'b2b' && (
+              <div className="absolute inset-0 z-10 rounded-3xl bg-white/85 backdrop-blur-sm flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative w-14 h-14">
+                    <div className="absolute inset-0 rounded-full border-4 border-amber-100"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-amber-600 border-t-transparent animate-spin"></div>
+                  </div>
+                  <p className="text-sm font-semibold text-amber-700 font-['Space_Grotesk']">Opening B2B portal...</p>
+                </div>
+              </div>
+            )}
+
             <div className="w-12 h-12 bg-amber-50 group-hover:bg-amber-600 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200">
               <svg className="w-6 h-6 text-amber-600 group-hover:text-white transition-colors duration-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -95,7 +128,7 @@ export default function PortalPage() {
             </div>
 
             <div className="flex items-center gap-2 text-amber-600 text-sm font-semibold font-['Space_Grotesk'] group-hover:gap-3 transition-all">
-              Enter portal
+              {activePortal === 'b2b' ? 'Loading...' : 'Enter portal'}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
