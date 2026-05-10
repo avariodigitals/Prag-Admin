@@ -139,25 +139,25 @@ export default function EnquiriesPage() {
     setLoading(false);
   }, [page, query, status]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setPage(1);
     setQuery(search);
+  }
 
-    async function handleDelete(id: string) {
-      if (!confirm('Delete this enquiry? This cannot be undone.')) return;
-      setDeletingId(id);
-      try {
-        const res = await fetch(`/api/b2b/enquiries?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-        if (res.ok) {
-          setEnquiries((current) => current.filter((item) => item.id !== id));
-          setTotal((prev) => Math.max(0, prev - 1));
-        }
-      } finally {
-        setDeletingId(null);
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this enquiry? This cannot be undone.')) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/b2b/enquiries?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (res.ok) {
+        setEnquiries((current) => current.filter((item) => item.id !== id));
+        setTotal((prev) => Math.max(0, prev - 1));
       }
+    } finally {
+      setDeletingId(null);
     }
   }
 
