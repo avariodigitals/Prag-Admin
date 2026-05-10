@@ -16,6 +16,13 @@ type LocalEnquiry = {
   createdAt?: string;
 };
 
+function normalizeStoreStatus(status: string): 'new' | 'in-review' | 'resolved' {
+  const value = String(status || '').trim().toLowerCase();
+  if (value === 'resolved' || value === 'converted') return 'resolved';
+  if (value === 'new') return 'new';
+  return 'in-review';
+}
+
 function getLocalEnquiries(params: { page: number; search: string; status: string }) {
   return readB2BAdminStore().then((store) => {
     const all = (Array.isArray(store.enquiries) ? store.enquiries : []) as LocalEnquiry[];
@@ -90,12 +97,13 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json();
   const { id, status } = body as { id: string; status: string };
+  const storeStatus = normalizeStoreStatus(status);
 
   // Always update local store first
   await updateB2BAdminStore((store) => ({
     ...store,
     enquiries: store.enquiries.map((item) =>
-      item.id === id ? { ...item, status } : item
+      item.id === id ? { ...item, status: storeStatus } : item
     ),
   }));
 
