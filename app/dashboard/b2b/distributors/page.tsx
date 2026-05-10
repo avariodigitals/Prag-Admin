@@ -4,8 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Search, Trash2, X } from 'lucide-react';
 
 interface Distributor {
-  id: number;
-    // id can be number (from WP) or string (from local store)
+  id: number | string;
   company: string;
   name: string;
   email: string;
@@ -118,10 +117,10 @@ export default function DistributorsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedDistributor, setSelectedDistributor] = useState<Distributor | null>(null);
   const [savingAction, setSavingAction] = useState(false);
-  const [status, setStatus] = useState('');
   const [deletingId, setDeletingId] = useState<number | string | null>(null);
 
   const totalPages = Math.ceil(total / 20);
@@ -136,25 +135,25 @@ export default function DistributorsPage() {
     setLoading(false);
   }, [page, query, status]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  function handleSearch(event: React.FormEvent) {
+    event.preventDefault();
     setPage(1);
     setQuery(search);
+  }
 
-    async function handleDelete(id: number | string) {
-      if (!confirm('Delete this distributor application? This cannot be undone.')) return;
-      setDeletingId(id);
-      try {
-        const res = await fetch(`/api/b2b/distributors?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' });
-        if (res.ok) {
-          setDistributors((current) => current.filter((item) => item.id !== id));
-          setTotal((prev) => Math.max(0, prev - 1));
-        }
-      } finally {
-        setDeletingId(null);
+  async function handleDelete(id: number | string) {
+    if (!confirm('Delete this distributor application? This cannot be undone.')) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/b2b/distributors?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' });
+      if (res.ok) {
+        setDistributors((current) => current.filter((item) => item.id !== id));
+        setTotal((prev) => Math.max(0, prev - 1));
       }
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -165,7 +164,7 @@ export default function DistributorsPage() {
         <p className="text-gray-500 text-sm mt-1">{total} total distributor applications</p>
       </div>
 
-      <form onSubmit={handleSearch} className="flex gap-3">
+      <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -174,14 +173,14 @@ export default function DistributorsPage() {
             placeholder="Search by company or name..."
             className="w-full h-10 pl-9 pr-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
-                <select
-                  value={status}
-                  onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-                  className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  {DISTRIBUTOR_STATUSES.map((s) => <option key={s} value={s}>{s ? labelize(s) : 'All'}</option>)}
-                </select>
         </div>
+        <select
+          value={status}
+          onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+          className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        >
+          {DISTRIBUTOR_STATUSES.map((s) => <option key={s} value={s}>{s ? labelize(s) : 'All'}</option>)}
+        </select>
         <button type="submit" className="h-10 px-5 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors">
           Search
         </button>
@@ -193,7 +192,7 @@ export default function DistributorsPage() {
             <thead className="bg-gray-50">
               <tr>
                 {['Company', 'Contact', 'Email', 'Phone', 'Location', 'Action Taken', 'Date', ''].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  <th key={h || 'actions'} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -219,7 +218,6 @@ export default function DistributorsPage() {
                       {d.date ? new Date(d.date).toLocaleDateString('en-GB') : '—'}
                     </td>
                     <td className="px-5 py-4">
-                      <button onClick={() => setSelectedDistributor(d)} className="text-xs text-amber-600 hover:underline">View</button>
                       <div className="flex items-center gap-3">
                         <button onClick={() => setSelectedDistributor(d)} className="text-xs text-amber-600 hover:underline">View</button>
                         <button
