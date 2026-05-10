@@ -201,13 +201,9 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
     );
   }
 
-  const records = section === 'enquiries'
-    ? store.enquiries
-    : section === 'distributors'
-      ? store.distributorApplications
-      : store.installations;
 
   if (section === 'installations') {
+    const installationRecords = store.installations;
     return (
       <SectionShell title={SECTION_TITLES[section]} description="Manage installation projects, statuses and internal notes.">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -222,9 +218,9 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {records.length === 0 ? (
+                {installationRecords.length === 0 ? (
                   <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400">No installations have been logged yet.</td></tr>
-                ) : records.map((record) => (
+                ) : installationRecords.map((record) => (
                   <tr key={record.id}>
                     <td className="px-6 py-4 font-medium text-gray-900">{record.clientName}</td>
                     <td className="px-6 py-4 text-gray-600">{record.location}</td>
@@ -239,6 +235,8 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
       </SectionShell>
     );
   }
+
+  const records = section === 'enquiries' ? store.enquiries : store.distributorApplications;
 
   return (
     <SectionShell title={SECTION_TITLES[section]} description={`Track and manage ${section === 'enquiries' ? 'contact enquiries' : 'distributor applications'} in the b2b workspace.`}>

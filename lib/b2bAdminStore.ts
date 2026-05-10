@@ -379,6 +379,7 @@ const DEFAULT_SECTION_VISIBILITY: Record<B2BSectionKey, boolean> = {
   distributors: true,
   installations: true,
   'case-studies': true,
+  solutions: true,
   pages: true,
   'site-settings': true,
   access: true,
@@ -1160,11 +1161,12 @@ async function buildSeededPageRecord(route: string, filePath: string) {
 async function discoverPageFiles(dirPath: string, files: string[] = []): Promise<string[]> {
   const entries = await fs.readdir(dirPath, { withFileTypes: true }).catch(() => [] as Awaited<ReturnType<typeof fs.readdir>>);
   for (const entry of entries) {
-    if (entry.name.startsWith('.')) continue;
-    const absolutePath = path.join(dirPath, entry.name);
+    const entryName = typeof entry.name === 'string' ? entry.name : entry.name.toString();
+    if (entryName.startsWith('.')) continue;
+    const absolutePath = path.join(dirPath, entryName);
     if (entry.isDirectory()) {
       await discoverPageFiles(absolutePath, files);
-    } else if (isPageFile(entry.name)) {
+    } else if (isPageFile(entryName)) {
       files.push(absolutePath);
     }
   }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { appendB2BAuditLog, updateB2BAdminStore } from '@/lib/b2bAdminStore';
+import { appendB2BAuditLog, updateB2BAdminStore, type B2BSubmissionKind, type B2BSubmissionRecord } from '@/lib/b2bAdminStore';
 
 function randomId() {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -9,8 +9,8 @@ function randomId() {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const kind = body?.kind === 'distributor' ? 'distributor' : 'contact';
-  const record = {
+  const kind: B2BSubmissionKind = body?.kind === 'distributor' ? 'distributor' : 'contact';
+  const record: B2BSubmissionRecord = {
     id: randomId(),
     kind,
     status: 'new' as const,
