@@ -16,6 +16,13 @@ type LocalDistributor = {
   createdAt?: string;
 };
 
+function normalizeStoreStatus(status: string): 'new' | 'in-review' | 'resolved' {
+  const value = String(status || '').trim().toLowerCase();
+  if (value === 'resolved' || value === 'converted' || value === 'approved') return 'resolved';
+  if (value === 'new' || value === 'pending') return 'new';
+  return 'in-review';
+}
+
 function getLocalDistributors(params: { page: number; search: string; status: string }) {
   return readB2BAdminStore().then((store) => {
     const all = (Array.isArray(store.distributorApplications) ? store.distributorApplications : []) as LocalDistributor[];
@@ -87,11 +94,12 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
 
   const { id, status } = body as { id: string; status: string };
+  const storeStatus = normalizeStoreStatus(status);
 
   await updateB2BAdminStore((store) => ({
     ...store,
     distributorApplications: store.distributorApplications.map((item) =>
-      String(item.id) === String(id) ? { ...item, status } : item
+      String(item.id) === String(id) ? { ...item, status: storeStatus } : item
     ),
   }));
 
