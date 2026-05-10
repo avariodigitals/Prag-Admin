@@ -1608,7 +1608,68 @@ export async function updateB2BAdminStore(updater: (current: B2BAdminStore) => B
   return updated;
 }
 
+function normalizeAuditActor(value: unknown): string {
+  return String(value ?? '').trim();
+}
+
+function actorFromEmail(value: string): string {
+  const atIndex = value.indexOf('@');
+  if (atIndex <= 0) return '';
+  return value.slice(0, atIndex).trim();
+}
+
+function readActorFromCookiePayload(payload: Record<string, unknown>): string {
+  const firstName = normalizeAuditActor(payload.first_name);
+  const lastName = normalizeAuditActor(payload.last_name);
+  const fullName = `${firstName} ${lastName}`.trim();
+  if (fullName) return fullName;
+
+  const preferred = [
+    payload.name,
+    payload.display_name,
+    payload.user_nicename,
+    payload.user_login,
+    payload.username,
+  ];
+
+  for (const value of preferred) {
+    const normalized = normalizeAuditActor(value);
+    if (!normalized) continue;
+    if (!normalized.includes('@')) return normalized;
+
+    const emailUsername = actorFromEmail(normalized);
+    if (emailUsername) return emailUsername;
+  }
+
+  return '';
+}
+
+async function resolveAuditActorFromCookies(): Promise<string> {
+  try {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get('admin_user')?.value;
+    if (!raw) return '';
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return '';
+    return readActorFromCookiePayload(parsed as Record<string, unknown>);
+  } catch {
+    return '';
+  }
+}
+
 export async function appendB2BAuditLog(record: Omit<B2BAuditRecord, 'id' | 'at'>) {
+  const cookieActor = await resolveAuditActorFromCookies();
+  const suppliedActor = normalizeAuditActor(record.actor);
+  const suppliedAsUsername = suppliedActor.includes('@') ? actorFromEmail(suppliedActor) : '';
+  const shouldUseCookieActor = suppliedActor.length === 0
+    || suppliedActor === 'admin'
+    || suppliedActor === 'system'
+    || suppliedActor.includes('@');
+  const actor = shouldUseCookieActor && cookieActor
+    ? cookieActor
+    : (suppliedAsUsername || suppliedActor || 'system');
+
   await updateB2BAdminStore((current) => {
     const entryId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
@@ -1618,6 +1679,7 @@ export async function appendB2BAuditLog(record: Omit<B2BAuditRecord, 'id' | 'at'
       id: entryId,
       at: new Date().toISOString(),
       ...record,
+      actor,
     };
 
     return {

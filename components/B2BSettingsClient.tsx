@@ -37,6 +37,14 @@ export default function B2BSettingsClient({
   auditRecords?: B2BAuditRecord[];
   showAccessManager?: boolean;
 }) {
+  function formatActorLabel(actor?: string): string {
+    const value = String(actor ?? '').trim();
+    if (!value) return 'system';
+    const atIndex = value.indexOf('@');
+    if (atIndex > 0) return value.slice(0, atIndex);
+    return value;
+  }
+
   const tabs = useMemo(
     () => {
       if (!Array.isArray(allowedTabs) || allowedTabs.length === 0) return ALL_TABS;
@@ -718,6 +726,7 @@ export default function B2BSettingsClient({
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">When</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Actor</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Target</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</th>
@@ -725,10 +734,11 @@ export default function B2BSettingsClient({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {allAuditRecords.length === 0 ? (
-                    <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400">No audit entries yet.</td></tr>
+                    <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">No audit entries yet.</td></tr>
                   ) : allAuditRecords.map((entry) => (
                     <tr key={entry.id}>
                       <td className="px-6 py-4 text-gray-500">{new Date(entry.at).toLocaleString('en-GB')}</td>
+                      <td className="px-6 py-4 text-gray-700 font-medium">{formatActorLabel(entry.actor)}</td>
                       <td className="px-6 py-4 font-medium text-gray-900">{entry.action}</td>
                       <td className="px-6 py-4 text-gray-600">{entry.target}</td>
                       <td className="px-6 py-4 text-gray-600">{entry.details ?? '-'}</td>
