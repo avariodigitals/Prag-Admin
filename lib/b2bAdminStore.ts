@@ -447,6 +447,76 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
       { id: '/shipping-issues', title: 'Order Tracking and Delivery Issues', type: 'content', visible: true, summary: 'Order Tracking and Delivery Issues', content: 'Once your order has been shipped, you will receive a confirmation email with a tracking number. If your package arrives damaged or goes missing during transit, contact our customer support team within 48 hours of the expected delivery date for investigation and resolution.', imageUrl: '', imageAlt: '' },
     ],
   },
+  '/compare': {
+    title: 'Compare Products',
+    description: 'Compare PRAG power products side-by-side to choose the best fit for your needs.',
+    sections: [
+      { id: '/compare-hero', title: 'Compare Hero', type: 'hero', visible: true, kicker: 'Compare', summary: 'Compare Products', content: 'Compare PRAG power products side-by-side to choose the best fit for your needs.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/distributor': {
+    title: 'Become a Distributor',
+    description: 'Apply to become a PRAG distributor and grow with reliable power solutions.',
+    sections: [
+      { id: '/distributor-hero', title: 'Distributor Hero', type: 'hero', visible: true, kicker: 'Distributor', summary: 'Become a Distributor', content: 'Apply to become a PRAG distributor and grow with reliable power solutions.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/find-a-distributor': {
+    title: 'Find a Distributor',
+    description: 'Locate verified PRAG distributors near you.',
+    sections: [
+      { id: '/find-a-distributor-hero', title: 'Find Distributor Hero', type: 'hero', visible: true, kicker: 'Distributors', summary: 'Find a Distributor', content: 'Locate verified PRAG distributors near you.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/knowledge-center': {
+    title: 'Knowledge Center',
+    description: 'Explore guides, updates, and practical insights for reliable power systems.',
+    sections: [
+      { id: '/knowledge-center-hero', title: 'Knowledge Center Hero', type: 'hero', visible: true, kicker: 'Knowledge Center', summary: 'Knowledge Center', content: 'Explore guides, updates, and practical insights for reliable power systems.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/knowledge-center/[slug]': {
+    title: 'Knowledge Article',
+    description: 'Detailed article content from the PRAG knowledge center.',
+    sections: [
+      { id: '/knowledge-center-slug-hero', title: 'Knowledge Article Hero', type: 'hero', visible: true, kicker: 'Knowledge Center', summary: 'Knowledge Article', content: 'Detailed article content from the PRAG knowledge center.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/power-calculator': {
+    title: 'Power Calculator',
+    description: 'Estimate your power requirements and get the right PRAG recommendation.',
+    sections: [
+      { id: '/power-calculator-hero', title: 'Power Calculator Hero', type: 'hero', visible: true, kicker: 'Calculator', summary: 'Power Calculator', content: 'Estimate your power requirements and get the right PRAG recommendation.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/products': {
+    title: 'Products',
+    description: 'Browse all PRAG product categories and power technologies.',
+    sections: [
+      { id: '/products-hero', title: 'Products Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Products', content: 'Browse all PRAG product categories and power technologies.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/products/[category]': {
+    title: 'Product Category',
+    description: 'Explore products in the selected category.',
+    sections: [
+      { id: '/products-category-hero', title: 'Product Category Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Product Category', content: 'Explore products in the selected category.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/products/[category]/[slug]': {
+    title: 'Product Details',
+    description: 'Review product details, specifications, and use cases.',
+    sections: [
+      { id: '/products-category-slug-hero', title: 'Product Details Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Product Details', content: 'Review product details, specifications, and use cases.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/resources': {
+    title: 'Resources',
+    description: 'Access technical resources, guides, and supporting documentation.',
+    sections: [
+      { id: '/resources-hero', title: 'Resources Hero', type: 'hero', visible: true, kicker: 'Resources', summary: 'Resources', content: 'Access technical resources, guides, and supporting documentation.', imageUrl: '', imageAlt: '' },
+    ],
+  },
 };
 
 const DEFAULT_SECTION_VISIBILITY: Record<B2BSectionKey, boolean> = {
@@ -1326,6 +1396,19 @@ async function ensureStoreFile() {
 async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminStore> {
   const discoveredPages = await discoverB2BPages();
   const pagesByRoute = new Map((parsed.pages ?? []).map((page) => [page.route, page]));
+  const discoveredByRoute = new Map(discoveredPages.map((page) => [page.route, page]));
+
+  // Keep previously stored dynamic routes even when discovery is limited
+  // (e.g. deployed admin without access to the prag-b2b filesystem).
+  for (const [route, stored] of pagesByRoute.entries()) {
+    if (!discoveredByRoute.has(route)) {
+      discoveredByRoute.set(route, mergePageRecord(route, stored));
+    }
+  }
+
+  const normalizedPages = Array.from(discoveredByRoute.values())
+    .sort((a, b) => a.route.localeCompare(b.route))
+    .map((page) => mergeSeededPageRecord(page, pagesByRoute.get(page.route)));
 
   return {
     enquiries: Array.isArray(parsed.enquiries) ? parsed.enquiries : [],
@@ -1333,7 +1416,7 @@ async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminS
     installations: Array.isArray(parsed.installations) ? parsed.installations : [],
     caseStudies: normalizeCaseStudiesContent(parsed.caseStudies),
     solutions: normalizeSolutionsContent(parsed.solutions),
-    pages: discoveredPages.map((page) => mergeSeededPageRecord(page, pagesByRoute.get(page.route))),
+    pages: normalizedPages,
     settings: mergeSettings(parsed.settings),
     audit: Array.isArray(parsed.audit) ? parsed.audit : [],
   };
