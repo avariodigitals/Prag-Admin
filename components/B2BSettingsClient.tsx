@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Save } from 'lucide-react';
 import B2BAccessClient from '@/components/B2BAccessClient';
-import type { B2BAuditRecord, B2BSettings } from '@/lib/b2bAdminStore';
+import type { B2BAuditRecord, B2BSettings, B2BSectionKey } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
 const areaCls = 'w-full min-h-24 p-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -77,7 +77,9 @@ export default function B2BSettingsClient({
     'solutions', 'pages', 'site-settings', 'access', 'launch', 'scripts', 'smtp', 'forms', 'audit',
   ];
 
-  const defaultRoleVisibility: Record<string, boolean> = Object.fromEntries(allSectionKeys.map((key) => [key, false]));
+  const defaultRoleVisibility = Object.fromEntries(
+    allSectionKeys.map((key) => [key, false])
+  ) as Record<B2BSectionKey, boolean>;
 
   const mergedRoles = useMemo(() => {
     const configured = Object.keys(settings.access);
