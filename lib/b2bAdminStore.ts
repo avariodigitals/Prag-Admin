@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { cookies } from 'next/headers';
 
 export type B2BSubmissionKind = 'contact' | 'distributor';
 export type B2BSectionKey = 'overview' | 'enquiries' | 'distributors' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit';
@@ -141,6 +142,9 @@ export interface B2BIntegrationsConfig {
   searchConsoleVerification: string;
   zohoOneScript: string;
   customDomainHook: string;
+  whatsappChatEnabled: boolean;
+  whatsappChatNumber: string;
+  whatsappChatText: string;
 }
 
 export interface B2BSiteContact {
@@ -246,6 +250,29 @@ const B2B_APP_ROOT = process.env.B2B_APP_ROOT || path.resolve(process.cwd(), '..
 const B2B_APP_DIR = path.join(B2B_APP_ROOT, 'app');
 const STORE_PATH = path.join(process.cwd(), '.admin-data', 'b2b-admin-config.json');
 const PAGE_FILE_NAMES = new Set(['page.tsx', 'page.ts', 'page.jsx', 'page.js']);
+
+const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
+const WP_APP_USER = process.env.WP_APP_USER || '';
+const WP_APP_PASSWORD = process.env.WP_APP_PASSWORD || '';
+
+async function wpAuthHeader(): Promise<Record<string, string>> {
+  if (WP_APP_USER && WP_APP_PASSWORD) {
+    const encoded = Buffer.from(`${WP_APP_USER}:${WP_APP_PASSWORD}`).toString('base64');
+    return { Authorization: `Basic ${encoded}` };
+  }
+
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('admin_token')?.value;
+    if (token) {
+      return { Authorization: `Bearer ${token}` };
+    }
+  } catch {
+    // No request cookie context available.
+  }
+
+  return {};
+}
 
 const HOMEPAGE_HERO_IMAGE = 'https://central.prag.global/wp-content/uploads/2026/05/pragrite-1.jpg';
 const ABOUT_TEAM_IMAGE = 'https://central.prag.global/wp-content/uploads/2026/04/51105cfa2d7e118079c6acdb18a81c8b54dc18e6.png';
@@ -491,6 +518,9 @@ const DEFAULT_SETTINGS: B2BSettings = {
     searchConsoleVerification: '',
     zohoOneScript: '',
     customDomainHook: '',
+    whatsappChatEnabled: false,
+    whatsappChatNumber: '',
+    whatsappChatText: 'Chat with us on WhatsApp',
   },
   launch: {
     enabled: false,
@@ -1262,10 +1292,7 @@ async function ensureStoreFile() {
   }
 }
 
-async function readFromFile(): Promise<B2BAdminStore> {
-  await ensureStoreFile();
-  const raw = await fs.readFile(STORE_PATH, 'utf8');
-  const parsed = JSON.parse(raw) as Partial<B2BAdminStore>;
+async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminStore> {
   const discoveredPages = await discoverB2BPages();
   const pagesByRoute = new Map((parsed.pages ?? []).map((page) => [page.route, page]));
 
@@ -1281,27 +1308,84 @@ async function readFromFile(): Promise<B2BAdminStore> {
   };
 }
 
+async function readFromFile(): Promise<B2BAdminStore> {
+  await ensureStoreFile();
+  const raw = await fs.readFile(STORE_PATH, 'utf8');
+  const parsed = JSON.parse(raw) as Partial<B2BAdminStore>;
+  return normalizeStore(parsed);
+}
+
 async function writeToFile(data: B2BAdminStore): Promise<void> {
   await ensureStoreFile();
   await fs.writeFile(STORE_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
+async function readFromWordPress(): Promise<B2BAdminStore> {
+  const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+    headers: { 'Content-Type': 'application/json', ...(await wpAuthHeader()) },
+    cache: 'no-store',
+  });
+
+  if (res.status === 204 || res.status === 404) {
+    return normalizeStore(DEFAULT_STORE);
+  }
+  if (!res.ok) {
+    throw new Error(`WP admin-config GET failed: ${res.status}`);
+  }
+
+  const parsed = (await res.json()) as Record<string, unknown>;
+  const nested = parsed?.b2bAdminStore;
+  const source = nested && typeof nested === 'object'
+    ? nested as Partial<B2BAdminStore>
+    : {};
+
+  return normalizeStore(source);
+}
+
+async function writeToWordPress(data: B2BAdminStore): Promise<void> {
+  const readRes = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+    headers: { 'Content-Type': 'application/json', ...(await wpAuthHeader()) },
+    cache: 'no-store',
+  });
+
+  let currentConfig: Record<string, unknown> = {};
+  if (readRes.ok && readRes.status !== 204) {
+    currentConfig = (await readRes.json()) as Record<string, unknown>;
+  }
+
+  const payload = {
+    ...currentConfig,
+    b2bAdminStore: data,
+  };
+
+  const writeRes = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await wpAuthHeader()) },
+    body: JSON.stringify(payload),
+  });
+
+  if (!writeRes.ok) {
+    throw new Error(`WP admin-config POST failed: ${writeRes.status}`);
+  }
+}
+
 export async function readB2BAdminStore(): Promise<B2BAdminStore> {
   try {
+    if (process.env.VERCEL) {
+      return await readFromWordPress();
+    }
     return await readFromFile();
   } catch {
-    const discoveredPages = await discoverB2BPages();
-    return {
-      ...DEFAULT_STORE,
-      caseStudies: DEFAULT_CASE_STUDIES,
-      solutions: DEFAULT_SOLUTIONS,
-      pages: discoveredPages,
-    };
+    return normalizeStore(DEFAULT_STORE);
   }
 }
 
 export async function writeB2BAdminStore(next: B2BAdminStore): Promise<void> {
-  await writeToFile(next);
+  if (process.env.VERCEL) {
+    await writeToWordPress(next);
+  } else {
+    await writeToFile(next);
+  }
 }
 
 export async function updateB2BAdminStore(updater: (current: B2BAdminStore) => B2BAdminStore): Promise<B2BAdminStore> {

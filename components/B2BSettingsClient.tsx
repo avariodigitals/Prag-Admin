@@ -510,6 +510,38 @@ export default function B2BSettingsClient({
               <span className="text-sm font-medium text-gray-700">Zoho One Script</span>
               <textarea className={areaCls} placeholder="Paste Zoho One embed script or snippet" value={settings.integrations.zohoOneScript} onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, zohoOneScript: event.target.value } }))} />
             </label>
+            <div className="md:col-span-2 rounded-xl border border-gray-200 p-4 space-y-3 bg-gray-50">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">WhatsApp Chat Widget</p>
+                  <p className="text-xs text-gray-500">Floating B2B chat widget shown on the frontend left side.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={Boolean(settings.integrations.whatsappChatEnabled)}
+                  onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, whatsappChatEnabled: event.target.checked } }))}
+                  className="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+                />
+              </div>
+              <label className="space-y-1 block">
+                <span className="text-sm font-medium text-gray-700">WhatsApp Number</span>
+                <input
+                  className={inputCls}
+                  placeholder="+2348032170129"
+                  value={settings.integrations.whatsappChatNumber ?? ''}
+                  onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, whatsappChatNumber: event.target.value } }))}
+                />
+              </label>
+              <label className="space-y-1 block">
+                <span className="text-sm font-medium text-gray-700">Widget Label</span>
+                <input
+                  className={inputCls}
+                  placeholder="Chat with us on WhatsApp"
+                  value={settings.integrations.whatsappChatText ?? ''}
+                  onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, whatsappChatText: event.target.value } }))}
+                />
+              </label>
+            </div>
             <label className="space-y-1 md:col-span-2">
               <span className="text-sm font-medium text-gray-700">Custom Domain Hook</span>
               <textarea className={areaCls} placeholder="Optional domain-aware script snippet for future prag-b2b domains" value={settings.integrations.customDomainHook} onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, customDomainHook: event.target.value } }))} />

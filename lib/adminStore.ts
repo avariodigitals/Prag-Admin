@@ -120,6 +120,13 @@ const WP_APP_USER = process.env.WP_APP_USER || '';
 const WP_APP_PASSWORD = process.env.WP_APP_PASSWORD || '';
 
 async function wpAuthHeader(): Promise<Record<string, string>> {
+  // Prefer application-password auth when available; it works even when JWT auth
+  // plugins are not present/enabled on the WordPress host.
+  if (WP_APP_USER && WP_APP_PASSWORD) {
+    const encoded = Buffer.from(`${WP_APP_USER}:${WP_APP_PASSWORD}`).toString('base64');
+    return { Authorization: `Basic ${encoded}` };
+  }
+
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;
@@ -127,12 +134,10 @@ async function wpAuthHeader(): Promise<Record<string, string>> {
       return { Authorization: `Bearer ${token}` };
     }
   } catch {
-    // No request cookie context available; fall back to app credentials.
+    // No request cookie context available.
   }
 
-  if (!WP_APP_USER || !WP_APP_PASSWORD) return {};
-  const encoded = Buffer.from(`${WP_APP_USER}:${WP_APP_PASSWORD}`).toString('base64');
-  return { Authorization: `Basic ${encoded}` };
+  return {};
 }
 
 // ─── Local filesystem (development) ──────────────────────────────────────────
