@@ -1434,6 +1434,91 @@ async function writeToFile(data: B2BAdminStore): Promise<void> {
   await fs.writeFile(STORE_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function toIsoDate(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) return new Date().toISOString();
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+
+  const mysqlLike = value.trim().replace(' ', 'T');
+  const fallback = new Date(mysqlLike);
+  return Number.isNaN(fallback.getTime()) ? new Date().toISOString() : fallback.toISOString();
+}
+
+function normalizeWpStatus(value: unknown): B2BSubmissionRecord['status'] {
+  const status = String(value ?? '').trim().toLowerCase();
+  if (!status || status === 'pending') return 'new';
+  if (status === 'under-review') return 'in-review';
+  return status as B2BSubmissionRecord['status'];
+}
+
+function mapWpEnquiry(item: Record<string, unknown>): B2BSubmissionRecord {
+  return {
+    id: String(item.id ?? ''),
+    kind: 'contact',
+    status: normalizeWpStatus(item.status),
+    name: String(item.name ?? ''),
+    email: String(item.email ?? ''),
+    phone: String(item.phone ?? ''),
+    company: String(item.company ?? ''),
+    subject: String(item.type ?? item.subject ?? ''),
+    message: String(item.message ?? ''),
+    source: 'public-form',
+    route: '/contact',
+    createdAt: toIsoDate(item.date ?? item.createdAt ?? item.created_at ?? item.submitted_at),
+  };
+}
+
+function mapWpDistributor(item: Record<string, unknown>): B2BSubmissionRecord {
+  return {
+    id: String(item.id ?? ''),
+    kind: 'distributor',
+    status: normalizeWpStatus(item.status),
+    name: String(item.name ?? ''),
+    email: String(item.email ?? ''),
+    phone: String(item.phone ?? ''),
+    company: String(item.company ?? ''),
+    message: String(item.message ?? ''),
+    source: 'public-form',
+    route: '/distributor',
+    createdAt: toIsoDate(item.date ?? item.createdAt ?? item.created_at ?? item.submitted_at),
+  };
+}
+
+async function fetchWpB2BCollection(
+  endpoint: string,
+  mapper: (item: Record<string, unknown>) => B2BSubmissionRecord,
+): Promise<B2BSubmissionRecord[] | null> {
+  const headers = await buildWpAuthHeader();
+  const results: B2BSubmissionRecord[] = [];
+  const perPage = 100;
+  let page = 1;
+  let totalPages = 1;
+
+  try {
+    while (page <= totalPages) {
+      const url = `${WP_API_URL}/prag-core/v1/${endpoint}?page=${page}&per_page=${perPage}`;
+      const res = await fetch(url, { headers, cache: 'no-store' });
+      if (!res.ok) return null;
+
+      const payload = await res.json();
+      if (!Array.isArray(payload)) break;
+
+      for (const item of payload) {
+        if (!item || typeof item !== 'object') continue;
+        results.push(mapper(item as Record<string, unknown>));
+      }
+
+      const headerPages = Number(res.headers.get('X-WP-TotalPages') ?? '1');
+      totalPages = Number.isFinite(headerPages) && headerPages > 0 ? headerPages : totalPages;
+      page += 1;
+    }
+
+    return results;
+  } catch {
+    return null;
+  }
+}
+
 async function readFromWordPress(): Promise<B2BAdminStore> {
   const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
     headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
@@ -1453,7 +1538,18 @@ async function readFromWordPress(): Promise<B2BAdminStore> {
     ? nested as Partial<B2BAdminStore>
     : {};
 
-  return normalizeStore(source);
+  const [liveEnquiries, liveDistributors] = await Promise.all([
+    fetchWpB2BCollection('b2b/enquiries', mapWpEnquiry),
+    fetchWpB2BCollection('b2b/distributors', mapWpDistributor),
+  ]);
+
+  const mergedSource: Partial<B2BAdminStore> = {
+    ...source,
+    enquiries: liveEnquiries ?? source.enquiries,
+    distributorApplications: liveDistributors ?? source.distributorApplications,
+  };
+
+  return normalizeStore(mergedSource);
 }
 
 async function writeToWordPress(data: B2BAdminStore): Promise<void> {
