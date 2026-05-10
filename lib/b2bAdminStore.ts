@@ -246,6 +246,36 @@ export interface B2BAdminStore {
   audit: B2BAuditRecord[];
 }
 
+export interface B2BAdminHealthCheck {
+  checkedAt: string;
+  storageMode: 'wordpress' | 'file';
+  env: {
+    hasWpApiUrl: boolean;
+    hasWpAppUser: boolean;
+    hasWpAppPassword: boolean;
+  };
+  wordpress: {
+    authHeaderPresent: boolean;
+    read: {
+      ok: boolean;
+      status?: number;
+      error?: string;
+      skipped?: boolean;
+    };
+    write: {
+      ok: boolean;
+      status?: number;
+      error?: string;
+      skipped?: boolean;
+    };
+  };
+  pages: {
+    discovered: number;
+    stored: number;
+    effective: number;
+  };
+}
+
 const B2B_APP_ROOT = process.env.B2B_APP_ROOT || path.resolve(process.cwd(), '..', 'prag-b2b');
 const B2B_APP_DIR = path.join(B2B_APP_ROOT, 'app');
 const STORE_PATH = path.join(process.cwd(), '.admin-data', 'b2b-admin-config.json');
@@ -1413,6 +1443,91 @@ export async function appendB2BAuditLog(record: Omit<B2BAuditRecord, 'id' | 'at'
       audit: [entry, ...current.audit].slice(0, 500),
     };
   });
+}
+
+export async function runB2BAdminHealthCheck(): Promise<B2BAdminHealthCheck> {
+  const storageMode: 'wordpress' | 'file' = process.env.VERCEL ? 'wordpress' : 'file';
+  const env = {
+    hasWpApiUrl: Boolean(WP_API_URL),
+    hasWpAppUser: Boolean(WP_APP_USER),
+    hasWpAppPassword: Boolean(WP_APP_PASSWORD),
+  };
+
+  const authHeader = await wpAuthHeader();
+  const authHeaderPresent = typeof authHeader.Authorization === 'string' && authHeader.Authorization.length > 0;
+
+  const wordpress = {
+    authHeaderPresent,
+    read: {
+      ok: false,
+      skipped: storageMode !== 'wordpress',
+    } as { ok: boolean; status?: number; error?: string; skipped?: boolean },
+    write: {
+      ok: false,
+      skipped: storageMode !== 'wordpress',
+    } as { ok: boolean; status?: number; error?: string; skipped?: boolean },
+  };
+
+  if (storageMode === 'wordpress') {
+    let currentConfig: Record<string, unknown> | null = null;
+    try {
+      const readRes = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        cache: 'no-store',
+      });
+
+      wordpress.read.status = readRes.status;
+      wordpress.read.ok = readRes.ok;
+
+      if (readRes.ok) {
+        if (readRes.status === 204) {
+          currentConfig = {};
+        } else {
+          const parsed = (await readRes.json()) as unknown;
+          currentConfig = (parsed && typeof parsed === 'object') ? parsed as Record<string, unknown> : {};
+        }
+      }
+    } catch (error) {
+      wordpress.read.ok = false;
+      wordpress.read.error = error instanceof Error ? error.message : 'Unknown read error';
+    }
+
+    if (!wordpress.read.ok || currentConfig === null) {
+      wordpress.write.skipped = true;
+      wordpress.write.ok = false;
+      wordpress.write.error = wordpress.read.error ?? `Skipped because read failed${wordpress.read.status ? ` (${wordpress.read.status})` : ''}`;
+    } else {
+      try {
+        const writeRes = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify(currentConfig),
+        });
+
+        wordpress.write.status = writeRes.status;
+        wordpress.write.ok = writeRes.ok;
+      } catch (error) {
+        wordpress.write.ok = false;
+        wordpress.write.error = error instanceof Error ? error.message : 'Unknown write error';
+      }
+    }
+  }
+
+  const discoveredPages = await discoverB2BPages();
+  const store = await readB2BAdminStore();
+  const storedCount = store.pages.length;
+
+  return {
+    checkedAt: new Date().toISOString(),
+    storageMode,
+    env,
+    wordpress,
+    pages: {
+      discovered: discoveredPages.length,
+      stored: storedCount,
+      effective: storedCount > 0 ? storedCount : discoveredPages.length,
+    },
+  };
 }
 
 export function getB2BOverview(store: B2BAdminStore) {
