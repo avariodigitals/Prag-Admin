@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { readB2BAdminStore, updateB2BAdminStore } from '@/lib/b2bAdminStore';
+import { buildWpAuthHeader, readB2BAdminStore, updateB2BAdminStore } from '@/lib/b2bAdminStore';
 
 const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
 
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const res = await fetch(`${WP_API_URL}/prag-core/v1/b2b/enquiries?${qs}`, {
-      headers: { Authorization: `Bearer ${session.token}` },
+      headers: await buildWpAuthHeader(),
       cache: 'no-store',
     });
     if (!res.ok) {
@@ -111,7 +111,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const res = await fetch(`${WP_API_URL}/prag-core/v1/b2b/enquiries/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
+      headers: { 'Content-Type': 'application/json', ...await buildWpAuthHeader() },
       body: JSON.stringify(body),
     });
     return NextResponse.json({ ok: res.ok });
@@ -136,7 +136,7 @@ export async function DELETE(req: NextRequest) {
   try {
     await fetch(`${WP_API_URL}/prag-core/v1/b2b/enquiries/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${session.token}` },
+      headers: await buildWpAuthHeader(),
     });
   } catch { /* best-effort */ }
 

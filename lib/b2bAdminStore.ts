@@ -285,7 +285,7 @@ const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.g
 const WP_APP_USER = process.env.WP_APP_USER || '';
 const WP_APP_PASSWORD = process.env.WP_APP_PASSWORD || '';
 
-async function wpAuthHeader(): Promise<Record<string, string>> {
+export async function buildWpAuthHeader(): Promise<Record<string, string>> {
   if (WP_APP_USER && WP_APP_PASSWORD) {
     const encoded = Buffer.from(`${WP_APP_USER}:${WP_APP_PASSWORD}`).toString('base64');
     return { Authorization: `Basic ${encoded}` };
@@ -1436,7 +1436,7 @@ async function writeToFile(data: B2BAdminStore): Promise<void> {
 
 async function readFromWordPress(): Promise<B2BAdminStore> {
   const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
-    headers: { 'Content-Type': 'application/json', ...(await wpAuthHeader()) },
+    headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
     cache: 'no-store',
   });
 
@@ -1458,7 +1458,7 @@ async function readFromWordPress(): Promise<B2BAdminStore> {
 
 async function writeToWordPress(data: B2BAdminStore): Promise<void> {
   const readRes = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
-    headers: { 'Content-Type': 'application/json', ...(await wpAuthHeader()) },
+    headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
     cache: 'no-store',
   });
 
@@ -1474,7 +1474,7 @@ async function writeToWordPress(data: B2BAdminStore): Promise<void> {
 
   const writeRes = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(await wpAuthHeader()) },
+    headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
     body: JSON.stringify(payload),
   });
 
@@ -1539,7 +1539,7 @@ export async function runB2BAdminHealthCheck(): Promise<B2BAdminHealthCheck> {
     hasWpAppPassword: Boolean(WP_APP_PASSWORD),
   };
 
-  const authHeader = await wpAuthHeader();
+  const authHeader = await buildWpAuthHeader();
   const authHeaderPresent = typeof authHeader.Authorization === 'string' && authHeader.Authorization.length > 0;
 
   const wordpress = {
