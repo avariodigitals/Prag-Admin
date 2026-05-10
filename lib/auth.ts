@@ -96,3 +96,23 @@ export async function isSuperAdmin(token: string): Promise<boolean> {
   const user = await getCurrentWpUser(token);
   return user?.roles?.some((role) => role.toLowerCase() === 'administrator') ?? false;
 }
+
+export async function hasPortalAccess(token: string, portal: 'b2c' | 'b2b'): Promise<boolean> {
+  const cookieUser = await getCookieUserInfo();
+  if (cookieUser && cookieUser.id !== undefined) {
+    const userId = Number(cookieUser.id);
+    if (Number.isFinite(userId) && userId > 0) {
+      const store = await readAdminStore();
+      const state = store.users[String(userId)];
+      if (!state || !state.active) return false;
+      return state.portals.includes(portal);
+    }
+  }
+
+  const user = await getCurrentWpUser(token);
+  if (!user) return false;
+
+  const store = await readAdminStore();
+  const state = store.users[String(user.id)] ?? { active: true, portals: ['b2c'] };
+  return state.active && state.portals.includes(portal);
+}

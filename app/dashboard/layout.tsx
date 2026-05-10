@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getSession, isAdmin, isSuperAdmin } from '@/lib/auth';
 import { readAdminStore } from '@/lib/adminStore';
-import Sidebar from '@/components/Sidebar';
+import DashboardShell from '@/components/DashboardShell';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -23,16 +23,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
-      <Sidebar
-        displayName={session.user?.user_display_name ?? 'Admin'}
-        email={session.user?.user_email ?? ''}
-        canManageAccess={superAdmin}
-        allowedModules={allowedModules}
-      />
-      <main className="flex-1 overflow-auto pt-16 md:pt-0">
-        <div className="p-4 md:p-8">{children}</div>
-      </main>
-    </div>
+    <DashboardShell
+      displayName={session.user?.user_display_name ?? 'Admin'}
+      email={session.user?.user_email ?? ''}
+      canManageAccess={superAdmin}
+      allowedModules={allowedModules}
+    >
+      {children}
+    </DashboardShell>
   );
 }
