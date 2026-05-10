@@ -1231,8 +1231,8 @@ function mergeSeededPageRecord(seed: B2BPageRecord, stored?: Partial<B2BPageReco
   });
 }
 
-async function buildSeededPageRecord(route: string, filePath: string) {
-  const source = await fs.readFile(filePath, 'utf8').catch(() => '');
+async function buildSeededPageRecord(route: string, filePath?: string) {
+  const source = filePath ? await fs.readFile(filePath, 'utf8').catch(() => '') : '';
   const preset = ROUTE_PRESETS[route] ?? {};
   const metadataTitle = extractMetadataField(source, 'title');
   const metadataDescription = extractMetadataField(source, 'description');
@@ -1272,10 +1272,11 @@ function toRoute(filePath: string) {
 
 export async function discoverB2BPages(): Promise<B2BPageRecord[]> {
   const files = await discoverPageFiles(B2B_APP_DIR);
-  const routeEntries = Array.from(new Map(files.map((filePath) => [toRoute(filePath), filePath])).entries())
-    .sort(([routeA], [routeB]) => routeA.localeCompare(routeB));
+  const routeToFile = new Map(files.map((filePath) => [toRoute(filePath), filePath]));
+  const seededRoutes = Array.from(new Set([...routeToFile.keys(), ...Object.keys(ROUTE_PRESETS)]))
+    .sort((routeA, routeB) => routeA.localeCompare(routeB));
 
-  return Promise.all(routeEntries.map(async ([route, filePath]) => buildSeededPageRecord(route, filePath)));
+  return Promise.all(seededRoutes.map(async (route) => buildSeededPageRecord(route, routeToFile.get(route))));
 }
 
 async function ensureStoreFile() {
