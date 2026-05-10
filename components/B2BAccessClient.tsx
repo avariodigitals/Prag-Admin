@@ -12,6 +12,7 @@ type UserRow = {
   roles: string[];
   active: boolean;
   portals: PortalAccess[];
+  b2bSections: string[];
 };
 
 type UsersResponse = {
@@ -19,11 +20,31 @@ type UsersResponse = {
   roles: string[];
 };
 
+const B2B_MENU_OPTIONS = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'enquiries', label: 'Enquiries' },
+  { key: 'distributors', label: 'Distributor Apps' },
+  { key: 'installations', label: 'Installations' },
+  { key: 'case-studies', label: 'Case Studies' },
+  { key: 'solutions', label: 'Solutions' },
+  { key: 'pages', label: 'Pages' },
+  { key: 'super-settings', label: 'Super Settings' },
+  { key: 'site-settings', label: 'Site Settings' },
+  { key: 'scripts', label: 'Scripts' },
+  { key: 'smtp', label: 'SMTP' },
+  { key: 'forms', label: 'Forms Routing' },
+  { key: 'access', label: 'Access' },
+  { key: 'launch', label: 'Launch Control' },
+  { key: 'audit', label: 'Audit Trail' },
+];
+
 export default function B2BAccessClient() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
+  const [editingMenuUserId, setEditingMenuUserId] = useState<number | null>(null);
+  const [draftMenus, setDraftMenus] = useState<string[]>([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -58,14 +79,19 @@ export default function B2BAccessClient() {
 
   const b2bUsers = useMemo(() => users.filter((user) => user.portals.includes('b2b')), [users]);
 
-  async function updateUser(user: UserRow, next: Partial<Pick<UserRow, 'active' | 'portals'>>) {
+  async function updateUser(user: UserRow, next: Partial<Pick<UserRow, 'active' | 'portals' | 'b2bSections'>>) {
     setSavingId(user.id);
     setError('');
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, active: next.active ?? user.active, portals: next.portals ?? user.portals }),
+        body: JSON.stringify({
+          userId: user.id,
+          active: next.active ?? user.active,
+          portals: next.portals ?? user.portals,
+          b2bSections: next.b2bSections ?? user.b2bSections,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -74,7 +100,12 @@ export default function B2BAccessClient() {
       setUsers((current) => current.map((item) => {
         const updated = Array.isArray(data.updated) ? data.updated.find((entry: { userId: number }) => entry.userId === item.id) : null;
         if (!updated || item.id !== user.id) return item;
-        return { ...item, active: Boolean(updated.active), portals: Array.isArray(updated.portals) ? updated.portals : item.portals };
+        return {
+          ...item,
+          active: Boolean(updated.active),
+          portals: Array.isArray(updated.portals) ? updated.portals : item.portals,
+          b2bSections: Array.isArray(updated.b2bSections) ? updated.b2bSections : item.b2bSections,
+        };
       }));
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : 'Failed to update user access.');
@@ -89,6 +120,20 @@ export default function B2BAccessClient() {
 
   const b2bCount = b2bUsers.length;
   const activeB2BCount = b2bUsers.filter((user) => user.active).length;
+
+  function openMenuEditor(user: UserRow) {
+    setEditingMenuUserId(user.id);
+    setDraftMenus(Array.isArray(user.b2bSections) ? user.b2bSections : []);
+  }
+
+  function toggleDraftMenu(menu: string) {
+    setDraftMenus((current) => (current.includes(menu) ? current.filter((item) => item !== menu) : [...current, menu]));
+  }
+
+  async function saveMenuAccess(user: UserRow) {
+    await updateUser(user, { b2bSections: draftMenus });
+    setEditingMenuUserId(null);
+  }
 
   return (
     <div className="space-y-6">
@@ -136,6 +181,7 @@ export default function B2BAccessClient() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Active</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">B2C</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">B2B</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">B2B Menus</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
                 </tr>
               </thead>
@@ -179,6 +225,16 @@ export default function B2BAccessClient() {
                         B2B
                       </label>
                     </td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => openMenuEditor(user)}
+                        disabled={savingId === user.id}
+                        className="text-xs text-sky-700 hover:underline disabled:opacity-60"
+                      >
+                        {Array.isArray(user.b2bSections) && user.b2bSections.length > 0 ? `${user.b2bSections.length} selected` : 'All menus'}
+                      </button>
+                    </td>
                     <td className="px-4 py-3 text-xs text-gray-500">{savingId === user.id ? 'Saving...' : 'Privileges update instantly.'}</td>
                   </tr>
                 ))}
@@ -187,6 +243,43 @@ export default function B2BAccessClient() {
           </div>
         )}
       </div>
+
+      {editingMenuUserId !== null && (
+        <div className="fixed inset-0 z-50 bg-black/40 p-4 flex items-center justify-center">
+          <div className="w-full max-w-2xl bg-white rounded-2xl border border-gray-200 shadow-2xl">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold text-gray-900">User Menu Access</h3>
+              <button type="button" onClick={() => setEditingMenuUserId(null)} className="text-sm text-gray-500 hover:text-gray-700">Close</button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <p className="text-sm text-gray-500">Pick the B2B menus this user can open. Leave all unchecked to allow all menus.</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {B2B_MENU_OPTIONS.map((menu) => (
+                  <label key={menu.key} className="inline-flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" checked={draftMenus.includes(menu.key)} onChange={() => toggleDraftMenu(menu.key)} />
+                    {menu.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button type="button" onClick={() => setEditingMenuUserId(null)} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600">Cancel</button>
+              <button
+                type="button"
+                onClick={() => {
+                  const user = users.find((entry) => entry.id === editingMenuUserId);
+                  if (user) {
+                    void saveMenuAccess(user);
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-sky-700 hover:bg-sky-800 text-sm font-semibold text-white"
+              >
+                Save Menu Access
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,9 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Mail, Building2, House, FileText, Settings, Shield, Rocket, Code2, MailCheck, SlidersHorizontal, Activity, Menu, X, ExternalLink, LogOut, BookOpenCheck, Lightbulb } from 'lucide-react';
+import { LayoutDashboard, Mail, Building2, House, FileText, Settings, Menu, X, ExternalLink, LogOut, BookOpenCheck, Lightbulb, ArrowLeftRight } from 'lucide-react';
 
-const NAV = [
+const MAIN_NAV = [
   { href: '/dashboard/b2b', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/b2b/enquiries', label: 'Enquiries', icon: Mail },
   { href: '/dashboard/b2b/distributors', label: 'Distributor Apps', icon: Building2 },
@@ -15,18 +15,30 @@ const NAV = [
   { href: '/dashboard/b2b/solutions', label: 'Solutions', icon: Lightbulb },
   { href: '/dashboard/b2b/pages', label: 'Pages', icon: FileText },
   { href: '/dashboard/b2b/site-settings', label: 'Site Settings', icon: Settings },
-  { href: '/dashboard/b2b/access', label: 'Access', icon: Shield },
-  { href: '/dashboard/b2b/launch', label: 'Launch Control', icon: Rocket },
-  { href: '/dashboard/b2b/scripts', label: 'Scripts', icon: Code2 },
-  { href: '/dashboard/b2b/smtp', label: 'SMTP', icon: MailCheck },
-  { href: '/dashboard/b2b/forms', label: 'Forms Routing', icon: SlidersHorizontal },
-  { href: '/dashboard/b2b/audit', label: 'Audit Trail', icon: Activity },
+  { href: '/dashboard/b2b/super-settings', label: 'Super Settings', icon: Settings },
 ];
 
-export default function B2BSidebar({ displayName, email }: { displayName: string; email: string }) {
+function routeToSection(href: string) {
+  const path = href.replace('/dashboard/b2b', '').replace(/^\//, '');
+  return path || 'overview';
+}
+
+export default function B2BSidebar({ displayName, email, allowedSections }: { displayName: string; email: string; allowedSections?: string[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const hasRestrictions = Array.isArray(allowedSections) && allowedSections.length > 0;
+
+  const superSettingsChildKeys = ['scripts', 'smtp', 'forms', 'access', 'launch', 'audit'];
+
+  const mainNavItems = MAIN_NAV.filter((item) => {
+    const section = routeToSection(item.href);
+    if (!hasRestrictions) return true;
+    if (section === 'super-settings') {
+      return allowedSections.includes('super-settings') || allowedSections.some((key) => superSettingsChildKeys.includes(key));
+    }
+    return allowedSections.includes(section);
+  });
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -54,7 +66,6 @@ export default function B2BSidebar({ displayName, email }: { displayName: string
             <div className="relative w-32 h-10 mb-1">
               <Image src="https://central.prag.global/wp-content/uploads/2026/04/Prag-Logo.png" alt="PRAG" fill className="object-contain" priority />
             </div>
-            <p className="text-xs text-gray-500">B2B admin workspace</p>
           </div>
           <button onClick={() => setIsOpen(false)} className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
             <X size={20} />
@@ -66,24 +77,33 @@ export default function B2BSidebar({ displayName, email }: { displayName: string
           <p className="text-sm text-gray-600 mt-1">Manage enquiries, page content, site settings and routing.</p>
         </div>
 
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {NAV.map(({ href, label, icon: Icon, exact }) => {
-            const active = exact ? pathname === href : pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active ? 'bg-sky-700 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-              >
-                <Icon size={17} />
-                {label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+          <div className="space-y-0.5">
+            {mainNavItems.map(({ href, label, icon: Icon, exact }) => {
+              const active = exact ? pathname === href : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active ? 'bg-sky-700 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                >
+                  <Icon size={17} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="p-3 border-t border-gray-100 space-y-0.5">
+        <div className="mx-3 mb-1 rounded-xl border border-sky-100 bg-sky-50 px-3 py-2.5 flex items-center gap-3">
+            <ArrowLeftRight size={16} className="text-sky-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-600">Portal</p>
+              <Link href="/dashboard" onClick={() => setIsOpen(false)} className="text-xs text-sky-700 hover:underline font-medium">Switch to B2C →</Link>
+            </div>
+          </div>
           <a
             href="https://shop.prag.global"
             target="_blank"

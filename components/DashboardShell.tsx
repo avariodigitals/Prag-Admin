@@ -9,12 +9,14 @@ export default function DashboardShell({
   email,
   canManageAccess,
   allowedModules,
+  allowedB2BSections,
   children,
 }: {
   displayName: string;
   email: string;
   canManageAccess: boolean;
   allowedModules?: string[];
+  allowedB2BSections?: string[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -23,7 +25,7 @@ export default function DashboardShell({
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
       {isB2B ? (
-        <B2BSidebar displayName={displayName} email={email} />
+        <B2BSidebar displayName={displayName} email={email} allowedSections={allowedB2BSections} />
       ) : (
         <Sidebar
           displayName={displayName}

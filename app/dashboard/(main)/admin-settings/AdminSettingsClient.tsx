@@ -13,6 +13,7 @@ type ManagedUser = {
   roles: string[];
   active: boolean;
   portals: Portal[];
+  b2cModules?: AdminModuleKey[];
 };
 
 type FormRule = {
@@ -121,6 +122,8 @@ export default function AdminSettingsClient() {
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [updatingUserIds, setUpdatingUserIds] = useState<number[]>([]);
+  const [editingB2CUserId, setEditingB2CUserId] = useState<number | null>(null);
+  const [draftB2CModules, setDraftB2CModules] = useState<AdminModuleKey[]>([]);
   const [testEmail, setTestEmail] = useState('');
   const [testEmailStatus, setTestEmailStatus] = useState<TestEmailStatus>('idle');
   const [testEmailMessage, setTestEmailMessage] = useState('');
@@ -338,7 +341,7 @@ export default function AdminSettingsClient() {
     }
   }
 
-  async function updateUser(user: ManagedUser, updates: Partial<ManagedUser> & { role?: string }) {
+  async function updateUser(user: ManagedUser, updates: Partial<ManagedUser> & { role?: string; b2cModules?: AdminModuleKey[] }) {
     setUpdatingUserIds((prev) => (prev.includes(user.id) ? prev : [...prev, user.id]));
     try {
       const res = await fetch('/api/admin/users', {
@@ -349,6 +352,7 @@ export default function AdminSettingsClient() {
           role: updates.role,
           active: typeof updates.active === 'boolean' ? updates.active : user.active,
           portals: updates.portals ?? user.portals,
+          b2cModules: updates.b2cModules ?? user.b2cModules,
         }),
       });
       setStatus(res.ok ? 'success' : 'error');
@@ -361,6 +365,7 @@ export default function AdminSettingsClient() {
             active: typeof updates.active === 'boolean' ? updates.active : existing.active,
             portals: updates.portals ?? existing.portals,
             roles: updates.role ? [updates.role] : existing.roles,
+            b2cModules: updates.b2cModules ?? existing.b2cModules,
           };
         }));
       }
@@ -421,14 +426,14 @@ export default function AdminSettingsClient() {
     setStatus(res.ok ? 'success' : 'error');
     setTimeout(() => setStatus('idle'), 2200);
     if (res.ok) {
-      const updated = await res.json().catch(() => ({ updated: [] as Array<{ userId: number; active: boolean; portals: Portal[] }> }));
-      const updatesById = new Map<number, { active: boolean; portals: Portal[] }>(
-        (updated.updated ?? []).map((item: { userId: number; active: boolean; portals: Portal[] }) => [item.userId, { active: item.active, portals: item.portals }]),
+      const updated = await res.json().catch(() => ({ updated: [] as Array<{ userId: number; active: boolean; portals: Portal[]; b2cModules: AdminModuleKey[] }> }));
+      const updatesById = new Map<number, { active: boolean; portals: Portal[]; b2cModules: AdminModuleKey[] }>(
+        (updated.updated ?? []).map((item: { userId: number; active: boolean; portals: Portal[]; b2cModules: AdminModuleKey[] }) => [item.userId, { active: item.active, portals: item.portals, b2cModules: item.b2cModules ?? [] }]),
       );
       setUsers((prev) => prev.map((user) => {
         const next = updatesById.get(user.id);
         if (!next) return user;
-        return { ...user, active: next.active, portals: next.portals };
+        return { ...user, active: next.active, portals: next.portals, b2cModules: next.b2cModules };
       }));
     }
   }
@@ -445,14 +450,14 @@ export default function AdminSettingsClient() {
     setStatus(res.ok ? 'success' : 'error');
     setTimeout(() => setStatus('idle'), 2200);
     if (res.ok) {
-      const updated = await res.json().catch(() => ({ updated: [] as Array<{ userId: number; active: boolean; portals: Portal[] }> }));
-      const updatesById = new Map<number, { active: boolean; portals: Portal[] }>(
-        (updated.updated ?? []).map((item: { userId: number; active: boolean; portals: Portal[] }) => [item.userId, { active: item.active, portals: item.portals }]),
+      const updated = await res.json().catch(() => ({ updated: [] as Array<{ userId: number; active: boolean; portals: Portal[]; b2cModules: AdminModuleKey[] }> }));
+      const updatesById = new Map<number, { active: boolean; portals: Portal[]; b2cModules: AdminModuleKey[] }>(
+        (updated.updated ?? []).map((item: { userId: number; active: boolean; portals: Portal[]; b2cModules: AdminModuleKey[] }) => [item.userId, { active: item.active, portals: item.portals, b2cModules: item.b2cModules ?? [] }]),
       );
       setUsers((prev) => prev.map((user) => {
         const next = updatesById.get(user.id);
         if (!next) return user;
-        return { ...user, active: next.active, portals: next.portals };
+        return { ...user, active: next.active, portals: next.portals, b2cModules: next.b2cModules };
       }));
     }
   }
@@ -492,6 +497,10 @@ export default function AdminSettingsClient() {
 
   function togglePortal(list: Portal[], portal: Portal) {
     return list.includes(portal) ? list.filter((p) => p !== portal) : [...list, portal];
+  }
+
+  function toggleModule(list: AdminModuleKey[], moduleKey: AdminModuleKey) {
+    return list.includes(moduleKey) ? list.filter((item) => item !== moduleKey) : [...list, moduleKey];
   }
 
   function toggleRoleModule(role: string, moduleKey: AdminModuleKey) {
@@ -647,7 +656,7 @@ export default function AdminSettingsClient() {
                           aria-label="Select all users"
                         />
                       </th>
-                      {['Name', 'Email', 'Role', 'Portal Access', 'Active', 'Actions'].map((h) => (
+                      {['Name', 'Email', 'Role', 'Portal Access', 'B2C Modules', 'Active', 'Actions'].map((h) => (
                         <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
@@ -655,7 +664,7 @@ export default function AdminSettingsClient() {
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-3 py-6 text-center text-gray-400">No users found for the selected role filter.</td>
+                        <td colSpan={8} className="px-3 py-6 text-center text-gray-400">No users found for the selected role filter.</td>
                       </tr>
                     ) : (
                       filteredUsers.map((u) => (
@@ -680,6 +689,23 @@ export default function AdminSettingsClient() {
                             <div className="flex items-center gap-3 text-xs">
                               <label className="flex items-center gap-1.5"><input type="checkbox" checked={u.portals.includes('b2c')} onChange={() => updateUser(u, { portals: togglePortal(u.portals, 'b2c') })} />B2C</label>
                               <label className="flex items-center gap-1.5"><input type="checkbox" checked={u.portals.includes('b2b')} onChange={() => updateUser(u, { portals: togglePortal(u.portals, 'b2b') })} />B2B</label>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingB2CUserId(u.id);
+                                  setDraftB2CModules(Array.isArray(u.b2cModules) ? u.b2cModules : []);
+                                }}
+                                className="px-2.5 py-1 rounded border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50"
+                              >
+                                Manage Modules
+                              </button>
+                              <span className="text-xs text-gray-500">
+                                {Array.isArray(u.b2cModules) && u.b2cModules.length > 0 ? `${u.b2cModules.length} selected` : 'Role default'}
+                              </span>
                             </div>
                           </td>
                           <td className="px-3 py-3">
@@ -711,6 +737,65 @@ export default function AdminSettingsClient() {
                   </tbody>
                 </table>
               </div>
+
+              {editingB2CUserId !== null && (
+                <div className="fixed inset-0 z-40 bg-black/40 p-4 flex items-center justify-center">
+                  <div className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-white shadow-2xl p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-base font-semibold text-gray-900">B2C Module Access</h4>
+                        <p className="text-sm text-gray-500">Select which B2C admin modules this user can access.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingB2CUserId(null);
+                          setDraftB2CModules([]);
+                        }}
+                        className="px-2.5 py-1 rounded border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        Close
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {MODULE_LABELS.map((module) => (
+                        <label key={module.key} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={draftB2CModules.includes(module.key)}
+                            onChange={() => setDraftB2CModules((prev) => toggleModule(prev, module.key))}
+                          />
+                          {module.label}
+                        </label>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => setDraftB2CModules([])}
+                        className="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        Use Role Default
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const user = users.find((item) => item.id === editingB2CUserId);
+                          if (!user) return;
+                          await updateUser(user, { b2cModules: draftB2CModules });
+                          setEditingB2CUserId(null);
+                          setDraftB2CModules([]);
+                        }}
+                        className="px-4 py-2 rounded-lg bg-sky-700 text-white text-sm font-medium hover:bg-sky-800"
+                      >
+                        Save Module Access
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

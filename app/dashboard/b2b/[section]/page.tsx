@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import type { ReactNode } from 'react';
 import { notFound, redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth';
+import { getB2BAllowedSections, getSession, isSuperAdmin } from '@/lib/auth';
 import { readB2BAdminStore } from '@/lib/b2bAdminStore';
 import B2BSettingsClient from '@/components/B2BSettingsClient';
 import B2BAccessClient from '@/components/B2BAccessClient';
@@ -16,13 +16,14 @@ const SECTION_TITLES: Record<string, string> = {
   'case-studies': 'Case Studies',
   solutions: 'Solutions',
   pages: 'Pages',
+  'super-settings': 'Super Settings',
   'site-settings': 'Site Settings',
   access: 'Backend Access',
   launch: 'Launch Control',
   scripts: 'Ecommerce Scripts',
   smtp: 'SMTP',
   forms: 'Forms Routing',
-  audit: 'Audit Trail',
+  audit: '404 Logs',
 };
 
 function SectionShell({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -43,6 +44,16 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
   if (!session) redirect('/login');
 
   const { section } = await params;
+  const superAdmin = await isSuperAdmin(session.token);
+  if (!superAdmin) {
+    const allowed = await getB2BAllowedSections(session.token);
+    const superSettingsChildren = ['site-settings', 'scripts', 'smtp', 'forms', 'access', 'launch', 'audit'];
+    const canOpenSuperSettings = section === 'super-settings' && Array.isArray(allowed) && allowed.some((item) => superSettingsChildren.includes(item));
+    if (Array.isArray(allowed) && allowed.length > 0 && !allowed.includes(section) && !canOpenSuperSettings) {
+      redirect('/dashboard/b2b');
+    }
+  }
+
   const store = await readB2BAdminStore();
 
   if (!(section in SECTION_TITLES)) {
@@ -53,9 +64,28 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
     return (
       <SectionShell
         title={SECTION_TITLES[section]}
-        description="Manage the b2b contact details, header, footer, SMTP, forms and access rules in one place."
+        description="Manage core b2b website settings: site details, header and footer."
       >
-        <B2BSettingsClient initialSettings={store.settings} />
+        <B2BSettingsClient
+          initialSettings={store.settings}
+          auditRecords={store.audit}
+          allowedTabs={['site', 'header', 'footer', 'integrations', '404-logs']}
+          defaultTab="site"
+        />
+      </SectionShell>
+    );
+  }
+
+  if (section === 'super-settings') {
+    return (
+      <SectionShell title={SECTION_TITLES[section]} description="Centralized controls for Scripts, SMTP, Forms Routing, Access, Launch Control and Audit Trail.">
+        <B2BSettingsClient
+          initialSettings={store.settings}
+          auditRecords={store.audit}
+          showAccessManager
+          allowedTabs={['scripts', 'smtp', 'forms', 'access', 'launch', 'audit']}
+          defaultTab="scripts"
+        />
       </SectionShell>
     );
   }
@@ -120,35 +150,15 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
   if (section === 'forms') {
     return (
       <SectionShell title={SECTION_TITLES[section]} description="Routing rules for contact, distributor and installation forms.">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Form</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Recipients</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">From</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {store.settings.forms.map((rule) => (
-                  <tr key={rule.formKey}>
-                    <td className="px-6 py-4 font-medium text-gray-900">{rule.formName}</td>
-                    <td className="px-6 py-4 text-gray-600">{rule.recipients.join(', ') || 'No recipients configured'}</td>
-                    <td className="px-6 py-4 text-gray-600">{rule.fromEmail || 'Not configured'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <B2BSettingsClient initialSettings={store.settings} allowedTabs={['forms']} defaultTab="forms" />
       </SectionShell>
     );
   }
 
   if (section === 'audit') {
+    const logs = store.audit.filter((entry) => entry.action === '404.not-found');
     return (
-      <SectionShell title={SECTION_TITLES[section]} description="B2B-only audit trail for settings, intake and publishing actions.">
+      <SectionShell title={SECTION_TITLES[section]} description="404 error logs from the prag-b2b website domain.">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -161,9 +171,9 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {store.audit.length === 0 ? (
-                  <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400">No audit entries yet.</td></tr>
-                ) : store.audit.map((entry) => (
+                {logs.length === 0 ? (
+                  <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400">No 404 logs yet.</td></tr>
+                ) : logs.map((entry) => (
                   <tr key={entry.id}>
                     <td className="px-6 py-4 text-gray-500">{new Date(entry.at).toLocaleString('en-GB')}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">{entry.action}</td>

@@ -135,6 +135,14 @@ export interface B2BTrackingScripts {
   footer: string;
 }
 
+export interface B2BIntegrationsConfig {
+  googleAnalyticsId: string;
+  googleTagManagerId: string;
+  searchConsoleVerification: string;
+  zohoOneScript: string;
+  customDomainHook: string;
+}
+
 export interface B2BSiteContact {
   contactPhone: string;
   contactEmail: string;
@@ -157,8 +165,18 @@ export interface B2BHeaderConfig {
 }
 
 export interface B2BFooterConfig {
+  ctaTitle: string;
+  ctaDescription: string;
+  primaryCtaLabel: string;
+  primaryCtaHref: string;
+  secondaryCtaLabel: string;
+  secondaryCtaHref: string;
+  companyName: string;
+  companyRegistration: string;
   tagline: string;
   copyright: string;
+  disclaimerText: string;
+  legalLinks: Array<{ label: string; href: string }>;
   columns: Array<{ title: string; items: Array<{ label: string; href: string }> }>;
 }
 
@@ -196,6 +214,7 @@ export interface B2BSettings {
   contact: B2BSiteContact;
   header: B2BHeaderConfig;
   footer: B2BFooterConfig;
+  integrations: B2BIntegrationsConfig;
   launch: B2BLaunchConfig;
   scripts: B2BTrackingScripts;
   smtp: B2BSmtpConfig;
@@ -405,36 +424,73 @@ const DEFAULT_SETTINGS: B2BSettings = {
   },
   header: {
     brandLabel: 'PRAG B2B',
-    announcement: 'B2B admin for enquiries, pages and site controls.',
+    announcement: '',
     ctaLabel: 'View Store',
     ctaHref: 'https://shop.prag.global',
     menuItems: [
-      { label: 'Products', href: '/products' },
-      { label: 'Solutions', href: '/solutions' },
-      { label: 'Contact', href: '/contact' },
+      { label: 'About', href: '/about' },
+      { label: 'Find a distributor', href: '/find-a-distributor' },
+      { label: 'Become a distributor', href: '/distributor' },
+      { label: 'Compare Products', href: '/compare' },
     ],
   },
   footer: {
-    tagline: 'Manage the b2b experience from one place.',
-    copyright: 'PRAG B2B',
+    ctaTitle: 'Stop Losing Money to Bad Power',
+    ctaDescription: 'Talk to a PRAG engineer today and fix your power issues permanently.',
+    primaryCtaLabel: 'Get a Free Power Assessment',
+    primaryCtaHref: '/power-calculator',
+    secondaryCtaLabel: 'WhatsApp Us Now',
+    secondaryCtaHref: 'https://wa.me/2348032170129',
+    companyName: 'PRAG Power Engineering Ltd',
+    companyRegistration: 'RC: 1234567.',
+    tagline: 'Nigeria\'s leading power engineering company delivering reliable power systems for homes, businesses, and industries nationwide.',
+    copyright: '© Copyright 2026 PRAG. All rights reserved.',
+    disclaimerText: 'The products, prices and promotions on this website are applicable to our customers only and are subject to change anytime.',
+    legalLinks: [
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms of use', href: '/terms-of-use' },
+      { label: 'Shipping', href: '/shipping-policy' },
+    ],
     columns: [
       {
-        title: 'Quick Links',
+        title: 'Solutions',
         items: [
-          { label: 'Products', href: '/products' },
-          { label: 'Knowledge Center', href: '/knowledge-center' },
-          { label: 'Find a Distributor', href: '/find-a-distributor' },
+          { label: 'Industrial Power', href: '/solutions/industrial' },
+          { label: 'Commercial Power', href: '/solutions/commercial' },
+          { label: 'Residential Power', href: '/solutions/residential' },
+          { label: 'All Solutions', href: '/solutions' },
         ],
       },
       {
-        title: 'Support',
+        title: 'Company',
         items: [
-          { label: 'Contact', href: '/contact' },
-          { label: 'Installations', href: '/installations' },
+          { label: 'About us', href: '/about' },
+          { label: 'Contact us', href: '/contact' },
+          { label: 'Find a Distributor', href: '/find-a-distributor' },
+          { label: 'Become a Distributor', href: '/distributor' },
+          { label: 'Compare Products', href: '/compare' },
+        ],
+      },
+      {
+        title: 'Quicklinks',
+        items: [
+          { label: 'Shop', href: '/products' },
+          { label: 'Power Calculator', href: '/power-calculator' },
+          { label: 'Technical Resources', href: '/resources' },
+          { label: 'Shipping Policy', href: '/shipping-policy' },
+          { label: 'Return Policy', href: '/return-policy' },
           { label: 'Privacy Policy', href: '/privacy' },
+          { label: 'Terms of Use', href: '/terms-of-use' },
         ],
       },
     ],
+  },
+  integrations: {
+    googleAnalyticsId: '',
+    googleTagManagerId: '',
+    searchConsoleVerification: '',
+    zohoOneScript: '',
+    customDomainHook: '',
   },
   launch: {
     enabled: false,
@@ -1013,6 +1069,7 @@ function mergeSettings(settings?: Partial<B2BSettings> | null): B2BSettings {
       columns: Array.isArray(settings?.footer?.columns) ? settings.footer.columns : DEFAULT_SETTINGS.footer.columns,
     },
     launch: { ...DEFAULT_SETTINGS.launch, ...(settings?.launch ?? {}) },
+    integrations: { ...DEFAULT_SETTINGS.integrations, ...(settings?.integrations ?? {}) },
     scripts: { ...DEFAULT_SETTINGS.scripts, ...(settings?.scripts ?? {}) },
     smtp: { ...DEFAULT_SETTINGS.smtp, ...(settings?.smtp ?? {}) },
     forms: Array.isArray(settings?.forms) ? settings.forms : DEFAULT_SETTINGS.forms,

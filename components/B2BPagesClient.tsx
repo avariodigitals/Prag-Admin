@@ -33,6 +33,34 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
     setPages((current) => current.map((page) => (page.route === route ? updater(page) : page)));
   }
 
+  async function persistPages(nextPages: B2BPageRecord[]) {
+    setSaving(true);
+    setStatus('idle');
+
+    try {
+      const res = await fetch('/api/admin/b2b/pages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pages: nextPages }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setStatus('error');
+        return;
+      }
+
+      setStatus('success');
+      if (Array.isArray(data?.pages)) {
+        setPages(data.pages as B2BPageRecord[]);
+      }
+    } catch {
+      setStatus('error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleImageUpload(route: string, sectionIndex: number, file: File) {
     const uploadKey = `${route}-${sectionIndex}`;
     setUploadingKey(uploadKey);
@@ -49,39 +77,35 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
         throw new Error(String(data?.error ?? 'Upload failed'));
       }
 
-      updatePage(route, (current) => ({
-        ...current,
-        sections: current.sections.map((section, currentIndex) => (
-          currentIndex === sectionIndex
-            ? { ...section, imageUrl: data.url, imageAlt: data.alt ?? section.title }
-            : section
-        )),
-      }));
+      let nextPagesSnapshot: B2BPageRecord[] | null = null;
+      setPages((currentPages) => {
+        const nextPages = currentPages.map((page) => {
+          if (page.route !== route) return page;
+          return {
+            ...page,
+            sections: page.sections.map((section, currentIndex) => (
+              currentIndex === sectionIndex
+                ? { ...section, imageUrl: data.url, imageAlt: data.alt ?? section.title }
+                : section
+            )),
+          };
+        });
+        nextPagesSnapshot = nextPages;
+        return nextPages;
+      });
+
+      if (nextPagesSnapshot) {
+        await persistPages(nextPagesSnapshot);
+      }
+    } catch {
+      setStatus('error');
     } finally {
       setUploadingKey('');
     }
   }
 
   function save() {
-    setSaving(true);
-    setStatus('idle');
-    fetch('/api/admin/b2b/pages', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pages }),
-    })
-      .then((res) => res.json().then((data) => ({ ok: res.ok, data })).catch(() => ({ ok: res.ok, data: null })))
-      .then(({ ok, data }) => {
-        setSaving(false);
-        setStatus(ok ? 'success' : 'error');
-        if (ok && Array.isArray(data?.pages)) {
-          setPages(data.pages as B2BPageRecord[]);
-        }
-      })
-      .catch(() => {
-        setSaving(false);
-        setStatus('error');
-      });
+    void persistPages(pages);
   }
 
   return (

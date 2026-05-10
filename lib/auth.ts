@@ -116,3 +116,26 @@ export async function hasPortalAccess(token: string, portal: 'b2c' | 'b2b'): Pro
   const state = store.users[String(user.id)] ?? { active: true, portals: ['b2c'] };
   return state.active && state.portals.includes(portal);
 }
+
+export async function getB2BAllowedSections(token: string): Promise<string[] | null> {
+  const cookieUser = await getCookieUserInfo();
+  if (cookieUser && cookieUser.id !== undefined) {
+    const userId = Number(cookieUser.id);
+    if (Number.isFinite(userId) && userId > 0) {
+      const store = await readAdminStore();
+      const state = store.users[String(userId)];
+      if (!state || !state.active || !state.portals.includes('b2b')) return [];
+      if (!Array.isArray(state.b2bSections) || state.b2bSections.length === 0) return null;
+      return state.b2bSections;
+    }
+  }
+
+  const user = await getCurrentWpUser(token);
+  if (!user) return [];
+
+  const store = await readAdminStore();
+  const state = store.users[String(user.id)] ?? { active: true, portals: ['b2c'] as const };
+  if (!state.active || !state.portals.includes('b2b')) return [];
+  if (!Array.isArray(state.b2bSections) || state.b2bSections.length === 0) return null;
+  return state.b2bSections;
+}

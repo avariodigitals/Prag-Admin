@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight } from 'lucide-react';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true, moduleKey: 'dashboard' },
@@ -92,6 +92,13 @@ export default function Sidebar({
         </nav>
 
         <div className="p-3 border-t border-gray-100 space-y-0.5">
+          <div className="mx-0 mb-1 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 flex items-center gap-3">
+            <ArrowLeftRight size={16} className="text-amber-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-600">Portal</p>
+              <Link href="/dashboard/b2b" onClick={() => setIsOpen(false)} className="text-xs text-amber-700 hover:underline font-medium">Switch to B2B →</Link>
+            </div>
+          </div>
           <a href="https://shop.prag.global" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors">
             <ExternalLink size={16} />

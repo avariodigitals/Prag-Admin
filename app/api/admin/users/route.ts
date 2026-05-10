@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession, getCurrentWpUser, isSuperAdmin } from '@/lib/auth';
-import { appendAuditLog, readAdminStore, updateAdminStore } from '@/lib/adminStore';
+import { ADMIN_MODULE_KEYS, appendAuditLog, B2B_SECTION_KEYS, readAdminStore, updateAdminStore } from '@/lib/adminStore';
 
 const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
 
@@ -52,6 +52,26 @@ function sanitizeRole(role: string) {
   return ROLE_OPTIONS.includes(role as (typeof ROLE_OPTIONS)[number]) ? role : 'customer';
 }
 
+function sanitizeB2BSections(value: unknown) {
+  if (!Array.isArray(value)) return undefined;
+  const next = value
+    .map((entry) => String(entry))
+    .filter((entry): entry is (typeof B2B_SECTION_KEYS)[number] =>
+      (B2B_SECTION_KEYS as readonly string[]).includes(entry)
+    );
+  return Array.from(new Set(next));
+}
+
+function sanitizeB2CModules(value: unknown) {
+  if (!Array.isArray(value)) return undefined;
+  const next = value
+    .map((entry) => String(entry))
+    .filter((entry): entry is (typeof ADMIN_MODULE_KEYS)[number] =>
+      (ADMIN_MODULE_KEYS as readonly string[]).includes(entry)
+    );
+  return Array.from(new Set(next));
+}
+
 export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -78,6 +98,8 @@ export async function GET() {
       roles: Array.isArray(user.roles) ? user.roles : [],
       active: state.active,
       portals: state.portals,
+      b2bSections: Array.isArray(state.b2bSections) ? state.b2bSections : [],
+      b2cModules: Array.isArray(state.b2cModules) ? state.b2cModules : [],
     };
   });
 
@@ -129,6 +151,8 @@ export async function POST(req: NextRequest) {
       [String(created.id)]: {
         active: true,
         portals: Array.isArray(body.portals) && body.portals.length > 0 ? body.portals : ['b2c'],
+        b2bSections: sanitizeB2BSections(body.b2bSections),
+        b2cModules: sanitizeB2CModules(body.b2cModules),
       },
     },
   }));
@@ -205,6 +229,8 @@ export async function PUT(req: NextRequest) {
       users[String(userId)] = {
         active: typeof body.active === 'boolean' ? body.active : existing.active,
         portals: nextPortals,
+        b2bSections: sanitizeB2BSections(body.b2bSections) ?? existing.b2bSections,
+        b2cModules: sanitizeB2CModules(body.b2cModules) ?? existing.b2cModules,
       };
     }
 
@@ -228,6 +254,8 @@ export async function PUT(req: NextRequest) {
       userId: id,
       active: updatedStore.users[String(id)]?.active ?? true,
       portals: updatedStore.users[String(id)]?.portals ?? ['b2c'],
+      b2bSections: updatedStore.users[String(id)]?.b2bSections ?? [],
+      b2cModules: updatedStore.users[String(id)]?.b2cModules ?? [],
     })),
   });
 }

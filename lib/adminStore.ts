@@ -4,9 +4,31 @@ import { cookies } from 'next/headers';
 
 export type PortalAccess = 'b2c' | 'b2b';
 
+export const B2B_SECTION_KEYS = [
+  'overview',
+  'enquiries',
+  'distributors',
+  'installations',
+  'case-studies',
+  'solutions',
+  'pages',
+  'super-settings',
+  'site-settings',
+  'scripts',
+  'smtp',
+  'forms',
+  'access',
+  'launch',
+  'audit',
+] as const;
+
+export type B2BSectionKey = (typeof B2B_SECTION_KEYS)[number];
+
 export interface ManagedUserState {
   active: boolean;
   portals: PortalAccess[];
+  b2bSections?: B2BSectionKey[];
+  b2cModules?: AdminModuleKey[];
 }
 
 export interface TrackingConfig {

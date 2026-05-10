@@ -72,6 +72,29 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
     }));
   }
 
+  async function persistCaseStudies(nextCaseStudies: B2BCaseStudiesContent) {
+    setSaving(true);
+    setStatus('idle');
+
+    try {
+      const res = await fetch('/api/admin/b2b/case-studies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseStudies: nextCaseStudies }),
+      });
+
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload?.error || 'Failed to save case studies');
+
+      setData(payload.caseStudies || nextCaseStudies);
+      setStatus('success');
+    } catch {
+      setStatus('error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function uploadImage(id: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
@@ -86,34 +109,31 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
       throw new Error(payload?.error || 'Image upload failed');
     }
 
-    updateStudy(id, (study) => ({
-      ...study,
-      imageUrl: payload?.url || study.imageUrl,
-      imageAlt: study.imageAlt || payload?.alt || study.title,
-    }));
+    let nextDataSnapshot: B2BCaseStudiesContent | null = null;
+    setData((prev) => {
+      const next = {
+        ...prev,
+        studies: prev.studies.map((study) => (
+          study.id === id
+            ? {
+              ...study,
+              imageUrl: payload?.url || study.imageUrl,
+              imageAlt: study.imageAlt || payload?.alt || study.title,
+            }
+            : study
+        )),
+      };
+      nextDataSnapshot = next;
+      return next;
+    });
+
+    if (nextDataSnapshot) {
+      await persistCaseStudies(nextDataSnapshot);
+    }
   }
 
   async function save() {
-    setSaving(true);
-    setStatus('idle');
-
-    try {
-      const res = await fetch('/api/admin/b2b/case-studies', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseStudies: data }),
-      });
-
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(payload?.error || 'Failed to save case studies');
-
-      setData(payload.caseStudies || data);
-      setStatus('success');
-    } catch {
-      setStatus('error');
-    } finally {
-      setSaving(false);
-    }
+    await persistCaseStudies(data);
   }
 
   return (
