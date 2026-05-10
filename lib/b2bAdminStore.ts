@@ -1489,7 +1489,10 @@ export async function readB2BAdminStore(): Promise<B2BAdminStore> {
       return await readFromWordPress();
     }
     return await readFromFile();
-  } catch {
+  } catch (error) {
+    if (process.env.VERCEL) {
+      throw error;
+    }
     return normalizeStore(DEFAULT_STORE);
   }
 }
