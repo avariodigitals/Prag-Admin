@@ -1,12 +1,22 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Save } from 'lucide-react';
+import { RefreshCcw, Save } from 'lucide-react';
 import B2BAccessClient from '@/components/B2BAccessClient';
 import type { B2BAuditRecord, B2BSettings, B2BSectionKey } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
 const areaCls = 'w-full min-h-24 p-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
+
+type FrontendPullReport = {
+  syncedAt: string;
+  pagesCreated: number;
+  sectionsCreated: number;
+  footerColumnsCreated: number;
+  pagesCreatedRoutes: string[];
+  sectionsCreatedByRoute: Array<{ route: string; sectionIds: string[] }>;
+  footerColumnsCreatedTitles: string[];
+};
 
 type Section = 'site' | 'header' | 'footer' | 'integrations' | '404-logs' | 'scripts' | 'smtp' | 'forms' | 'access' | 'launch' | 'audit';
 
@@ -30,12 +40,14 @@ export default function B2BSettingsClient({
   defaultTab,
   auditRecords,
   showAccessManager,
+  enableFrontendPull,
 }: {
   initialSettings: B2BSettings;
   allowedTabs?: Section[];
   defaultTab?: Section;
   auditRecords?: B2BAuditRecord[];
   showAccessManager?: boolean;
+  enableFrontendPull?: boolean;
 }) {
   function formatActorLabel(actor?: string): string {
     const value = String(actor ?? '').trim();
@@ -67,6 +79,9 @@ export default function B2BSettingsClient({
   const [testState, setTestState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
   const [wpRoles, setWpRoles] = useState<string[]>([]);
+  const [pullingFrontend, setPullingFrontend] = useState(false);
+  const [pullFrontendError, setPullFrontendError] = useState('');
+  const [pullFrontendReport, setPullFrontendReport] = useState<FrontendPullReport | null>(null);
 
   const allAuditRecords = Array.isArray(auditRecords) ? auditRecords : [];
   const logs404 = allAuditRecords.filter((entry) => entry.action === '404.not-found');
@@ -138,6 +153,31 @@ export default function B2BSettingsClient({
     } catch {
       setTestState('error');
       setTestMessage('SMTP test failed.');
+    }
+  }
+
+  async function pullFrontendStructure() {
+    setPullingFrontend(true);
+    setPullFrontendError('');
+    try {
+      const res = await fetch('/api/admin/b2b/settings/pull-frontend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setPullFrontendError(String(data?.error ?? 'Failed to pull frontend structure.'));
+        return;
+      }
+
+      if (data?.settings) {
+        setSettings(data.settings as B2BSettings);
+      }
+      setPullFrontendReport((data?.report as FrontendPullReport | undefined) ?? null);
+    } catch {
+      setPullFrontendError('Failed to pull frontend structure.');
+    } finally {
+      setPullingFrontend(false);
     }
   }
 
@@ -559,6 +599,41 @@ export default function B2BSettingsClient({
 
         {activeTab === 'scripts' && (
           <div className="grid grid-cols-1 gap-4">
+            {enableFrontendPull && (
+              <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-sky-900">Pull Frontend Structure</p>
+                    <p className="text-xs text-sky-700">Creates missing page blocks and footer columns without changing existing content values.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={pullFrontendStructure}
+                    disabled={pullingFrontend}
+                    className="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-sky-800 disabled:opacity-60"
+                  >
+                    <RefreshCcw size={14} className={pullingFrontend ? 'animate-spin' : ''} />
+                    {pullingFrontend ? 'Pulling...' : 'Pull Frontend Structure'}
+                  </button>
+                </div>
+                {pullFrontendError ? (
+                  <p className="text-xs text-red-600">{pullFrontendError}</p>
+                ) : null}
+                {pullFrontendReport ? (
+                  <div className="rounded-lg border border-sky-200 bg-white p-3 text-xs text-gray-700 space-y-2">
+                    <p>
+                      Created {pullFrontendReport.pagesCreated} page(s), {pullFrontendReport.sectionsCreated} section block(s), and {pullFrontendReport.footerColumnsCreated} footer column(s).
+                    </p>
+                    {pullFrontendReport.pagesCreatedRoutes.length > 0 ? (
+                      <p>Pages added: {pullFrontendReport.pagesCreatedRoutes.join(', ')}</p>
+                    ) : null}
+                    {pullFrontendReport.footerColumnsCreatedTitles.length > 0 ? (
+                      <p>Footer columns added: {pullFrontendReport.footerColumnsCreatedTitles.join(', ')}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            )}
             <label className="space-y-1">
               <span className="text-sm font-medium text-gray-700">Head scripts</span>
               <textarea className={areaCls} value={settings.scripts.head} onChange={(event) => setSettings((prev) => ({ ...prev, scripts: { ...prev.scripts, head: event.target.value } }))} />

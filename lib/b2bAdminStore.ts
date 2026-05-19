@@ -276,6 +276,16 @@ export interface B2BAdminHealthCheck {
   };
 }
 
+export interface B2BFrontendStructureSyncReport {
+  syncedAt: string;
+  pagesCreated: number;
+  sectionsCreated: number;
+  footerColumnsCreated: number;
+  pagesCreatedRoutes: string[];
+  sectionsCreatedByRoute: Array<{ route: string; sectionIds: string[] }>;
+  footerColumnsCreatedTitles: string[];
+}
+
 const B2B_APP_ROOT = process.env.B2B_APP_ROOT || path.resolve(process.cwd(), '..', 'prag-b2b');
 const B2B_APP_DIR = path.join(B2B_APP_ROOT, 'app');
 const STORE_PATH = path.join(process.cwd(), '.admin-data', 'b2b-admin-config.json');
@@ -322,6 +332,10 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
       { id: 'home-tech-2', title: 'Inverters', type: 'technology', visible: true, summary: 'Inverters', content: 'Part of the four technologies that make up a complete PRAG system.', ctaLabel: 'View Products', ctaHref: '/products/inverters', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/eebd514c0d3e75e4f32cb8fd691c7b3613fd99d5-1.png', imageAlt: 'Inverters' },
       { id: 'home-tech-3', title: 'Solar Systems', type: 'technology', visible: true, summary: 'Solar Systems', content: 'Part of the four technologies that make up a complete PRAG system.', ctaLabel: 'View Products', ctaHref: '/products/solar', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/b5564cf299de3eea9dbe804a547cf74e99bc41a7.png', imageAlt: 'Solar Systems' },
       { id: 'home-tech-4', title: 'Battery Storage', type: 'technology', visible: true, summary: 'Battery Storage', content: 'Part of the four technologies that make up a complete PRAG system.', ctaLabel: 'View Products', ctaHref: '/products/batteries', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/dd4b835690b546ee636b7659added08cd02d9891.png', imageAlt: 'Battery Storage' },
+      { id: 'home-problem-1', title: 'Low, High, or Fluctuating Voltage', type: 'problem', visible: true, summary: 'Low, High, or Fluctuating Voltage', content: 'Protect your appliances and equipment from silent damage.', ctaLabel: 'Get PRAG Stabilizers', ctaHref: '/products/all-prag-stabilizers', imageUrl: '/images/ix_voltage.svg', imageAlt: 'Voltage issue icon' },
+      { id: 'home-problem-2', title: 'Frequent Power Outages', type: 'problem', visible: true, summary: 'Frequent Power Outages', content: 'Keep your home or business running without interruption.', ctaLabel: 'Get PRAG Inverters', ctaHref: '/products/inverters', imageUrl: '/images/arcticons_chuden-power-outage-infomation.svg', imageAlt: 'Outage icon' },
+      { id: 'home-problem-3', title: 'No Reliable Power Source', type: 'problem', visible: true, summary: 'No Reliable Power Source', content: 'Generate your own electricity with a dependable solar system.', ctaLabel: 'Go PRAG Solar', ctaHref: '/products/solar', imageUrl: '/images/ph_solar-panel-bold.svg', imageAlt: 'Solar icon' },
+      { id: 'home-problem-4', title: 'Reliable Energy Storage', type: 'problem', visible: true, summary: 'Reliable Energy Storage', content: 'Ensure consistent power with high-performance battery systems.', ctaLabel: 'Get PRAG Lithium Batteries', ctaHref: '/products/batteries', imageUrl: '/images/streamline-plump_disable-protection-remix.svg', imageAlt: 'Battery icon' },
     ],
   },
   '/solutions': {
@@ -1223,6 +1237,10 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
       { id: 'home-tech-2', title: 'Technology Card 2', type: 'technology', visible: true, summary: 'Homepage technology card title.', content: 'Homepage technology card supporting copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-tech-3', title: 'Technology Card 3', type: 'technology', visible: true, summary: 'Homepage technology card title.', content: 'Homepage technology card supporting copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-tech-4', title: 'Technology Card 4', type: 'technology', visible: true, summary: 'Homepage technology card title.', content: 'Homepage technology card supporting copy.', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-1', title: 'Power Issue Card 1', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-2', title: 'Power Issue Card 2', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-3', title: 'Power Issue Card 3', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-4', title: 'Power Issue Card 4', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
     ];
   }
   if (route.startsWith('/solutions/')) {
@@ -1606,6 +1624,131 @@ export async function updateB2BAdminStore(updater: (current: B2BAdminStore) => B
   const updated = updater(current);
   await writeB2BAdminStore(updated);
   return updated;
+}
+
+function normalizeStructureKey(value: string | undefined): string {
+  return String(value ?? '').trim().toLowerCase();
+}
+
+function uniqueSectionIdsFromPage(page?: Partial<B2BPageRecord>): string[] {
+  if (!page || !Array.isArray(page.sections)) return [];
+  const seen = new Set<string>();
+  const ids: string[] = [];
+
+  for (const section of page.sections) {
+    const id = normalizeStructureKey(section?.id);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+
+  return ids;
+}
+
+function mergeMissingDefaultFooterColumns(settings: B2BSettings): { settings: B2BSettings; addedTitles: string[] } {
+  const currentColumns = Array.isArray(settings.footer.columns) ? settings.footer.columns : [];
+  const existingTitles = new Set(currentColumns.map((column) => normalizeStructureKey(column?.title)));
+  const addedTitles: string[] = [];
+  const nextColumns = [...currentColumns];
+
+  for (const fallbackColumn of DEFAULT_SETTINGS.footer.columns) {
+    const titleKey = normalizeStructureKey(fallbackColumn?.title);
+    if (!titleKey || existingTitles.has(titleKey)) continue;
+
+    nextColumns.push({
+      title: String(fallbackColumn.title),
+      items: fallbackColumn.items.map((item) => ({ label: item.label, href: item.href })),
+    });
+    existingTitles.add(titleKey);
+    addedTitles.push(fallbackColumn.title);
+  }
+
+  return {
+    settings: {
+      ...settings,
+      footer: {
+        ...settings.footer,
+        columns: nextColumns,
+      },
+    },
+    addedTitles,
+  };
+}
+
+async function readRawStoreForStructureSync(): Promise<Partial<B2BAdminStore>> {
+  if (process.env.VERCEL) {
+    try {
+      const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+        headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
+        cache: 'no-store',
+      });
+
+      if (!res.ok || res.status === 204 || res.status === 404) return {};
+
+      const parsed = (await res.json()) as Record<string, unknown>;
+      const nested = parsed?.b2bAdminStore;
+      return nested && typeof nested === 'object' ? nested as Partial<B2BAdminStore> : {};
+    } catch {
+      return {};
+    }
+  }
+
+  try {
+    await ensureStoreFile();
+    const raw = await fs.readFile(STORE_PATH, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<B2BAdminStore>;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function pullFrontendStructureIntoAdmin(): Promise<{ store: B2BAdminStore; report: B2BFrontendStructureSyncReport }> {
+  const rawStore = await readRawStoreForStructureSync();
+  const beforePages = Array.isArray(rawStore.pages) ? rawStore.pages : [];
+  const beforePagesByRoute = new Map(beforePages.map((page) => [page.route, page]));
+  const beforeFooterColumns = Array.isArray(rawStore.settings?.footer?.columns) ? rawStore.settings.footer.columns : [];
+  const beforeFooterColumnTitles = new Set(beforeFooterColumns.map((column) => normalizeStructureKey(column?.title)));
+
+  let normalized = await normalizeStore(rawStore);
+  const footerMerge = mergeMissingDefaultFooterColumns(normalized.settings);
+  normalized = {
+    ...normalized,
+    settings: footerMerge.settings,
+  };
+
+  const pagesCreatedRoutes = normalized.pages
+    .filter((page) => !beforePagesByRoute.has(page.route))
+    .map((page) => page.route);
+
+  let sectionsCreated = 0;
+  const sectionsCreatedByRoute: Array<{ route: string; sectionIds: string[] }> = [];
+  for (const page of normalized.pages) {
+    const beforePage = beforePagesByRoute.get(page.route);
+    const beforeSectionIds = new Set(uniqueSectionIdsFromPage(beforePage));
+    const addedSectionIds = uniqueSectionIdsFromPage(page).filter((id) => !beforeSectionIds.has(id));
+    if (addedSectionIds.length === 0) continue;
+
+    sectionsCreated += addedSectionIds.length;
+    sectionsCreatedByRoute.push({ route: page.route, sectionIds: addedSectionIds });
+  }
+
+  const footerColumnsCreatedTitles = footerMerge.addedTitles.filter((title) => !beforeFooterColumnTitles.has(normalizeStructureKey(title)));
+
+  await writeB2BAdminStore(normalized);
+
+  return {
+    store: normalized,
+    report: {
+      syncedAt: new Date().toISOString(),
+      pagesCreated: pagesCreatedRoutes.length,
+      sectionsCreated,
+      footerColumnsCreated: footerColumnsCreatedTitles.length,
+      pagesCreatedRoutes,
+      sectionsCreatedByRoute,
+      footerColumnsCreatedTitles,
+    },
+  };
 }
 
 function normalizeAuditActor(value: unknown): string {

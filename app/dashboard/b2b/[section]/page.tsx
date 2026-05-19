@@ -85,6 +85,7 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
           showAccessManager
           allowedTabs={['scripts', 'smtp', 'forms', 'access', 'launch', 'audit']}
           defaultTab="scripts"
+          enableFrontendPull
         />
       </SectionShell>
     );
