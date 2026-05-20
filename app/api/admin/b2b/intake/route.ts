@@ -49,7 +49,10 @@ export async function POST(req: Request) {
 
   // Honor form routing rules saved in Site Settings -> Forms.
   try {
-    const formKey = kind === 'distributor' ? 'distributor' : 'contact';
+    const normalizedRoute = String(record.route || '').trim().toLowerCase();
+    const formKey = kind === 'distributor'
+      ? 'distributor'
+      : (normalizedRoute === '/free-power-assessment' ? 'free-power-assessment' : 'contact');
     const rule = store.settings.forms.find((item) => item.formKey === formKey);
     const recipients = Array.isArray(rule?.recipients) ? rule.recipients.filter(Boolean) : [];
     const smtp = store.settings.smtp;

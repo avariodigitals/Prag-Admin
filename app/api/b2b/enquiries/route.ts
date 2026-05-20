@@ -11,6 +11,7 @@ type LocalEnquiry = {
   email: string;
   phone?: string;
   subject?: string;
+  route?: string;
   message: string;
   status?: string;
   createdAt?: string;
@@ -39,17 +40,23 @@ function getLocalEnquiries(params: { page: number; search: string; status: strin
 
     const perPage = 20;
     const offset = (params.page - 1) * perPage;
-    const paged = filtered.slice(offset, offset + perPage).map((item) => ({
-      id: item.id,
-      company: item.company ?? '',
-      name: item.name ?? '',
-      email: item.email ?? '',
-      phone: item.phone ?? '',
-      type: item.subject ?? 'General Enquiry',
-      message: item.message ?? '',
-      status: item.status ?? 'new',
-      date: item.createdAt ?? new Date().toISOString(),
-    }));
+    const paged = filtered.slice(offset, offset + perPage).map((item) => {
+      const route = item.route ?? '/contact';
+      const routeBasedType = route === '/free-power-assessment' ? 'Free Power Assessment' : 'General Enquiry';
+      const isGenericSubject = !item.subject || item.subject === 'General Enquiry';
+      return {
+        id: item.id,
+        company: item.company ?? '',
+        name: item.name ?? '',
+        email: item.email ?? '',
+        phone: item.phone ?? '',
+        type: isGenericSubject ? routeBasedType : item.subject,
+        route,
+        message: item.message ?? '',
+        status: item.status ?? 'new',
+        date: item.createdAt ?? new Date().toISOString(),
+      };
+    });
 
     return { data: paged, total: filtered.length };
   });

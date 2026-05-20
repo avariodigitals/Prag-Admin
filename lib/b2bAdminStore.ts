@@ -323,7 +323,7 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
     title: 'Homepage',
     description: 'We design, install, and support reliable power systems for homes, businesses, and industries across Nigeria.',
     sections: [
-      { id: 'home-hero', title: 'Homepage Hero', type: 'hero', visible: true, kicker: 'Reliable Power Solutions', summary: 'Unstable Power? We Fix It Permanently.', content: 'We design, install, and support reliable power systems for homes, businesses, and industries across Nigeria.', ctaLabel: 'Get a Free Power Assessment', ctaHref: '/contact', imageUrl: HOMEPAGE_HERO_IMAGE, imageAlt: 'PRAG homepage hero' },
+      { id: 'home-hero', title: 'Homepage Hero', type: 'hero', visible: true, kicker: 'Reliable Power Solutions', summary: 'Unstable Power? We Fix It Permanently.', content: 'We design, install, and support reliable power systems for homes, businesses, and industries across Nigeria.', ctaLabel: 'Get a Free Power Assessment', ctaHref: '/free-power-assessment', imageUrl: HOMEPAGE_HERO_IMAGE, imageAlt: 'PRAG homepage hero' },
       { id: 'home-reason-1', title: 'Built for Nigerian power conditions', type: 'reason', visible: true, summary: 'Built for Nigerian power conditions', content: 'Our systems are specifically engineered to handle voltage fluctuations, frequent outages, and harsh environmental conditions, ensuring consistent performance where it matters most.', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/6333bffe31c649645bdba2b956b3e4bafe0a7868-scaled.jpg', imageAlt: 'Built for Nigerian power conditions' },
       { id: 'home-reason-2', title: 'End-to-End Delivery', type: 'reason', visible: true, summary: 'End-to-End Delivery (Design → Installation → Support)', content: 'From initial consultation and system design to professional installation and ongoing maintenance, we manage the entire process so you can enjoy a seamless, stress-free experience.', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/8d3cd2d330451451580f7d3cb8661c92c954a0fa-scaled.jpg', imageAlt: 'End-to-End Delivery' },
       { id: 'home-reason-3', title: 'Trusted by Thousands Nationwide', type: 'reason', visible: true, summary: 'Trusted by Thousands Nationwide', content: 'With a growing network of satisfied customers across the country, our solutions have been tested and proven in real homes and businesses you can relate to.', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/9ef4a5ee5bff2a6013ceebaf1698c605c4ed6fc4-scaled.jpg', imageAlt: 'Trusted nationwide' },
@@ -420,6 +420,35 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
       { id: '/contact-hero', title: 'Contact Hero', type: 'hero', visible: true, kicker: 'Contact', summary: 'Get in Touch', content: 'Have a question or need a custom power solution? We would love to hear from you.', imageUrl: '', imageAlt: '' },
       { id: '/contact-details', title: 'Contact Details', type: 'content', visible: true, summary: 'Contact Information', content: 'Email: sales@prag.global. Phone: +2348032170129. Location: Contact details are loaded from store settings on the frontend. Business hours are also loaded dynamically from site settings.', ctaLabel: 'Email PRAG', ctaHref: 'mailto:sales@prag.global', imageUrl: '', imageAlt: '' },
       { id: '/contact-form', title: 'Contact Form', type: 'cta', visible: true, summary: 'Need a custom power solution?', content: 'Use the contact form to reach the PRAG team and request a custom quote or technical guidance.', ctaLabel: 'Submit Enquiry', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/free-power-assessment': {
+    title: 'Free Power Assessment',
+    description: 'Kindly provide your details and we will contact you shortly to provide a free power assesment.',
+    sections: [
+      {
+        id: '/free-power-assessment-hero',
+        title: 'Free Power Assessment Hero',
+        type: 'hero',
+        visible: true,
+        kicker: 'Assessment',
+        summary: 'Get a Free Power Assessment',
+        content: 'Kindly provide your details and we will contact you shortly to provide a free power assesment.',
+        imageUrl: '',
+        imageAlt: '',
+      },
+      {
+        id: '/free-power-assessment-form',
+        title: 'Free Power Assessment Form',
+        type: 'cta',
+        visible: true,
+        summary: 'Submit Assessment Request',
+        content: 'Form fields are managed on the frontend. Configure the routing and recipient behavior from Site Settings > Forms.',
+        ctaLabel: 'Submit Assessment',
+        ctaHref: '/free-power-assessment',
+        imageUrl: '',
+        imageAlt: '',
+      },
     ],
   },
   '/privacy': {
@@ -659,6 +688,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
   },
   forms: [
     { formKey: 'contact', formName: 'Contact Form', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
+    { formKey: 'free-power-assessment', formName: 'Free Power Assessment', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
     { formKey: 'distributor', formName: 'Distributor Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
     { formKey: 'installations', formName: 'Installation Request', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
   ],

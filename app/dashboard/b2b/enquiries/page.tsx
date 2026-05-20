@@ -10,6 +10,7 @@ interface Enquiry {
   email: string;
   phone: string;
   type: string;
+  route?: string;
   message: string;
   status: string;
   date: string;
@@ -79,6 +80,7 @@ function EnquiryModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             <p><span className="text-gray-500">Company:</span> <span className="font-medium text-gray-900">{enquiry.company || '—'}</span></p>
             <p><span className="text-gray-500">Type:</span> <span className="font-medium text-gray-900">{enquiry.type || '—'}</span></p>
+            <p><span className="text-gray-500">Route:</span> <span className="font-medium text-gray-900">{enquiry.route || '—'}</span></p>
             <p><span className="text-gray-500">Email:</span> <span className="font-medium text-gray-900">{enquiry.email || '—'}</span></p>
             <p><span className="text-gray-500">Phone:</span> <span className="font-medium text-gray-900">{enquiry.phone || '—'}</span></p>
           </div>
