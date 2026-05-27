@@ -318,6 +318,9 @@ export interface B2BFrontendStructureSyncReport {
   footerColumnsCreatedTitles: string[];
 }
 
+const COMPLETE_SYSTEMS_BACKUP_HREF = '/products?cats=inverters,batteries';
+const COMPLETE_SYSTEMS_SOLAR_HREF = '/products?cats=inverters,batteries,solar';
+
 const B2B_APP_ROOT = process.env.B2B_APP_ROOT || path.resolve(process.cwd(), '..', 'prag-b2b');
 const B2B_APP_DIR = path.join(B2B_APP_ROOT, 'app');
 const STORE_PATH = path.join(process.cwd(), '.admin-data', 'b2b-admin-config.json');
@@ -726,7 +729,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
             label: 'Home Backup Power',
             href: '/solutions/residential#home-backup-power',
             children: [
-              { label: 'Complete Systems', href: '/solutions/residential' },
+                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_BACKUP_HREF },
               { label: 'Inverters', href: '/products/inverters' },
               { label: 'Batteries', href: '/products/batteries' },
             ],
@@ -735,7 +738,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
             label: 'Home Solar Systems',
             href: '/solutions/residential#home-solar-systems',
             children: [
-              { label: 'Complete Systems', href: '/solutions/residential' },
+                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_SOLAR_HREF },
               { label: 'Inverters', href: '/products/inverters' },
               { label: 'Batteries', href: '/products/batteries' },
               { label: 'Solar Panels', href: '/products/solar' },
@@ -762,7 +765,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
             label: 'Office Backup Power',
             href: '/solutions/commercial#office-backup-power',
             children: [
-              { label: 'Complete Systems', href: '/solutions/commercial' },
+                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_BACKUP_HREF },
               { label: 'Inverters', href: '/products/inverters' },
               { label: 'Batteries', href: '/products/batteries' },
             ],
@@ -771,7 +774,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
             label: 'Solar for Businesses',
             href: '/solutions/commercial#solar-for-businesses',
             children: [
-              { label: 'Complete Systems', href: '/solutions/commercial' },
+                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_SOLAR_HREF },
               { label: 'Inverters', href: '/products/inverters' },
               { label: 'Batteries', href: '/products/batteries' },
               { label: 'Solar Panels', href: '/products/solar' },
@@ -2013,6 +2016,92 @@ function uniqueSectionIdsFromPage(page?: Partial<B2BPageRecord>): string[] {
   return ids;
 }
 
+function applyCompleteSystemsLinkRules(items: B2BHeaderMenuItem[], trail: string[] = []): B2BHeaderMenuItem[] {
+  return items.map((item) => {
+    const labelKey = normalizeStructureKey(item.label);
+    const parentKey = normalizeStructureKey(trail[trail.length - 1]);
+
+    let href = String(item.href ?? '');
+    if (labelKey === 'complete-systems') {
+      if (parentKey === 'home-backup-power' || parentKey === 'office-backup-power') {
+        href = COMPLETE_SYSTEMS_BACKUP_HREF;
+      }
+      if (parentKey === 'home-solar-systems' || parentKey === 'solar-for-businesses') {
+        href = COMPLETE_SYSTEMS_SOLAR_HREF;
+      }
+    }
+
+    const children = Array.isArray(item.children)
+      ? applyCompleteSystemsLinkRules(item.children, [...trail, item.label])
+      : undefined;
+
+    return children && children.length > 0
+      ? { ...item, href, children }
+      : { ...item, href };
+  });
+}
+
+function syncFrontendHeaderAndFooterContent(settings: B2BSettings): B2BSettings {
+  const syncedSolutionsMenuItems = applyCompleteSystemsLinkRules(
+    normalizeHeaderMenuItems(settings.header.solutionsMenuItems).length > 0
+      ? normalizeHeaderMenuItems(settings.header.solutionsMenuItems)
+      : DEFAULT_SETTINGS.header.solutionsMenuItems,
+  );
+
+  return {
+    ...settings,
+    header: {
+      ...settings.header,
+      brandLabel: DEFAULT_SETTINGS.header.brandLabel,
+      announcement: DEFAULT_SETTINGS.header.announcement,
+      ctaLabel: DEFAULT_SETTINGS.header.ctaLabel,
+      ctaHref: DEFAULT_SETTINGS.header.ctaHref,
+      solutionsMenuItems: syncedSolutionsMenuItems,
+      productsMenuItems: DEFAULT_SETTINGS.header.productsMenuItems.map((item) => ({ ...item })),
+      companyMenuItems: DEFAULT_SETTINGS.header.companyMenuItems.map((item) => ({ ...item })),
+      contactLabel: DEFAULT_SETTINGS.header.contactLabel,
+      contactHref: DEFAULT_SETTINGS.header.contactHref,
+      menuItems: DEFAULT_SETTINGS.header.menuItems.map((item) => ({ ...item })),
+    },
+    footer: {
+      ...settings.footer,
+      ctaTitle: DEFAULT_SETTINGS.footer.ctaTitle,
+      ctaDescription: DEFAULT_SETTINGS.footer.ctaDescription,
+      primaryCtaLabel: DEFAULT_SETTINGS.footer.primaryCtaLabel,
+      primaryCtaHref: DEFAULT_SETTINGS.footer.primaryCtaHref,
+      secondaryCtaLabel: DEFAULT_SETTINGS.footer.secondaryCtaLabel,
+      secondaryCtaHref: DEFAULT_SETTINGS.footer.secondaryCtaHref,
+      companyName: DEFAULT_SETTINGS.footer.companyName,
+      companyRegistration: DEFAULT_SETTINGS.footer.companyRegistration,
+      tagline: DEFAULT_SETTINGS.footer.tagline,
+      supportCardLeadText: DEFAULT_SETTINGS.footer.supportCardLeadText,
+      supportCardCtaText: DEFAULT_SETTINGS.footer.supportCardCtaText,
+      trustCardTitle: DEFAULT_SETTINGS.footer.trustCardTitle,
+      trustCardSubtitle: DEFAULT_SETTINGS.footer.trustCardSubtitle,
+      whatsappHelperText: DEFAULT_SETTINGS.footer.whatsappHelperText,
+      partnerTitle: DEFAULT_SETTINGS.footer.partnerTitle,
+      partnerDescription: DEFAULT_SETTINGS.footer.partnerDescription,
+      partnerCtaText: DEFAULT_SETTINGS.footer.partnerCtaText,
+      partnerHref: DEFAULT_SETTINGS.footer.partnerHref,
+      contactHeading: DEFAULT_SETTINGS.footer.contactHeading,
+      headOfficeLabel: DEFAULT_SETTINGS.footer.headOfficeLabel,
+      salesHotlineLabel: DEFAULT_SETTINGS.footer.salesHotlineLabel,
+      customerSupportLabel: DEFAULT_SETTINGS.footer.customerSupportLabel,
+      whatsappLabel: DEFAULT_SETTINGS.footer.whatsappLabel,
+      emailLabel: DEFAULT_SETTINGS.footer.emailLabel,
+      workingHoursLabel: DEFAULT_SETTINGS.footer.workingHoursLabel,
+      workingHoursText: DEFAULT_SETTINGS.footer.workingHoursText,
+      copyright: DEFAULT_SETTINGS.footer.copyright,
+      disclaimerText: DEFAULT_SETTINGS.footer.disclaimerText,
+      legalLinks: DEFAULT_SETTINGS.footer.legalLinks.map((item) => ({ ...item })),
+      columns: DEFAULT_SETTINGS.footer.columns.map((column) => ({
+        title: column.title,
+        items: column.items.map((item) => ({ ...item })),
+      })),
+    },
+  };
+}
+
 function mergeMissingDefaultFooterColumns(settings: B2BSettings): { settings: B2BSettings; addedTitles: string[] } {
   const currentColumns = Array.isArray(settings.footer.columns) ? settings.footer.columns : [];
   const existingTitles = new Set(currentColumns.map((column) => normalizeStructureKey(column?.title)));
@@ -2131,6 +2220,10 @@ export async function pullFrontendStructureIntoAdmin(): Promise<{ store: B2BAdmi
   const beforeFooterColumnTitles = new Set(beforeFooterColumns.map((column) => normalizeStructureKey(column?.title)));
 
   let normalized = await normalizeStore(rawStore);
+  normalized = {
+    ...normalized,
+    settings: syncFrontendHeaderAndFooterContent(normalized.settings),
+  };
   const footerMerge = mergeMissingDefaultFooterColumns(normalized.settings);
   normalized = {
     ...normalized,

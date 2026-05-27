@@ -920,7 +920,7 @@ export default function B2BSettingsClient({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-sky-900">Pull Frontend Structure</p>
-                    <p className="text-xs text-sky-700">Creates missing page blocks and footer columns without changing existing content values.</p>
+                    <p className="text-xs text-sky-700">Refreshes header/footer links and text to match the frontend baseline, and creates any missing page blocks or footer columns.</p>
                   </div>
                   <button
                     type="button"
