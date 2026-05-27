@@ -47,6 +47,8 @@ export interface B2BCaseStudiesContent {
   processSteps: B2BCaseStudyProcessStep[];
   installationsCtaLabel: string;
   installationsCtaHref: string;
+  solutionSectionLabel: string;
+  resultsSectionLabel: string;
   categories: B2BCaseStudyCategory[];
   studies: B2BCaseStudy[];
 }
@@ -117,6 +119,8 @@ export interface B2BPageSection {
   kicker?: string;
   ctaLabel?: string;
   ctaHref?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
   imageUrl?: string;
   imageAlt?: string;
 }
@@ -160,12 +164,23 @@ export interface B2BSiteContact {
   };
 }
 
+export interface B2BHeaderMenuItem {
+  label: string;
+  href: string;
+  children?: B2BHeaderMenuItem[];
+}
+
 export interface B2BHeaderConfig {
   brandLabel: string;
   announcement: string;
   ctaLabel: string;
   ctaHref: string;
-  menuItems: Array<{ label: string; href: string }>;
+  solutionsMenuItems: B2BHeaderMenuItem[];
+  productsMenuItems: B2BHeaderMenuItem[];
+  companyMenuItems: B2BHeaderMenuItem[];
+  contactLabel: string;
+  contactHref: string;
+  menuItems: B2BHeaderMenuItem[];
 }
 
 export interface B2BFooterConfig {
@@ -178,6 +193,23 @@ export interface B2BFooterConfig {
   companyName: string;
   companyRegistration: string;
   tagline: string;
+  supportCardLeadText: string;
+  supportCardCtaText: string;
+  trustCardTitle: string;
+  trustCardSubtitle: string;
+  whatsappHelperText: string;
+  partnerTitle: string;
+  partnerDescription: string;
+  partnerCtaText: string;
+  partnerHref: string;
+  contactHeading: string;
+  headOfficeLabel: string;
+  salesHotlineLabel: string;
+  customerSupportLabel: string;
+  whatsappLabel: string;
+  emailLabel: string;
+  workingHoursLabel: string;
+  workingHoursText: string;
   copyright: string;
   disclaimerText: string;
   legalLinks: Array<{ label: string; href: string }>;
@@ -323,15 +355,26 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
     title: 'Homepage',
     description: 'We design, install, and support reliable power systems for homes, businesses, and industries across Nigeria.',
     sections: [
-      { id: 'home-hero', title: 'Homepage Hero', type: 'hero', visible: true, kicker: 'Reliable Power Solutions', summary: 'Unstable Power? We Fix It Permanently.', content: 'We design, install, and support reliable power systems for homes, businesses, and industries across Nigeria.', ctaLabel: 'Get a Free Power Assessment', ctaHref: '/free-power-assessment', imageUrl: HOMEPAGE_HERO_IMAGE, imageAlt: 'PRAG homepage hero' },
+      { id: 'home-hero', title: 'Homepage Hero', type: 'hero', visible: true, kicker: 'Reliable Power Solutions', summary: 'Low or High Voltage?\nUnreliable or No Power?\nGet PRAG', content: 'We design, install, and support reliable power systems for homes, businesses, and industries across Nigeria.', ctaLabel: 'Get a Free Power Assessment', ctaHref: '/free-power-assessment', secondaryCtaLabel: 'Chat on WhatsApp', secondaryCtaHref: 'https://wa.me/2348032170129', imageUrl: HOMEPAGE_HERO_IMAGE, imageAlt: 'PRAG homepage hero' },
+      { id: 'home-reason-header', title: 'Why PRAG Header', type: 'reason-header', visible: true, kicker: 'The PRAG Difference', summary: 'Why Leading Homes and Businesses Choose PRAG', content: 'Our work is guided by a commitment to quality, precision, and long-term performance.', imageUrl: '', imageAlt: '' },
+      { id: 'home-solution-header', title: 'Homepage Solutions Header', type: 'solution-header', visible: true, kicker: 'Our Solutions', summary: 'Complete Power Systems Designed for Nigeria', content: 'We design, supply, and install integrated solutions using: Stabilizers • Inverters • Solar • Batteries', imageUrl: '', imageAlt: '' },
+      { id: 'home-solution-1', title: 'Residential', type: 'solution', visible: true, summary: 'Residential', content: 'Protect your home with stable power. Enjoy uninterrupted electricity for your family, appliances, and comfort.', ctaLabel: 'Learn more', ctaHref: '/solutions/residential', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/51105cfa2d7e118079c6acdb18a81c8b54dc18e6-1.png', imageAlt: 'Residential solutions' },
+      { id: 'home-solution-2', title: 'Commercial', type: 'solution', visible: true, summary: 'Commercial', content: 'Keep your business running 24/7. Power solutions tailored for offices, retail, and commercial operations.', ctaLabel: 'Learn more', ctaHref: '/solutions/commercial', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/Rectangle-6.png', imageAlt: 'Commercial solutions' },
+      { id: 'home-solution-3', title: 'Industrial', type: 'solution', visible: true, summary: 'Industrial', content: 'Heavy-duty power engineering for manufacturing, warehouses, and large-scale industrial operations.', ctaLabel: 'Learn more', ctaHref: '/solutions/industrial', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/Rectangle-6-1.png', imageAlt: 'Industrial solutions' },
       { id: 'home-reason-1', title: 'Built for Nigerian power conditions', type: 'reason', visible: true, summary: 'Built for Nigerian power conditions', content: 'Our systems are specifically engineered to handle voltage fluctuations, frequent outages, and harsh environmental conditions, ensuring consistent performance where it matters most.', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/6333bffe31c649645bdba2b956b3e4bafe0a7868-scaled.jpg', imageAlt: 'Built for Nigerian power conditions' },
       { id: 'home-reason-2', title: 'End-to-End Delivery', type: 'reason', visible: true, summary: 'End-to-End Delivery (Design → Installation → Support)', content: 'From initial consultation and system design to professional installation and ongoing maintenance, we manage the entire process so you can enjoy a seamless, stress-free experience.', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/8d3cd2d330451451580f7d3cb8661c92c954a0fa-scaled.jpg', imageAlt: 'End-to-End Delivery' },
       { id: 'home-reason-3', title: 'Trusted by Thousands Nationwide', type: 'reason', visible: true, summary: 'Trusted by Thousands Nationwide', content: 'With a growing network of satisfied customers across the country, our solutions have been tested and proven in real homes and businesses you can relate to.', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/9ef4a5ee5bff2a6013ceebaf1698c605c4ed6fc4-scaled.jpg', imageAlt: 'Trusted nationwide' },
       { id: 'home-reason-4', title: 'Long-Term Reliability', type: 'reason', visible: true, summary: 'Long-Term Reliability, Not Quick Fixes', content: 'We focus on building durable energy systems designed to last for years, helping you avoid frequent replacements and unnecessary costs over time.', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/aa2e989afcc2e3f55275cac3da1e786d9b35d788.jpg', imageAlt: 'Long-Term Reliability' },
+      { id: 'home-technology-header', title: 'Homepage Technologies Header', type: 'technology-header', visible: true, kicker: 'Our Technologies', summary: 'Four Technologies. One Complete System.', content: 'Every PRAG solution is built from the right combination of technologies — engineered, installed, and warranted by our team.', imageUrl: '', imageAlt: '' },
       { id: 'home-tech-1', title: 'Voltage Stabilizers', type: 'technology', visible: true, summary: 'Voltage Stabilizers', content: 'Part of the four technologies that make up a complete PRAG system.', ctaLabel: 'View Products', ctaHref: '/products/all-prag-stabilizers', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/7ee70985fdddba92a39a6e67f80ec4773cbf34fd.png', imageAlt: 'Voltage Stabilizers' },
       { id: 'home-tech-2', title: 'Inverters', type: 'technology', visible: true, summary: 'Inverters', content: 'Part of the four technologies that make up a complete PRAG system.', ctaLabel: 'View Products', ctaHref: '/products/inverters', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/eebd514c0d3e75e4f32cb8fd691c7b3613fd99d5-1.png', imageAlt: 'Inverters' },
       { id: 'home-tech-3', title: 'Solar Systems', type: 'technology', visible: true, summary: 'Solar Systems', content: 'Part of the four technologies that make up a complete PRAG system.', ctaLabel: 'View Products', ctaHref: '/products/solar', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/b5564cf299de3eea9dbe804a547cf74e99bc41a7.png', imageAlt: 'Solar Systems' },
       { id: 'home-tech-4', title: 'Battery Storage', type: 'technology', visible: true, summary: 'Battery Storage', content: 'Part of the four technologies that make up a complete PRAG system.', ctaLabel: 'View Products', ctaHref: '/products/batteries', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/dd4b835690b546ee636b7659added08cd02d9891.png', imageAlt: 'Battery Storage' },
+      { id: 'home-knowledge-header', title: 'Knowledge Center Header', type: 'knowledge-header', visible: true, kicker: 'Knowledge Center', summary: 'Power Insights & Expert Guides', content: 'Read practical guidance, industry updates, and engineering insights from the PRAG team.', ctaLabel: 'View all articles', ctaHref: '/knowledge-center', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-header', title: 'Power Issues Section Header', type: 'problem-header', visible: true, kicker: 'Power Issues We Solve', summary: 'Power Problems Cost You\nMore Than You Think', content: 'Unstable electricity leads to damaged equipment, costly downtime, and reduced efficiency. PRAG delivers reliable solutions from voltage stabilizers and UPS systems to hybrid inverters and solar power designed to keep your home or business running without interruption.', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-stat-1', title: 'Power Issues Stat 1', type: 'problem-stat', visible: true, summary: 'Trusted across\n36 states', content: '', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-stat-2', title: 'Power Issues Stat 2', type: 'problem-stat', visible: true, summary: '20+Years of\nEngineering\nExperience', content: '20+Years of\nEngineering Experience', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-stat-3', title: 'Power Issues Stat 3', type: 'problem-stat', visible: true, summary: '500+\ninstallations\nnationwide', content: '', imageUrl: '', imageAlt: '' },
       { id: 'home-problem-1', title: 'Low, High, or Fluctuating Voltage', type: 'problem', visible: true, summary: 'Low, High, or Fluctuating Voltage', content: 'Protect your appliances and equipment from silent damage.', ctaLabel: 'Get PRAG Stabilizers', ctaHref: '/products/all-prag-stabilizers', imageUrl: '/images/ix_voltage.svg', imageAlt: 'Voltage issue icon' },
       { id: 'home-problem-2', title: 'Frequent Power Outages', type: 'problem', visible: true, summary: 'Frequent Power Outages', content: 'Keep your home or business running without interruption.', ctaLabel: 'Get PRAG Inverters', ctaHref: '/products/inverters', imageUrl: '/images/arcticons_chuden-power-outage-infomation.svg', imageAlt: 'Outage icon' },
       { id: 'home-problem-3', title: 'No Reliable Power Source', type: 'problem', visible: true, summary: 'No Reliable Power Source', content: 'Generate your own electricity with a dependable solar system.', ctaLabel: 'Go PRAG Solar', ctaHref: '/products/solar', imageUrl: '/images/ph_solar-panel-bold.svg', imageAlt: 'Solar icon' },
@@ -446,6 +489,83 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
         content: 'Form fields are managed on the frontend. Configure the routing and recipient behavior from Site Settings > Forms.',
         ctaLabel: 'Submit Assessment',
         ctaHref: '/free-power-assessment',
+        imageUrl: '',
+        imageAlt: '',
+      },
+    ],
+  },
+  '/faq': {
+    title: 'FAQ',
+    description: 'Answers to common questions about PRAG products, warranty, installation, and support.',
+    sections: [
+      {
+        id: '/faq-hero',
+        title: 'FAQ Hero',
+        type: 'hero',
+        visible: true,
+        kicker: 'FAQ',
+        summary: 'FAQ',
+        content: 'Answers to common questions about PRAG products, warranty, installation, and support.',
+        imageUrl: '',
+        imageAlt: '',
+      },
+      {
+        id: '/faq-1',
+        title: 'FAQ Item 1',
+        type: 'faq-item',
+        visible: true,
+        summary: 'What is the warranty period on PRAG products?',
+        content: 'All PRAG products come with a standard 5-year warranty covering manufacturing defects and component failures under normal use conditions.',
+        imageUrl: '',
+        imageAlt: '',
+      },
+      {
+        id: '/faq-2',
+        title: 'FAQ Item 2',
+        type: 'faq-item',
+        visible: true,
+        summary: 'Do you offer installation services?',
+        content: 'Yes, PRAG offers professional installation services through our certified engineers and authorized partner network across Nigeria. Contact us or visit a PRAG store to schedule an installation.',
+        imageUrl: '',
+        imageAlt: '',
+      },
+      {
+        id: '/faq-3',
+        title: 'FAQ Item 3',
+        type: 'faq-item',
+        visible: true,
+        summary: 'Can I get bulk pricing for large orders?',
+        content: 'Yes, we offer competitive bulk pricing for businesses, contractors, and distributors. Please reach out to our sales team via the enquiry form or email sales@prag.global for a custom quote.',
+        imageUrl: '',
+        imageAlt: '',
+      },
+      {
+        id: '/faq-4',
+        title: 'FAQ Item 4',
+        type: 'faq-item',
+        visible: true,
+        summary: 'Do you ship internationally?',
+        content: 'Currently, PRAG primarily serves customers within Nigeria. For international inquiries, please contact us directly and our team will assess feasibility and provide shipping options.',
+        imageUrl: '',
+        imageAlt: '',
+      },
+      {
+        id: '/faq-5',
+        title: 'FAQ Item 5',
+        type: 'faq-item',
+        visible: true,
+        summary: 'What payment methods do you accept?',
+        content: 'We accept bank transfers, card payments (Visa/Mastercard), and USSD payments. For large corporate orders, we also support purchase orders and invoice-based payments.',
+        imageUrl: '',
+        imageAlt: '',
+      },
+      {
+        id: '/faq-6',
+        title: 'FAQ Item 6',
+        type: 'faq-item',
+        visible: true,
+        summary: 'How do I request technical support?',
+        content: 'You can request technical support by calling our support line at +2348032170129, emailing sales@prag.global, or submitting a request through the contact form.',
         imageUrl: '',
         imageAlt: '',
       },
@@ -597,11 +717,95 @@ const DEFAULT_SETTINGS: B2BSettings = {
     announcement: '',
     ctaLabel: 'View Store',
     ctaHref: 'https://shop.prag.global',
+    solutionsMenuItems: [
+      {
+        label: 'Residential',
+        href: '/solutions/residential',
+        children: [
+          {
+            label: 'Home Backup Power',
+            href: '/solutions/residential#home-backup-power',
+            children: [
+              { label: 'Complete Systems', href: '/solutions/residential' },
+              { label: 'Inverters', href: '/products/inverters' },
+              { label: 'Batteries', href: '/products/batteries' },
+            ],
+          },
+          {
+            label: 'Home Solar Systems',
+            href: '/solutions/residential#home-solar-systems',
+            children: [
+              { label: 'Complete Systems', href: '/solutions/residential' },
+              { label: 'Inverters', href: '/products/inverters' },
+              { label: 'Batteries', href: '/products/batteries' },
+              { label: 'Solar Panels', href: '/products/solar' },
+            ],
+          },
+          {
+            label: 'Power Stabilization & Protection',
+            href: '/solutions/residential#power-stabilization-protection',
+            children: [
+              { label: 'All Stabilizers', href: '/products/all-prag-stabilizers' },
+              { label: 'Relay Stabilizers', href: '/products/all-prag-stabilizers#relay' },
+              { label: 'Servo Stabilizers', href: '/products/all-prag-stabilizers#servo' },
+              { label: 'Thyristor Stabilizers', href: '/products/all-prag-stabilizers#thyristor' },
+              { label: '3 Phase Stabilizers', href: '/products/all-prag-stabilizers#3-phase' },
+            ],
+          },
+        ],
+      },
+      {
+        label: 'Commercial',
+        href: '/solutions/commercial',
+        children: [
+          {
+            label: 'Office Backup Power',
+            href: '/solutions/commercial#office-backup-power',
+            children: [
+              { label: 'Complete Systems', href: '/solutions/commercial' },
+              { label: 'Inverters', href: '/products/inverters' },
+              { label: 'Batteries', href: '/products/batteries' },
+            ],
+          },
+          {
+            label: 'Solar for Businesses',
+            href: '/solutions/commercial#solar-for-businesses',
+            children: [
+              { label: 'Complete Systems', href: '/solutions/commercial' },
+              { label: 'Inverters', href: '/products/inverters' },
+              { label: 'Batteries', href: '/products/batteries' },
+              { label: 'Solar Panels', href: '/products/solar' },
+            ],
+          },
+          {
+            label: 'Power Stabilization & Protection',
+            href: '/solutions/commercial#power-stabilization-protection',
+            children: [
+              { label: 'All Stabilizers', href: '/products/all-prag-stabilizers' },
+              { label: 'Relay Stabilizers', href: '/products/all-prag-stabilizers#relay' },
+              { label: 'Servo Stabilizers', href: '/products/all-prag-stabilizers#servo' },
+              { label: 'Thyristor Stabilizers', href: '/products/all-prag-stabilizers#thyristor' },
+              { label: '3 Phase Stabilizers', href: '/products/all-prag-stabilizers#3-phase' },
+            ],
+          },
+        ],
+      },
+    ],
+    productsMenuItems: [
+      { label: 'Voltage Stabilizers', href: '/products/all-prag-stabilizers' },
+      { label: 'Inverters', href: '/products/inverters' },
+      { label: 'Lithium Batteries', href: '/products/batteries' },
+      { label: 'Solar', href: '/products/solar' },
+    ],
+    companyMenuItems: [
+      { label: 'About', href: '/about' },
+      { label: 'Become A Distributor', href: '/distributor' },
+    ],
+    contactLabel: 'Contact',
+    contactHref: '/contact',
     menuItems: [
       { label: 'About', href: '/about' },
-      { label: 'Find a distributor', href: '/find-a-distributor' },
-      { label: 'Become a distributor', href: '/distributor' },
-      { label: 'Compare Products', href: '/compare' },
+      { label: 'Become A Distributor', href: '/distributor' },
     ],
   },
   footer: {
@@ -614,43 +818,75 @@ const DEFAULT_SETTINGS: B2BSettings = {
     companyName: 'PRAG Power Engineering Ltd',
     companyRegistration: 'RC: 1234567.',
     tagline: 'Nigeria\'s leading power engineering company delivering reliable power systems for homes, businesses, and industries nationwide.',
+    supportCardLeadText: 'Need help choosing the right power solution',
+    supportCardCtaText: 'Talk to an Expert',
+    trustCardTitle: 'Trusted Power Solutions for Homes and Businesses Across Nigeria',
+    trustCardSubtitle: 'Reliable. Efficient. Built for Africa',
+    whatsappHelperText: 'Quick replies. Real people',
+    partnerTitle: 'Become a Partner',
+    partnerDescription: 'Join our network of resellers and installers across Nigeria',
+    partnerCtaText: 'Partner with PRAG',
+    partnerHref: '/distributor',
+    contactHeading: 'Contact Us',
+    headOfficeLabel: 'Head Office',
+    salesHotlineLabel: 'Sales Hotline',
+    customerSupportLabel: 'Customer Support',
+    whatsappLabel: 'Whatsapp',
+    emailLabel: 'Email',
+    workingHoursLabel: 'Working Hours',
+    workingHoursText: 'Mon- Sat: 8:00am - 6:00pm',
     copyright: '© Copyright 2026 PRAG. All rights reserved.',
     disclaimerText: 'The products, prices and promotions on this website are applicable to our customers only and are subject to change anytime.',
     legalLinks: [
       { label: 'Privacy', href: '/privacy' },
       { label: 'Terms of use', href: '/terms-of-use' },
-      { label: 'Shipping', href: '/shipping-policy' },
+      { label: 'Warranty Policy', href: '/terms-of-use#warranty-policy' },
+      { label: 'Delivery Policy', href: '/shipping-policy' },
+      { label: 'Returns Policy', href: '/return-policy' },
     ],
     columns: [
       {
+        title: 'Products',
+        items: [
+          { label: 'Inverters', href: '/products/inverters' },
+          { label: 'Lithium Batteries', href: '/products/batteries' },
+          { label: 'Voltage Stabilizers', href: '/products/all-prag-stabilizers' },
+          { label: 'Solar Products', href: '/products/solar' },
+          { label: 'Accessories & Parts', href: '/products' },
+          { label: 'Hybrid Energy Solutions', href: '/solutions' },
+        ],
+      },
+      {
         title: 'Solutions',
         items: [
-          { label: 'Industrial Power', href: '/solutions/industrial' },
-          { label: 'Commercial Power', href: '/solutions/commercial' },
-          { label: 'Residential Power', href: '/solutions/residential' },
-          { label: 'All Solutions', href: '/solutions' },
+          { label: 'For Homes', href: '/solutions/residential' },
+          { label: 'For Offices', href: '/solutions/commercial' },
+          { label: 'For Commercial', href: '/solutions/commercial' },
+          { label: 'For Industrial', href: '/solutions/industrial' },
+          { label: 'Power Stabilization & Protection', href: '/products/all-prag-stabilizers' },
+          { label: 'Renewable Energy Solutions', href: '/solutions' },
+          { label: 'Energy Backup Solutions', href: '/solutions' },
+        ],
+      },
+      {
+        title: 'Support',
+        items: [
+          { label: 'Warranty', href: '/terms-of-use#warranty-policy' },
+          { label: 'Power Calculator', href: '/power-calculator' },
+          { label: 'Technical Support', href: '/contact' },
+          { label: 'FAQs', href: '/faq' },
+          { label: 'Downloads', href: '/resources' },
+          { label: 'Contact Us', href: '/contact' },
         ],
       },
       {
         title: 'Company',
         items: [
-          { label: 'About us', href: '/about' },
-          { label: 'Contact us', href: '/contact' },
-          { label: 'Find a Distributor', href: '/find-a-distributor' },
-          { label: 'Become a Distributor', href: '/distributor' },
-          { label: 'Compare Products', href: '/compare' },
-        ],
-      },
-      {
-        title: 'Quicklinks',
-        items: [
-          { label: 'Shop', href: '/products' },
-          { label: 'Power Calculator', href: '/power-calculator' },
-          { label: 'Technical Resources', href: '/resources' },
-          { label: 'Shipping Policy', href: '/shipping-policy' },
-          { label: 'Return Policy', href: '/return-policy' },
-          { label: 'Privacy Policy', href: '/privacy' },
-          { label: 'Terms of Use', href: '/terms-of-use' },
+          { label: 'About PRAG', href: '/about' },
+          { label: 'Our Impact', href: '/about' },
+          { label: 'Become a Reseller', href: '/distributor' },
+          { label: 'Careers', href: '/contact' },
+          { label: 'News & Insights', href: '/knowledge-center' },
         ],
       },
     ],
@@ -751,6 +987,8 @@ const DEFAULT_CASE_STUDIES: B2BCaseStudiesContent = {
   ],
   installationsCtaLabel: 'Start Your Installation →',
   installationsCtaHref: '/contact',
+  solutionSectionLabel: 'Solution Deployed',
+  resultsSectionLabel: 'Result/Outcome',
   categories: ['Residential', 'Commercial', 'Industrial'],
   studies: [
     {
@@ -1174,6 +1412,8 @@ export function normalizeCaseStudiesContent(content?: Partial<B2BCaseStudiesCont
     processSteps: normalizedProcessSteps.length > 0 ? normalizedProcessSteps : DEFAULT_CASE_STUDIES.processSteps,
     installationsCtaLabel: String(content?.installationsCtaLabel ?? DEFAULT_CASE_STUDIES.installationsCtaLabel),
     installationsCtaHref: String(content?.installationsCtaHref ?? DEFAULT_CASE_STUDIES.installationsCtaHref),
+    solutionSectionLabel: String(content?.solutionSectionLabel ?? DEFAULT_CASE_STUDIES.solutionSectionLabel),
+    resultsSectionLabel: String(content?.resultsSectionLabel ?? DEFAULT_CASE_STUDIES.resultsSectionLabel),
     categories: ['Residential', 'Commercial', 'Industrial'],
     studies,
   };
@@ -1182,6 +1422,22 @@ export function normalizeCaseStudiesContent(content?: Partial<B2BCaseStudiesCont
 function normalizeSolutionCategoryKey(value: string | undefined): B2BSolutionCategoryKey {
   if (value === 'commercial' || value === 'industrial') return value;
   return 'residential';
+}
+
+function normalizeHeaderMenuItems(value: unknown): B2BHeaderMenuItem[] {
+  if (!Array.isArray(value)) return [];
+
+  const normalized: B2BHeaderMenuItem[] = [];
+  for (const raw of value) {
+    const label = String((raw as { label?: unknown })?.label ?? '').trim();
+    const href = String((raw as { href?: unknown })?.href ?? '').trim();
+    if (!label || !href) continue;
+
+    const children = normalizeHeaderMenuItems((raw as { children?: unknown })?.children);
+    normalized.push(children.length > 0 ? { label, href, children } : { label, href });
+  }
+
+  return normalized;
 }
 
 export function normalizeSolutionsContent(content?: Partial<B2BSolutionsContent> | null): B2BSolutionsContent {
@@ -1228,6 +1484,8 @@ export function normalizeSolutionsContent(content?: Partial<B2BSolutionsContent>
 }
 
 function mergeSettings(settings?: Partial<B2BSettings> | null): B2BSettings {
+  const legacyMenuItems = normalizeHeaderMenuItems(settings?.header?.menuItems);
+
   return {
     ...DEFAULT_SETTINGS,
     ...settings,
@@ -1235,7 +1493,18 @@ function mergeSettings(settings?: Partial<B2BSettings> | null): B2BSettings {
     header: {
       ...DEFAULT_SETTINGS.header,
       ...(settings?.header ?? {}),
-      menuItems: Array.isArray(settings?.header?.menuItems) ? settings.header.menuItems : DEFAULT_SETTINGS.header.menuItems,
+      solutionsMenuItems: normalizeHeaderMenuItems(settings?.header?.solutionsMenuItems).length > 0
+        ? normalizeHeaderMenuItems(settings?.header?.solutionsMenuItems)
+        : DEFAULT_SETTINGS.header.solutionsMenuItems,
+      productsMenuItems: normalizeHeaderMenuItems(settings?.header?.productsMenuItems).length > 0
+        ? normalizeHeaderMenuItems(settings?.header?.productsMenuItems)
+        : DEFAULT_SETTINGS.header.productsMenuItems,
+      companyMenuItems: normalizeHeaderMenuItems(settings?.header?.companyMenuItems).length > 0
+        ? normalizeHeaderMenuItems(settings?.header?.companyMenuItems)
+        : (legacyMenuItems.length > 0 ? legacyMenuItems : DEFAULT_SETTINGS.header.companyMenuItems),
+      contactLabel: String(settings?.header?.contactLabel ?? DEFAULT_SETTINGS.header.contactLabel).trim() || DEFAULT_SETTINGS.header.contactLabel,
+      contactHref: String(settings?.header?.contactHref ?? DEFAULT_SETTINGS.header.contactHref).trim() || DEFAULT_SETTINGS.header.contactHref,
+      menuItems: legacyMenuItems.length > 0 ? legacyMenuItems : DEFAULT_SETTINGS.header.menuItems,
     },
     footer: {
       ...DEFAULT_SETTINGS.footer,
@@ -1255,24 +1524,58 @@ function mergeSettings(settings?: Partial<B2BSettings> | null): B2BSettings {
 }
 
 function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageSection[] {
-  if (Array.isArray(sections) && sections.length > 0) return sections;
+  const dedupeSections = (items: B2BPageSection[]): B2BPageSection[] => {
+    const seen = new Set<string>();
+    const deduped: B2BPageSection[] = [];
+
+    for (const section of items) {
+      const id = String(section?.id ?? '').trim();
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      deduped.push({ ...section, id });
+    }
+
+    return deduped;
+  };
+
   if (route === '/') {
-    return [
-      { id: 'home-hero', title: 'Hero', type: 'hero', visible: true, kicker: 'Reliable Power Solutions', summary: 'Homepage hero headline.', content: 'Homepage hero supporting copy and value proposition.', ctaLabel: 'Get a Free Power Assessment', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
+    const homepageDefaults: B2BPageSection[] = [
+      { id: 'home-hero', title: 'Hero', type: 'hero', visible: true, kicker: 'Reliable Power Solutions', summary: 'Low or High Voltage?\nUnreliable or No Power?\nGet PRAG', content: 'Homepage hero supporting copy and value proposition.', ctaLabel: 'Get a Free Power Assessment', ctaHref: '/contact', secondaryCtaLabel: 'Chat on WhatsApp', secondaryCtaHref: 'https://wa.me/2348032170129', imageUrl: '', imageAlt: '' },
+      { id: 'home-reason-header', title: 'Why PRAG Header', type: 'reason-header', visible: true, kicker: 'The PRAG Difference', summary: 'Why Leading Homes and Businesses Choose PRAG', content: 'Our work is guided by a commitment to quality, precision, and long-term performance.', imageUrl: '', imageAlt: '' },
+      { id: 'home-solution-header', title: 'Homepage Solutions Header', type: 'solution-header', visible: true, kicker: 'Our Solutions', summary: 'Complete Power Systems Designed for Nigeria', content: 'We design, supply, and install integrated solutions using: Stabilizers • Inverters • Solar • Batteries', imageUrl: '', imageAlt: '' },
+      { id: 'home-solution-1', title: 'Residential', type: 'solution', visible: true, summary: 'Residential', content: 'Protect your home with stable power. Enjoy uninterrupted electricity for your family, appliances, and comfort.', ctaLabel: 'Learn more', ctaHref: '/solutions/residential', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/04/51105cfa2d7e118079c6acdb18a81c8b54dc18e6-1.png', imageAlt: 'Residential solutions' },
+      { id: 'home-solution-2', title: 'Commercial', type: 'solution', visible: true, summary: 'Commercial', content: 'Keep your business running 24/7. Power solutions tailored for offices, retail, and commercial operations.', ctaLabel: 'Learn more', ctaHref: '/solutions/commercial', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/Rectangle-6.png', imageAlt: 'Commercial solutions' },
+      { id: 'home-solution-3', title: 'Industrial', type: 'solution', visible: true, summary: 'Industrial', content: 'Heavy-duty power engineering for manufacturing, warehouses, and large-scale industrial operations.', ctaLabel: 'Learn more', ctaHref: '/solutions/industrial', imageUrl: 'https://central.prag.global/wp-content/uploads/2026/05/Rectangle-6-1.png', imageAlt: 'Industrial solutions' },
       { id: 'home-reason-1', title: 'Why PRAG Card 1', type: 'reason', visible: true, summary: 'First homepage trust card title.', content: 'First homepage trust card body copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-reason-2', title: 'Why PRAG Card 2', type: 'reason', visible: true, summary: 'Second homepage trust card title.', content: 'Second homepage trust card body copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-reason-3', title: 'Why PRAG Card 3', type: 'reason', visible: true, summary: 'Third homepage trust card title.', content: 'Third homepage trust card body copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-reason-4', title: 'Why PRAG Card 4', type: 'reason', visible: true, summary: 'Fourth homepage trust card title.', content: 'Fourth homepage trust card body copy.', imageUrl: '', imageAlt: '' },
+      { id: 'home-technology-header', title: 'Homepage Technologies Header', type: 'technology-header', visible: true, kicker: 'Our Technologies', summary: 'Four Technologies. One Complete System.', content: 'Every PRAG solution is built from the right combination of technologies — engineered, installed, and warranted by our team.', imageUrl: '', imageAlt: '' },
       { id: 'home-tech-1', title: 'Technology Card 1', type: 'technology', visible: true, summary: 'Homepage technology card title.', content: 'Homepage technology card supporting copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-tech-2', title: 'Technology Card 2', type: 'technology', visible: true, summary: 'Homepage technology card title.', content: 'Homepage technology card supporting copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-tech-3', title: 'Technology Card 3', type: 'technology', visible: true, summary: 'Homepage technology card title.', content: 'Homepage technology card supporting copy.', imageUrl: '', imageAlt: '' },
       { id: 'home-tech-4', title: 'Technology Card 4', type: 'technology', visible: true, summary: 'Homepage technology card title.', content: 'Homepage technology card supporting copy.', imageUrl: '', imageAlt: '' },
+      { id: 'home-knowledge-header', title: 'Knowledge Center Header', type: 'knowledge-header', visible: true, kicker: 'Knowledge Center', summary: 'Power Insights & Expert Guides', content: 'Read practical guidance, industry updates, and engineering insights from the PRAG team.', ctaLabel: 'View all articles', ctaHref: '/knowledge-center', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-header', title: 'Power Issues Section Header', type: 'problem-header', visible: true, kicker: 'Power Issues We Solve', summary: 'Power Problems Cost You\nMore Than You Think', content: 'Unstable electricity leads to damaged equipment, costly downtime, and reduced efficiency. Add your homepage power issues introduction text here.', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-stat-1', title: 'Power Issues Stat 1', type: 'problem-stat', visible: true, summary: 'Trusted across\n36 states', content: '', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-stat-2', title: 'Power Issues Stat 2', type: 'problem-stat', visible: true, summary: '20+Years of\nEngineering\nExperience', content: '20+Years of\nEngineering Experience', imageUrl: '', imageAlt: '' },
+      { id: 'home-problem-stat-3', title: 'Power Issues Stat 3', type: 'problem-stat', visible: true, summary: '500+\ninstallations\nnationwide', content: '', imageUrl: '', imageAlt: '' },
       { id: 'home-problem-1', title: 'Power Issue Card 1', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
       { id: 'home-problem-2', title: 'Power Issue Card 2', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
       { id: 'home-problem-3', title: 'Power Issue Card 3', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
       { id: 'home-problem-4', title: 'Power Issue Card 4', type: 'problem', visible: true, summary: 'Power issue title.', content: 'Power issue supporting copy.', ctaLabel: 'Learn More', ctaHref: '/products', imageUrl: '', imageAlt: '' },
     ];
+
+    if (!Array.isArray(sections) || sections.length === 0) return homepageDefaults;
+
+    const normalizedSections = dedupeSections(sections);
+    const existingIds = new Set(normalizedSections.map((section) => section.id));
+    const missingDefaults = homepageDefaults.filter((section) => !existingIds.has(section.id));
+    return [...normalizedSections, ...missingDefaults];
   }
+
+  if (Array.isArray(sections) && sections.length > 0) return dedupeSections(sections);
+
   if (route.startsWith('/solutions/')) {
     return [
       { id: `${route}-hero`, title: 'Hero', type: 'hero', visible: true, kicker: 'Solution Overview', summary: 'Solution page headline.', content: 'Hero supporting copy for this solution page.', ctaLabel: 'Speak to Sales', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
@@ -1288,23 +1591,34 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
 
 function mergePageRecord(route: string, record?: Partial<B2BPageRecord>): B2BPageRecord {
   const title = record?.title || humanizeRoute(route);
+  const mergedSections = mergePageSections(route, record?.sections);
   return {
     route,
     title,
     description: record?.description || `${title} content managed from the b2b admin.`,
     published: record?.published ?? true,
     updatedAt: record?.updatedAt || new Date().toISOString(),
-    sections: mergePageSections(route, record?.sections).map((section, index) => {
-      const source = record?.sections?.[index];
+    sections: mergedSections.map((section) => {
+      const sectionTitle = String(section.title ?? '').trim() || 'Section';
+      const sectionSummary = String(section.summary ?? '').trim() || sectionTitle;
+      const sectionContent = String(section.content ?? '').trim() || sectionSummary;
+      const sectionCtaLabel = String(section.ctaLabel ?? '').trim();
+      const sectionCtaHref = String(section.ctaHref ?? '').trim();
+      const sectionSecondaryCtaLabel = String(section.secondaryCtaLabel ?? '').trim();
+      const sectionSecondaryCtaHref = String(section.secondaryCtaHref ?? '').trim();
+      const sectionImageUrl = String(section.imageUrl ?? '').trim();
       return {
         ...section,
-        ...(source ?? {}),
-        content: source?.content ?? section.content ?? '',
-        kicker: source?.kicker ?? section.kicker ?? '',
-        ctaLabel: source?.ctaLabel ?? section.ctaLabel ?? '',
-        ctaHref: source?.ctaHref ?? section.ctaHref ?? '',
-        imageUrl: source?.imageUrl ?? section.imageUrl ?? '',
-        imageAlt: source?.imageAlt ?? section.imageAlt ?? '',
+        title: sectionTitle,
+        summary: sectionSummary,
+        content: sectionContent,
+        kicker: String(section.kicker ?? '').trim(),
+        ctaLabel: sectionCtaLabel || (sectionCtaHref ? 'Learn More' : ''),
+        ctaHref: sectionCtaHref || (sectionCtaLabel ? '/contact' : ''),
+        secondaryCtaLabel: sectionSecondaryCtaLabel || (sectionSecondaryCtaHref ? 'Learn More' : ''),
+        secondaryCtaHref: sectionSecondaryCtaHref || (sectionSecondaryCtaLabel ? '/contact' : ''),
+        imageUrl: sectionImageUrl,
+        imageAlt: String(section.imageAlt ?? '').trim() || (sectionImageUrl ? sectionTitle : ''),
       };
     }),
   };
@@ -1342,16 +1656,37 @@ function stripB2BSuffix(title: string) {
 }
 
 function preferSeededValue(storedValue: string | undefined, placeholderValue: string | undefined, seededValue: string | undefined) {
-  if (!storedValue) return seededValue ?? '';
-  if (storedValue === placeholderValue) return seededValue ?? storedValue;
-  if (storedValue.endsWith('content managed from the b2b admin.')) return seededValue ?? storedValue;
-  return storedValue;
+  const stored = String(storedValue ?? '').trim();
+  const placeholder = String(placeholderValue ?? '').trim();
+  const seeded = String(seededValue ?? '').trim();
+
+  if (!stored) return seeded;
+  if (stored === placeholder) return seeded || stored;
+  if (stored.endsWith('content managed from the b2b admin.')) return seeded || stored;
+
+  const lower = stored.toLowerCase();
+  const looksLikePlaceholder = [
+    'managed from the b2b admin',
+    'top section headline',
+    'primary content title',
+    'primary body content and supporting copy',
+    'final conversion headline',
+    'final conversion action or contact path',
+    'homepage trust card',
+    'homepage technology card',
+    'power issue title',
+    'power issue supporting copy',
+    'hero supporting copy',
+  ].some((token) => lower.includes(token));
+
+  return looksLikePlaceholder && seeded ? seeded : stored;
 }
 
 function mergeSeededPageRecord(seed: B2BPageRecord, stored?: Partial<B2BPageRecord>) {
   if (!stored) return seed;
 
   const storedSections = Array.isArray(stored.sections) ? stored.sections : [];
+  const storedSectionsById = new Map(storedSections.map((section) => [normalizeStructureKey(section?.id), section]));
   const placeholderPage = mergePageRecord(seed.route);
   return mergePageRecord(seed.route, {
     ...seed,
@@ -1360,18 +1695,21 @@ function mergeSeededPageRecord(seed: B2BPageRecord, stored?: Partial<B2BPageReco
     description: preferSeededValue(stored.description, placeholderPage.description, seed.description),
     updatedAt: stored.updatedAt || seed.updatedAt,
     sections: seed.sections.map((section, index) => {
-      const current = storedSections[index];
+      const current = storedSectionsById.get(normalizeStructureKey(section.id));
       const placeholder = placeholderPage.sections[index];
       if (!current) return section;
       return {
         ...section,
-        ...current,
+        visible: current.visible ?? section.visible,
+        type: current.type || section.type,
         title: preferSeededValue(current.title, placeholder?.title, section.title),
         summary: preferSeededValue(current.summary, placeholder?.summary, section.summary),
         content: preferSeededValue(current.content, placeholder?.content, section.content),
         kicker: preferSeededValue(current.kicker, placeholder?.kicker, section.kicker),
         ctaLabel: preferSeededValue(current.ctaLabel, placeholder?.ctaLabel, section.ctaLabel),
         ctaHref: preferSeededValue(current.ctaHref, placeholder?.ctaHref, section.ctaHref),
+        secondaryCtaLabel: preferSeededValue(current.secondaryCtaLabel, placeholder?.secondaryCtaLabel, section.secondaryCtaLabel),
+        secondaryCtaHref: preferSeededValue(current.secondaryCtaHref, placeholder?.secondaryCtaHref, section.secondaryCtaHref),
         imageUrl: preferSeededValue(current.imageUrl, placeholder?.imageUrl, section.imageUrl),
         imageAlt: preferSeededValue(current.imageAlt, placeholder?.imageAlt, section.imageAlt),
       };
@@ -1679,18 +2017,69 @@ function mergeMissingDefaultFooterColumns(settings: B2BSettings): { settings: B2
   const currentColumns = Array.isArray(settings.footer.columns) ? settings.footer.columns : [];
   const existingTitles = new Set(currentColumns.map((column) => normalizeStructureKey(column?.title)));
   const addedTitles: string[] = [];
-  const nextColumns = [...currentColumns];
+  const nextColumns = currentColumns.map((column) => ({
+    title: String(column?.title ?? ''),
+    items: Array.isArray(column?.items)
+      ? column.items.map((item) => ({ label: String(item?.label ?? ''), href: String(item?.href ?? '') }))
+      : [],
+  }));
+
+  // Legacy migration: FAQ lived on /contact before dedicated /faq page existed.
+  for (const column of nextColumns) {
+    const titleKey = normalizeStructureKey(column.title);
+    if (titleKey !== 'support') continue;
+
+    for (const item of column.items) {
+      if (normalizeStructureKey(item.label) === 'faqs' && item.href.trim() === '/contact') {
+        item.href = '/faq';
+      }
+    }
+  }
+
+  const nextColumnsByTitle = new Map(nextColumns.map((column) => [normalizeStructureKey(column.title), column]));
 
   for (const fallbackColumn of DEFAULT_SETTINGS.footer.columns) {
     const titleKey = normalizeStructureKey(fallbackColumn?.title);
-    if (!titleKey || existingTitles.has(titleKey)) continue;
+    if (!titleKey) continue;
 
-    nextColumns.push({
-      title: String(fallbackColumn.title),
-      items: fallbackColumn.items.map((item) => ({ label: item.label, href: item.href })),
-    });
-    existingTitles.add(titleKey);
-    addedTitles.push(fallbackColumn.title);
+    if (!existingTitles.has(titleKey)) {
+      const nextColumn = {
+        title: String(fallbackColumn.title),
+        items: fallbackColumn.items.map((item) => ({ label: item.label, href: item.href })),
+      };
+      nextColumns.push(nextColumn);
+      nextColumnsByTitle.set(titleKey, nextColumn);
+      existingTitles.add(titleKey);
+      addedTitles.push(fallbackColumn.title);
+      continue;
+    }
+
+    const existingColumn = nextColumnsByTitle.get(titleKey);
+    if (!existingColumn) continue;
+
+    const existingItemKeys = new Set(
+      existingColumn.items.map((item) => `${normalizeStructureKey(item.label)}::${normalizeStructureKey(item.href)}`),
+    );
+
+    for (const fallbackItem of fallbackColumn.items) {
+      const itemKey = `${normalizeStructureKey(fallbackItem.label)}::${normalizeStructureKey(fallbackItem.href)}`;
+      if (!itemKey || existingItemKeys.has(itemKey)) continue;
+      existingColumn.items.push({ label: fallbackItem.label, href: fallbackItem.href });
+      existingItemKeys.add(itemKey);
+    }
+  }
+
+  const currentLegalLinks = Array.isArray(settings.footer.legalLinks) ? settings.footer.legalLinks : [];
+  const nextLegalLinks = currentLegalLinks.map((item) => ({ label: item.label, href: item.href }));
+  const existingLegalKeys = new Set(
+    nextLegalLinks.map((item) => `${normalizeStructureKey(item.label)}::${normalizeStructureKey(item.href)}`),
+  );
+
+  for (const fallbackLegal of DEFAULT_SETTINGS.footer.legalLinks) {
+    const legalKey = `${normalizeStructureKey(fallbackLegal.label)}::${normalizeStructureKey(fallbackLegal.href)}`;
+    if (!legalKey || existingLegalKeys.has(legalKey)) continue;
+    nextLegalLinks.push({ label: fallbackLegal.label, href: fallbackLegal.href });
+    existingLegalKeys.add(legalKey);
   }
 
   return {
@@ -1699,6 +2088,7 @@ function mergeMissingDefaultFooterColumns(settings: B2BSettings): { settings: B2
       footer: {
         ...settings.footer,
         columns: nextColumns,
+        legalLinks: nextLegalLinks,
       },
     },
     addedTitles,

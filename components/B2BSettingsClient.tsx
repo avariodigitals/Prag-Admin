@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCcw, Save } from 'lucide-react';
 import B2BAccessClient from '@/components/B2BAccessClient';
-import type { B2BAuditRecord, B2BSettings, B2BSectionKey } from '@/lib/b2bAdminStore';
+import type { B2BAuditRecord, B2BHeaderMenuItem, B2BSettings, B2BSectionKey } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
 const areaCls = 'w-full min-h-24 p-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -19,6 +19,168 @@ type FrontendPullReport = {
 };
 
 type Section = 'site' | 'header' | 'footer' | 'integrations' | '404-logs' | 'scripts' | 'smtp' | 'forms' | 'access' | 'launch' | 'audit';
+
+type HeaderMenuKey = 'solutionsMenuItems' | 'productsMenuItems' | 'companyMenuItems';
+
+function normalizeHeaderMenuItems(items: B2BHeaderMenuItem[] | undefined): B2BHeaderMenuItem[] {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map((item) => {
+      const label = String(item?.label ?? '').trim();
+      const href = String(item?.href ?? '').trim();
+      const children = normalizeHeaderMenuItems(item?.children);
+      const normalized: B2BHeaderMenuItem = { label, href };
+      if (children.length > 0) normalized.children = children;
+      return normalized;
+    })
+    .filter((item) => item.label || item.href || (item.children?.length ?? 0) > 0);
+}
+
+function updateMenuItemAtPath(
+  items: B2BHeaderMenuItem[],
+  path: number[],
+  updater: (item: B2BHeaderMenuItem) => B2BHeaderMenuItem,
+): B2BHeaderMenuItem[] {
+  if (path.length === 0) return items;
+  const [index, ...rest] = path;
+
+  return items.map((item, itemIndex) => {
+    if (itemIndex !== index) return item;
+    if (rest.length === 0) return updater(item);
+
+    const children = updateMenuItemAtPath(item.children ?? [], rest, updater);
+    return children.length > 0 ? { ...item, children } : { ...item, children: undefined };
+  });
+}
+
+function removeMenuItemAtPath(items: B2BHeaderMenuItem[], path: number[]): B2BHeaderMenuItem[] {
+  if (path.length === 0) return items;
+  const [index, ...rest] = path;
+
+  if (rest.length === 0) {
+    return items.filter((_, itemIndex) => itemIndex !== index);
+  }
+
+  return items
+    .map((item, itemIndex) => {
+      if (itemIndex !== index) return item;
+      const children = removeMenuItemAtPath(item.children ?? [], rest);
+      return children.length > 0 ? { ...item, children } : { ...item, children: undefined };
+    })
+    .filter(Boolean);
+}
+
+function addMenuItemAtPath(items: B2BHeaderMenuItem[], parentPath: number[] | null): B2BHeaderMenuItem[] {
+  const newItem: B2BHeaderMenuItem = { label: 'New Item', href: '/' };
+  if (!parentPath || parentPath.length === 0) return [...items, newItem];
+
+  return updateMenuItemAtPath(items, parentPath, (item) => ({
+    ...item,
+    children: [...(item.children ?? []), newItem],
+  }));
+}
+
+function HeaderMenuEditor({
+  title,
+  items,
+  onChange,
+}: {
+  title: string;
+  items: B2BHeaderMenuItem[];
+  onChange: (next: B2BHeaderMenuItem[]) => void;
+}) {
+  const normalized = normalizeHeaderMenuItems(items);
+
+  function updateAtPath(path: number[], key: 'label' | 'href', value: string) {
+    const next = updateMenuItemAtPath(normalized, path, (item) => ({ ...item, [key]: value }));
+    onChange(normalizeHeaderMenuItems(next));
+  }
+
+  function removeAtPath(path: number[]) {
+    const next = removeMenuItemAtPath(normalized, path);
+    onChange(normalizeHeaderMenuItems(next));
+  }
+
+  function addChild(parentPath: number[] | null) {
+    const next = addMenuItemAtPath(normalized, parentPath);
+    onChange(normalizeHeaderMenuItems(next));
+  }
+
+  function renderItems(menuItems: B2BHeaderMenuItem[], basePath: number[] = [], level = 0) {
+    return menuItems.map((item, index) => {
+      const path = [...basePath, index];
+      const key = path.join('-');
+      const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+
+      return (
+        <div key={key} className="rounded-lg border border-gray-200 p-3 space-y-2 bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto] gap-2 items-end">
+            <label className="space-y-1">
+              <span className="text-xs text-gray-500">Label</span>
+              <input
+                className={inputCls}
+                value={item.label}
+                onChange={(event) => updateAtPath(path, 'label', event.target.value)}
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-gray-500">Href</span>
+              <input
+                className={inputCls}
+                value={item.href}
+                onChange={(event) => updateAtPath(path, 'href', event.target.value)}
+              />
+            </label>
+            {level < 2 ? (
+              <button
+                type="button"
+                className="h-10 px-3 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                onClick={() => addChild(path)}
+              >
+                Add Child
+              </button>
+            ) : <span />}
+            <button
+              type="button"
+              className="h-10 px-3 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50"
+              onClick={() => removeAtPath(path)}
+            >
+              Remove
+            </button>
+          </div>
+
+          {hasChildren ? (
+            <div className="ml-2 border-l border-gray-200 pl-3 space-y-2">
+              {renderItems(item.children ?? [], path, level + 1)}
+            </div>
+          ) : null}
+        </div>
+      );
+    });
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-gray-900">{title}</p>
+        <button
+          type="button"
+          className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          onClick={() => addChild(null)}
+        >
+          Add Item
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {normalized.length > 0 ? renderItems(normalized) : (
+          <p className="text-sm text-gray-500">No menu items yet.</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const ALL_TABS: Array<{ key: Section; label: string }> = [
   { key: 'site', label: 'Site' },
@@ -251,21 +413,103 @@ export default function B2BSettingsClient({
               <span className="text-sm font-medium text-gray-700">CTA href</span>
               <input className={inputCls} value={settings.header.ctaHref} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, ctaHref: event.target.value } }))} />
             </label>
-            <label className="space-y-1 md:col-span-2">
-              <span className="text-sm font-medium text-gray-700">Menu items (JSON array)</span>
-              <textarea
-                className={areaCls}
-                value={JSON.stringify(settings.header.menuItems, null, 2)}
-                onChange={(event) => {
-                  try {
-                    const menuItems = JSON.parse(event.target.value) as B2BSettings['header']['menuItems'];
-                    setSettings((prev) => ({ ...prev, header: { ...prev.header, menuItems } }));
-                  } catch {
-                    setSettings((prev) => prev);
-                  }
-                }}
-              />
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-gray-700">Contact label</span>
+              <input className={inputCls} value={settings.header.contactLabel} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, contactLabel: event.target.value } }))} />
             </label>
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-gray-700">Contact href</span>
+              <input className={inputCls} value={settings.header.contactHref} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, contactHref: event.target.value } }))} />
+            </label>
+            <div className="md:col-span-2 grid grid-cols-1 gap-4">
+              <HeaderMenuEditor
+                title="Solutions Menu"
+                items={settings.header.solutionsMenuItems}
+                onChange={(menuItems) => setSettings((prev) => ({
+                  ...prev,
+                  header: {
+                    ...prev.header,
+                    solutionsMenuItems: menuItems,
+                  },
+                }))}
+              />
+
+              <HeaderMenuEditor
+                title="Products Menu"
+                items={settings.header.productsMenuItems}
+                onChange={(menuItems) => setSettings((prev) => ({
+                  ...prev,
+                  header: {
+                    ...prev.header,
+                    productsMenuItems: menuItems,
+                  },
+                }))}
+              />
+
+              <HeaderMenuEditor
+                title="Company Menu"
+                items={settings.header.companyMenuItems}
+                onChange={(menuItems) => setSettings((prev) => ({
+                  ...prev,
+                  header: {
+                    ...prev.header,
+                    companyMenuItems: menuItems,
+                    menuItems,
+                  },
+                }))}
+              />
+
+              <details className="rounded-xl border border-gray-200 p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-gray-700">Advanced JSON Editor</summary>
+                <div className="mt-4 grid grid-cols-1 gap-4">
+                  <label className="space-y-1">
+                    <span className="text-sm font-medium text-gray-700">Solutions menu items (JSON array)</span>
+                    <textarea
+                      className={areaCls}
+                      value={JSON.stringify(settings.header.solutionsMenuItems, null, 2)}
+                      onChange={(event) => {
+                        try {
+                          const menuItems = JSON.parse(event.target.value) as B2BSettings['header']['solutionsMenuItems'];
+                          setSettings((prev) => ({ ...prev, header: { ...prev.header, solutionsMenuItems: menuItems } }));
+                        } catch {
+                          setSettings((prev) => prev);
+                        }
+                      }}
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-sm font-medium text-gray-700">Products menu items (JSON array)</span>
+                    <textarea
+                      className={areaCls}
+                      value={JSON.stringify(settings.header.productsMenuItems, null, 2)}
+                      onChange={(event) => {
+                        try {
+                          const menuItems = JSON.parse(event.target.value) as B2BSettings['header']['productsMenuItems'];
+                          setSettings((prev) => ({ ...prev, header: { ...prev.header, productsMenuItems: menuItems } }));
+                        } catch {
+                          setSettings((prev) => prev);
+                        }
+                      }}
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-sm font-medium text-gray-700">Company menu items (JSON array)</span>
+                    <textarea
+                      className={areaCls}
+                      value={JSON.stringify(settings.header.companyMenuItems, null, 2)}
+                      onChange={(event) => {
+                        try {
+                          const menuItems = JSON.parse(event.target.value) as B2BSettings['header']['companyMenuItems'];
+                          setSettings((prev) => ({ ...prev, header: { ...prev.header, companyMenuItems: menuItems, menuItems } }));
+                        } catch {
+                          setSettings((prev) => prev);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </details>
+            </div>
           </div>
         )}
 
@@ -309,6 +553,78 @@ export default function B2BSettingsClient({
               <span className="text-sm font-medium text-gray-700">Tagline</span>
               <input className={inputCls} value={settings.footer.tagline} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, tagline: event.target.value } }))} />
             </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Support card lead text</span>
+                <input className={inputCls} value={settings.footer.supportCardLeadText} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, supportCardLeadText: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Support card CTA text</span>
+                <input className={inputCls} value={settings.footer.supportCardCtaText} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, supportCardCtaText: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Trust card title</span>
+                <input className={inputCls} value={settings.footer.trustCardTitle} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, trustCardTitle: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Trust card subtitle</span>
+                <input className={inputCls} value={settings.footer.trustCardSubtitle} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, trustCardSubtitle: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">WhatsApp helper text</span>
+                <input className={inputCls} value={settings.footer.whatsappHelperText} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, whatsappHelperText: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Partner title</span>
+                <input className={inputCls} value={settings.footer.partnerTitle} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, partnerTitle: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Partner description</span>
+                <input className={inputCls} value={settings.footer.partnerDescription} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, partnerDescription: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Partner CTA text</span>
+                <input className={inputCls} value={settings.footer.partnerCtaText} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, partnerCtaText: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Partner href</span>
+                <input className={inputCls} value={settings.footer.partnerHref} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, partnerHref: event.target.value } }))} />
+              </label>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Contact heading</span>
+                <input className={inputCls} value={settings.footer.contactHeading} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, contactHeading: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Head office label</span>
+                <input className={inputCls} value={settings.footer.headOfficeLabel} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, headOfficeLabel: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Sales hotline label</span>
+                <input className={inputCls} value={settings.footer.salesHotlineLabel} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, salesHotlineLabel: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Customer support label</span>
+                <input className={inputCls} value={settings.footer.customerSupportLabel} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, customerSupportLabel: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">WhatsApp label</span>
+                <input className={inputCls} value={settings.footer.whatsappLabel} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, whatsappLabel: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Email label</span>
+                <input className={inputCls} value={settings.footer.emailLabel} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, emailLabel: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Working hours label</span>
+                <input className={inputCls} value={settings.footer.workingHoursLabel} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, workingHoursLabel: event.target.value } }))} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">Working hours text</span>
+                <input className={inputCls} value={settings.footer.workingHoursText} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, workingHoursText: event.target.value } }))} />
+              </label>
+            </div>
             <label className="space-y-1">
               <span className="text-sm font-medium text-gray-700">Copyright</span>
               <input className={inputCls} value={settings.footer.copyright} onChange={(event) => setSettings((prev) => ({ ...prev, footer: { ...prev.footer, copyright: event.target.value } }))} />

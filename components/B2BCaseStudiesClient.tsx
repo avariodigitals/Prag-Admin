@@ -165,6 +165,14 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
             <span className="text-sm font-medium text-gray-700">Installations CTA label</span>
             <input className={inputCls} value={data.installationsCtaLabel} onChange={(event) => setData((prev) => ({ ...prev, installationsCtaLabel: event.target.value }))} />
           </label>
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-gray-700">Solution section label</span>
+            <input className={inputCls} value={data.solutionSectionLabel} onChange={(event) => setData((prev) => ({ ...prev, solutionSectionLabel: event.target.value }))} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-gray-700">Results section label</span>
+            <input className={inputCls} value={data.resultsSectionLabel} onChange={(event) => setData((prev) => ({ ...prev, resultsSectionLabel: event.target.value }))} />
+          </label>
           <label className="space-y-1 md:col-span-2">
             <span className="text-sm font-medium text-gray-700">Installations CTA href</span>
             <input className={inputCls} value={data.installationsCtaHref} onChange={(event) => setData((prev) => ({ ...prev, installationsCtaHref: event.target.value }))} />

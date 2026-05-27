@@ -189,7 +189,7 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
               </div>
               <div className="space-y-4">
                 {selectedPage.sections.map((section, index) => (
-                  <div key={section.id} className="rounded-xl border border-gray-200 p-4 space-y-4 bg-white">
+                  <div key={`${section.id}-${index}`} className="rounded-xl border border-gray-200 p-4 space-y-4 bg-white">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div>
                         <p className="text-xs uppercase tracking-[0.2em] text-gray-500">{section.type}</p>
@@ -323,6 +323,28 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
                         onChange={(event) => updatePage(selectedPage.route, (current) => ({
                           ...current,
                           sections: current.sections.map((item, itemIndex) => itemIndex === index ? { ...item, ctaHref: event.target.value } : item),
+                        }))}
+                      />
+                    </label>
+                    <label className="space-y-1 block">
+                      <span className="text-xs font-medium text-gray-600">Secondary CTA Label</span>
+                      <input
+                        className={inputCls}
+                        value={section.secondaryCtaLabel ?? ''}
+                        onChange={(event) => updatePage(selectedPage.route, (current) => ({
+                          ...current,
+                          sections: current.sections.map((item, itemIndex) => itemIndex === index ? { ...item, secondaryCtaLabel: event.target.value } : item),
+                        }))}
+                      />
+                    </label>
+                    <label className="space-y-1 block">
+                      <span className="text-xs font-medium text-gray-600">Secondary CTA Link</span>
+                      <input
+                        className={inputCls}
+                        value={section.secondaryCtaHref ?? ''}
+                        onChange={(event) => updatePage(selectedPage.route, (current) => ({
+                          ...current,
+                          sections: current.sections.map((item, itemIndex) => itemIndex === index ? { ...item, secondaryCtaHref: event.target.value } : item),
                         }))}
                       />
                     </label>
