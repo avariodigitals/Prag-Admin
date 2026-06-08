@@ -721,78 +721,12 @@ const DEFAULT_SETTINGS: B2BSettings = {
     ctaLabel: 'View Store',
     ctaHref: 'https://shop.prag.global',
     solutionsMenuItems: [
-      {
-        label: 'Residential',
-        href: '/solutions/residential',
-        children: [
-          {
-            label: 'Home Backup Power',
-            href: '/solutions/residential#home-backup-power',
-            children: [
-                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_BACKUP_HREF },
-              { label: 'Inverters', href: '/products/inverters' },
-              { label: 'Batteries', href: '/products/batteries' },
-            ],
-          },
-          {
-            label: 'Home Solar Systems',
-            href: '/solutions/residential#home-solar-systems',
-            children: [
-                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_SOLAR_HREF },
-              { label: 'Inverters', href: '/products/inverters' },
-              { label: 'Batteries', href: '/products/batteries' },
-              { label: 'Solar Panels', href: '/products/solar' },
-            ],
-          },
-          {
-            label: 'Power Stabilization & Protection',
-            href: '/solutions/residential#power-stabilization-protection',
-            children: [
-              { label: 'All Stabilizers', href: '/products/all-prag-stabilizers' },
-              { label: 'Relay Stabilizers', href: '/products/all-prag-stabilizers#relay' },
-              { label: 'Servo Stabilizers', href: '/products/all-prag-stabilizers#servo' },
-              { label: 'Thyristor Stabilizers', href: '/products/all-prag-stabilizers#thyristor' },
-              { label: '3 Phase Stabilizers', href: '/products/all-prag-stabilizers#3-phase' },
-            ],
-          },
-        ],
-      },
-      {
-        label: 'Commercial',
-        href: '/solutions/commercial',
-        children: [
-          {
-            label: 'Office Backup Power',
-            href: '/solutions/commercial#office-backup-power',
-            children: [
-                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_BACKUP_HREF },
-              { label: 'Inverters', href: '/products/inverters' },
-              { label: 'Batteries', href: '/products/batteries' },
-            ],
-          },
-          {
-            label: 'Solar for Businesses',
-            href: '/solutions/commercial#solar-for-businesses',
-            children: [
-                  { label: 'Complete Systems', href: COMPLETE_SYSTEMS_SOLAR_HREF },
-              { label: 'Inverters', href: '/products/inverters' },
-              { label: 'Batteries', href: '/products/batteries' },
-              { label: 'Solar Panels', href: '/products/solar' },
-            ],
-          },
-          {
-            label: 'Power Stabilization & Protection',
-            href: '/solutions/commercial#power-stabilization-protection',
-            children: [
-              { label: 'All Stabilizers', href: '/products/all-prag-stabilizers' },
-              { label: 'Relay Stabilizers', href: '/products/all-prag-stabilizers#relay' },
-              { label: 'Servo Stabilizers', href: '/products/all-prag-stabilizers#servo' },
-              { label: 'Thyristor Stabilizers', href: '/products/all-prag-stabilizers#thyristor' },
-              { label: '3 Phase Stabilizers', href: '/products/all-prag-stabilizers#3-phase' },
-            ],
-          },
-        ],
-      },
+      { label: 'For Homes', href: '/solutions/residential' },
+      { label: 'For Commercial', href: '/solutions/commercial' },
+      { label: 'For Industrial', href: '/solutions/industrial' },
+      { label: 'Voltage Stabilization & Protection', href: '/solutions/voltage-stabilization-protection' },
+      { label: 'Solar Energy', href: '/solutions/solar-energy' },
+      { label: 'Backup Power', href: '/solutions/backup-power' },
     ],
     productsMenuItems: [
       { label: 'Voltage Stabilizers', href: '/products/all-prag-stabilizers' },
