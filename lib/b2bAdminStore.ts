@@ -53,7 +53,7 @@ export interface B2BCaseStudiesContent {
   studies: B2BCaseStudy[];
 }
 
-export type B2BSolutionCategoryKey = 'residential' | 'commercial' | 'industrial';
+export type B2BSolutionCategoryKey = 'residential' | 'commercial' | 'industrial' | 'voltage-stabilization-protection' | 'backup-power' | 'solar-energy';
 
 export interface B2BSolutionProblem {
   id: string;
@@ -70,7 +70,7 @@ export interface B2BSolutionProblem {
 
 export interface B2BSolutionCategory {
   key: B2BSolutionCategoryKey;
-  label: 'Residential' | 'Commercial' | 'Industrial';
+  label: string;
   route: string;
   heroTitle: string;
   heroDescription: string;
@@ -1423,7 +1423,7 @@ export function normalizeCaseStudiesContent(content?: Partial<B2BCaseStudiesCont
 }
 
 function normalizeSolutionCategoryKey(value: string | undefined): B2BSolutionCategoryKey {
-  if (value === 'commercial' || value === 'industrial') return value;
+  if (value === 'commercial' || value === 'industrial' || value === 'voltage-stabilization-protection' || value === 'backup-power' || value === 'solar-energy') return value;
   return 'residential';
 }
 
@@ -1447,10 +1447,15 @@ export function normalizeSolutionsContent(content?: Partial<B2BSolutionsContent>
   const defaultsByKey = new Map(DEFAULT_SOLUTIONS.categories.map((category) => [category.key, category]));
   const incoming = Array.isArray(content?.categories) ? content.categories : [];
   const incomingByKey = new Map(incoming.map((category) => [normalizeSolutionCategoryKey(category?.key), category]));
-  const orderedKeys: B2BSolutionCategoryKey[] = ['residential', 'commercial', 'industrial'];
 
-  const categories = orderedKeys.map((key) => {
-    const fallback = defaultsByKey.get(key)!;
+  // Preserve all keys from both defaults and incoming data so new categories are not stripped
+  const allKeys = new Set<B2BSolutionCategoryKey>([
+    ...(Array.from(defaultsByKey.keys()) as B2BSolutionCategoryKey[]),
+    ...(Array.from(incomingByKey.keys()) as B2BSolutionCategoryKey[]),
+  ]);
+
+  const categories = Array.from(allKeys).map((key) => {
+    const fallback = defaultsByKey.get(key);
     const raw = incomingByKey.get(key);
     const normalizedProblems = Array.isArray(raw?.problems)
       ? raw.problems
@@ -1460,7 +1465,7 @@ export function normalizeSolutionsContent(content?: Partial<B2BSolutionsContent>
           body: String(problem?.body ?? '').trim(),
           impact: Array.isArray(problem?.impact) ? problem.impact.map((item) => String(item).trim()).filter(Boolean) : [],
           solution: Array.isArray(problem?.solution) ? problem.solution.map((item) => String(item).trim()).filter(Boolean) : [],
-          imageUrl: String(problem?.imageUrl ?? fallback.problems[index]?.imageUrl ?? '').trim(),
+          imageUrl: String(problem?.imageUrl ?? fallback?.problems?.[index]?.imageUrl ?? '').trim(),
           technologies: Array.isArray(problem?.technologies) ? problem.technologies.map((item) => String(item).trim()).filter(Boolean) : [],
           productIds: Array.isArray(problem?.productIds) ? problem.productIds.map((item) => Number(item)).filter((item) => Number.isFinite(item) && item > 0) : [],
           productCategories: Array.isArray(problem?.productCategories) ? problem.productCategories.map((item) => String(item).trim()).filter(Boolean) : [],
@@ -1471,15 +1476,15 @@ export function normalizeSolutionsContent(content?: Partial<B2BSolutionsContent>
 
     return {
       key,
-      label: fallback.label,
-      route: fallback.route,
-      heroTitle: String(raw?.heroTitle ?? fallback.heroTitle).trim(),
-      heroDescription: String(raw?.heroDescription ?? fallback.heroDescription).trim(),
-      ctaLabel: String(raw?.ctaLabel ?? fallback.ctaLabel).trim(),
-      ctaHref: String(raw?.ctaHref ?? fallback.ctaHref).trim(),
-      secondaryCtaLabel: String(raw?.secondaryCtaLabel ?? fallback.secondaryCtaLabel).trim(),
-      secondaryCtaHref: String(raw?.secondaryCtaHref ?? fallback.secondaryCtaHref).trim(),
-      problems: normalizedProblems.length > 0 ? normalizedProblems : fallback.problems,
+      label: String(raw?.label ?? fallback?.label ?? '').trim(),
+      route: String(raw?.route ?? fallback?.route ?? '').trim(),
+      heroTitle: String(raw?.heroTitle ?? fallback?.heroTitle ?? '').trim(),
+      heroDescription: String(raw?.heroDescription ?? fallback?.heroDescription ?? '').trim(),
+      ctaLabel: String(raw?.ctaLabel ?? fallback?.ctaLabel ?? '').trim(),
+      ctaHref: String(raw?.ctaHref ?? fallback?.ctaHref ?? '').trim(),
+      secondaryCtaLabel: String(raw?.secondaryCtaLabel ?? fallback?.secondaryCtaLabel ?? '').trim(),
+      secondaryCtaHref: String(raw?.secondaryCtaHref ?? fallback?.secondaryCtaHref ?? '').trim(),
+      problems: normalizedProblems.length > 0 ? normalizedProblems : (fallback?.problems ?? []),
     };
   });
 
