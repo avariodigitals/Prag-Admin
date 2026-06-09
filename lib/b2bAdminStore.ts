@@ -1784,17 +1784,24 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
     return [...normalizedSections, ...missingDefaults];
   }
 
-  if (Array.isArray(sections) && sections.length > 0) return dedupeSections(sections);
-
   if (route.startsWith('/solutions/')) {
-    return [
+    const solutionsDefaults: B2BPageSection[] = [
       { id: `${route}-hero`, title: 'Hero', type: 'hero', visible: true, kicker: 'Solution Overview', summary: 'Solution page headline.', content: 'Hero supporting copy for this solution page.', ctaLabel: 'Speak to Sales', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
       { id: `${route}-card-1`, title: 'Solution Card 1', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
       { id: `${route}-card-2`, title: 'Solution Card 2', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
       { id: `${route}-card-3`, title: 'Solution Card 3', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
       { id: `${route}-cta`, title: 'Call To Action', type: 'cta', visible: true, summary: 'Final conversion headline.', content: 'Final CTA supporting copy.', ctaLabel: 'Browse All Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
     ];
+
+    if (!Array.isArray(sections) || sections.length === 0) return solutionsDefaults;
+
+    const normalizedSections = dedupeSections(sections);
+    const existingIds = new Set(normalizedSections.map((section) => section.id));
+    const missingDefaults = solutionsDefaults.filter((section) => !existingIds.has(section.id));
+    return [...normalizedSections, ...missingDefaults];
   }
+
+  if (Array.isArray(sections) && sections.length > 0) return dedupeSections(sections);
   return [
     { id: `${route}-hero`, title: 'Hero', type: 'hero', visible: true, kicker: 'Page Intro', summary: 'Top section headline.', content: 'Top section supporting copy.', ctaLabel: 'Contact Sales', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
     { id: `${route}-content`, title: 'Content', type: 'content', visible: true, summary: 'Primary content title.', content: 'Primary body content and supporting copy.', imageUrl: '', imageAlt: '' },
