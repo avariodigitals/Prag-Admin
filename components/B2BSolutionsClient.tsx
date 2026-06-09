@@ -2,12 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Plus, Save, Trash2 } from 'lucide-react';
-import type { B2BSolutionCategoryKey, B2BSolutionsContent } from '@/lib/b2bAdminStore';
+import type { B2BSolutionsContent } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
 const areaCls = 'w-full min-h-24 p-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
-
-const ORDER: B2BSolutionCategoryKey[] = ['residential', 'commercial', 'industrial'];
 
 interface CatalogProduct {
   id: number;
@@ -22,7 +20,7 @@ interface CatalogCategory {
   slug: string;
 }
 
-function makeProblem(key: B2BSolutionCategoryKey, nextIndex: number) {
+function makeProblem(key: string, nextIndex: number) {
   return {
     id: `${key}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     title: '',
@@ -37,9 +35,25 @@ function makeProblem(key: B2BSolutionCategoryKey, nextIndex: number) {
   };
 }
 
+function makeCategory(): B2BSolutionsContent['categories'][number] {
+  const key = `category-${Date.now()}`;
+  return {
+    key,
+    label: 'New Category',
+    route: `/solutions/${key}`,
+    heroTitle: '',
+    heroDescription: '',
+    ctaLabel: '',
+    ctaHref: '',
+    secondaryCtaLabel: '',
+    secondaryCtaHref: '',
+    problems: [],
+  };
+}
+
 export default function B2BSolutionsClient({ initialSolutions }: { initialSolutions: B2BSolutionsContent }) {
   const [data, setData] = useState<B2BSolutionsContent>(initialSolutions);
-  const [activeCategory, setActiveCategory] = useState<B2BSolutionCategoryKey>('residential');
+  const [activeCategory, setActiveCategory] = useState<string>(initialSolutions.categories[0]?.key ?? '');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
@@ -88,8 +102,26 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
     if (!category) return;
     setData((prev) => ({
       ...prev,
-      categories: prev.categories.map((item) => (item.key === category.key ? updater(item) : item)),
+      categories: prev.categories.map((item) => (item.key === activeCategory ? updater(item) : item)),
     }));
+  }
+
+  function addCategory() {
+    const next = makeCategory();
+    setData((prev) => ({ ...prev, categories: [...prev.categories, next] }));
+    setActiveCategory(next.key);
+  }
+
+  function deleteCategory(key: string) {
+    setData((prev) => {
+      const remaining = prev.categories.filter((item) => item.key !== key);
+      return { ...prev, categories: remaining };
+    });
+    setActiveCategory((prev) => {
+      const remaining = data.categories.filter((item) => item.key !== key);
+      if (remaining.length === 0) return '';
+      return remaining[0]?.key ?? '';
+    });
   }
 
   function syncProblemProductCategories(problemIds: number[]) {
@@ -132,20 +164,38 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Solution Categories</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">Solution Categories</h2>
+          <button
+            type="button"
+            onClick={addCategory}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            <Plus size={16} />
+            Add Category
+          </button>
+        </div>
         <div className="flex flex-wrap gap-2">
-          {ORDER.map((key) => {
-            const tab = categoriesByKey.get(key);
-            if (!tab) return null;
-
+          {data.categories.map((tab) => {
+            const key = tab.key;
             return (
               <button
                 key={key}
                 type="button"
                 onClick={() => setActiveCategory(key)}
-                className={`px-3 py-2 rounded-lg text-sm font-semibold border ${activeCategory === key ? 'bg-sky-700 text-white border-sky-700' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold border ${activeCategory === key ? 'bg-sky-700 text-white border-sky-700' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
               >
-                {tab.label}
+                {tab.label || 'Untitled'}
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.stopPropagation(); deleteCategory(key); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); deleteCategory(key); } }}
+                  className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-white/20 text-[10px] leading-none cursor-pointer"
+                  title="Delete category"
+                >
+                  ×
+                </span>
               </button>
             );
           })}
@@ -153,8 +203,33 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">{category.label} Page Content</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">{category.label || 'Untitled'} Page Content</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-gray-700">Category key</span>
+            <input
+              className={inputCls}
+              value={category.key}
+              onChange={(event) => {
+                const newKey = event.target.value.trim();
+                setData((prev) => ({
+                  ...prev,
+                  categories: prev.categories.map((item) => (item.key === activeCategory ? { ...item, key: newKey } : item)),
+                }));
+                setActiveCategory(newKey);
+              }}
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-gray-700">Category label</span>
+            <input className={inputCls} value={category.label} onChange={(event) => updateCategory((current) => ({ ...current, label: event.target.value }))} />
+          </label>
+          <label className="space-y-1 md:col-span-2">
+            <span className="text-sm font-medium text-gray-700">Route</span>
+            <input className={inputCls} value={category.route} onChange={(event) => updateCategory((current) => ({ ...current, route: event.target.value }))} />
+          </label>
           <label className="space-y-1">
             <span className="text-sm font-medium text-gray-700">Hero title</span>
             <input className={inputCls} value={category.heroTitle} onChange={(event) => updateCategory((current) => ({ ...current, heroTitle: event.target.value }))} />

@@ -373,6 +373,10 @@ export default function B2BSettingsClient({
               <input className={inputCls} value={settings.contact.address} onChange={(event) => setSettings((prev) => ({ ...prev, contact: { ...prev.contact, address: event.target.value } }))} />
             </label>
             <label className="space-y-1 md:col-span-2">
+              <span className="text-sm font-medium text-gray-700">Map link</span>
+              <input className={inputCls} value={settings.contact.mapLink} onChange={(event) => setSettings((prev) => ({ ...prev, contact: { ...prev.contact, mapLink: event.target.value } }))} />
+            </label>
+            <label className="space-y-1 md:col-span-2">
               <span className="text-sm font-medium text-gray-700">WhatsApp link</span>
               <input className={inputCls} value={settings.contact.whatsapp} onChange={(event) => setSettings((prev) => ({ ...prev, contact: { ...prev.contact, whatsapp: event.target.value } }))} />
             </label>
