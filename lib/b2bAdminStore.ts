@@ -1789,6 +1789,9 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
   if (route.startsWith('/solutions/')) {
     return [
       { id: `${route}-hero`, title: 'Hero', type: 'hero', visible: true, kicker: 'Solution Overview', summary: 'Solution page headline.', content: 'Hero supporting copy for this solution page.', ctaLabel: 'Speak to Sales', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
+      { id: `${route}-card-1`, title: 'Solution Card 1', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+      { id: `${route}-card-2`, title: 'Solution Card 2', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+      { id: `${route}-card-3`, title: 'Solution Card 3', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
       { id: `${route}-cta`, title: 'Call To Action', type: 'cta', visible: true, summary: 'Final conversion headline.', content: 'Final CTA supporting copy.', ctaLabel: 'Browse All Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
     ];
   }
