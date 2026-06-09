@@ -1785,13 +1785,73 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
   }
 
   if (route.startsWith('/solutions/')) {
-    const solutionsDefaults: B2BPageSection[] = [
-      { id: `${route}-hero`, title: 'Hero', type: 'hero', visible: true, kicker: 'Solution Overview', summary: 'Solution page headline.', content: 'Hero supporting copy for this solution page.', ctaLabel: 'Speak to Sales', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
-      { id: `${route}-card-1`, title: 'Solution Card 1', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
-      { id: `${route}-card-2`, title: 'Solution Card 2', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
-      { id: `${route}-card-3`, title: 'Solution Card 3', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
-      { id: `${route}-cta`, title: 'Call To Action', type: 'cta', visible: true, summary: 'Final conversion headline.', content: 'Final CTA supporting copy.', ctaLabel: 'Browse All Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
-    ];
+    const solutionsDefaults: B2BPageSection[] = (() => {
+      const base = [
+        { id: `${route}-hero`, title: 'Hero', type: 'hero', visible: true, kicker: 'Solution Overview', summary: 'Solution page headline.', content: 'Hero supporting copy for this solution page.', ctaLabel: 'Speak to Sales', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
+      ];
+      const cta = { id: `${route}-cta`, title: 'Call To Action', type: 'cta', visible: true, summary: 'Final conversion headline.', content: 'Final CTA supporting copy.', ctaLabel: 'Browse All Products', ctaHref: '/products', imageUrl: '', imageAlt: '' };
+      if (route === '/solutions/residential') {
+        return [
+          ...base,
+          { id: `${route}-card-1`, title: 'Home Backup Power', type: 'solution-card', visible: true, summary: 'Home Backup Power', content: 'Explore complete backup bundles, inverters, and batteries designed for uninterrupted home comfort.', ctaLabel: 'View Products', ctaHref: '/solutions/residential/home-backup-power', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-2`, title: 'Home Solar Systems', type: 'solution-card', visible: true, summary: 'Home Solar Systems', content: 'Browse residential solar-ready bundles and storage options that reduce fuel dependence.', ctaLabel: 'View Products', ctaHref: '/solutions/residential/home-solar-systems', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-3`, title: 'Power Stabilization & Protection', type: 'solution-card', visible: true, summary: 'Power Stabilization & Protection', content: 'Find stabilizers and voltage protection products to keep home electronics safe from fluctuations.', ctaLabel: 'View Products', ctaHref: '/solutions/residential/power-stabilization-protection', imageUrl: '', imageAlt: '' },
+          cta,
+        ];
+      }
+      if (route === '/solutions/commercial') {
+        return [
+          ...base,
+          { id: `${route}-card-1`, title: 'Business Backup Power', type: 'solution-card', visible: true, summary: 'Business Backup Power', content: 'Maintain productivity, connectivity, and essential operations during power outages.', ctaLabel: 'View Products', ctaHref: '/products/inverters', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-2`, title: 'Commercial Solar Solutions', type: 'solution-card', visible: true, summary: 'Commercial Solar Solutions', content: 'Reduce operating costs and generator dependence with reliable solar energy solutions.', ctaLabel: 'View Products', ctaHref: '/products/solar', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-3`, title: 'Voltage Stabilization & Protection', type: 'solution-card', visible: true, summary: 'Voltage Stabilization & Protection', content: 'Maintain stable power across your facility and help protect valuable equipment from damaging voltage conditions.', ctaLabel: 'View Products', ctaHref: '/products/all-prag-stabilizers', imageUrl: '', imageAlt: '' },
+          cta,
+        ];
+      }
+      if (route === '/solutions/industrial') {
+        return [
+          ...base,
+          { id: `${route}-card-1`, title: 'Voltage Stabilization & Protection', type: 'solution-card', visible: true, summary: 'Voltage Stabilization & Protection', content: 'Maintain stable power across production equipment and help protect critical assets from damaging voltage conditions.', ctaLabel: 'View Products', ctaHref: '/products/all-prag-stabilizers', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-2`, title: 'Industrial Solar Solutions', type: 'solution-card', visible: true, summary: 'Industrial Solar Solutions', content: 'Reduce energy costs, lower generator fuel consumption, and improve long-term energy efficiency.', ctaLabel: 'View Products', ctaHref: '/products/solar', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-3`, title: 'Power Systems Engineering', type: 'solution-card', visible: true, summary: 'Power Systems Engineering', content: "Power solutions designed around your facility's operational requirements, equipment loads, and growth plans.", ctaLabel: 'Contact an Expert', ctaHref: '/free-power-assessment', imageUrl: '', imageAlt: '' },
+          cta,
+        ];
+      }
+      if (route === '/solutions/backup-power') {
+        return [
+          ...base,
+          { id: `${route}-card-1`, title: 'Power During Outages', type: 'solution-card', visible: true, summary: 'Power During Outages', content: 'Keep essential appliances, equipment, and systems running during power outages.', ctaLabel: 'View Products', ctaHref: '/products/inverters', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-2`, title: 'Continuity & Productivity', type: 'solution-card', visible: true, summary: 'Continuity & Productivity', content: 'Maintain comfort, connectivity, security, and productivity when utility power is unavailable.', ctaLabel: 'View Products', ctaHref: '/products/inverters', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-3`, title: 'Reduced Generator Dependence', type: 'solution-card', visible: true, summary: 'Reduced Generator Dependence', content: 'Reduce reliance on generators with quieter, cleaner, and more convenient backup power solutions.', ctaLabel: 'View Products', ctaHref: '/products/inverters', imageUrl: '', imageAlt: '' },
+          cta,
+        ];
+      }
+      if (route === '/solutions/solar-energy') {
+        return [
+          ...base,
+          { id: `${route}-card-1`, title: 'Lower Energy Costs', type: 'solution-card', visible: true, summary: 'Lower Energy Costs', content: 'Reduce electricity and generator fuel costs with solar energy solutions designed for long-term savings.', ctaLabel: 'View Products', ctaHref: '/products/solar', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-2`, title: 'Reduced Generator Dependence', type: 'solution-card', visible: true, summary: 'Reduced Generator Dependence', content: 'Reduce reliance on generators with cleaner, quieter, and more sustainable power generation.', ctaLabel: 'View Products', ctaHref: '/products/solar', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-3`, title: 'Energy Independence', type: 'solution-card', visible: true, summary: 'Energy Independence', content: 'Generate your own electricity and reduce dependence on unreliable utility power.', ctaLabel: 'View Products', ctaHref: '/products/solar', imageUrl: '', imageAlt: '' },
+          cta,
+        ];
+      }
+      if (route === '/solutions/voltage-stabilization-protection') {
+        return [
+          ...base,
+          { id: `${route}-card-1`, title: 'Stable Power', type: 'solution-card', visible: true, summary: 'Stable Power', content: 'Improve equipment performance and operational reliability with consistent voltage.', ctaLabel: 'View Products', ctaHref: '/products/all-prag-stabilizers', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-2`, title: 'Equipment Protection', type: 'solution-card', visible: true, summary: 'Equipment Protection', content: 'Reduce the risk of voltage-related damage, repairs, and premature equipment failure.', ctaLabel: 'View Products', ctaHref: '/products/all-prag-stabilizers', imageUrl: '', imageAlt: '' },
+          { id: `${route}-card-3`, title: 'Facility-Wide Coverage', type: 'solution-card', visible: true, summary: 'Facility-Wide Coverage', content: 'Stabilize power across entire homes, offices, businesses, and industrial facilities.', ctaLabel: 'View Products', ctaHref: '/products/all-prag-stabilizers', imageUrl: '', imageAlt: '' },
+          cta,
+        ];
+      }
+      return [
+        ...base,
+        { id: `${route}-card-1`, title: 'Solution Card 1', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+        { id: `${route}-card-2`, title: 'Solution Card 2', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+        { id: `${route}-card-3`, title: 'Solution Card 3', type: 'solution-card', visible: true, summary: 'Card headline.', content: 'Card supporting copy.', ctaLabel: 'View Products', ctaHref: '/products', imageUrl: '', imageAlt: '' },
+        cta,
+      ];
+    })();
 
     if (!Array.isArray(sections) || sections.length === 0) return solutionsDefaults;
 
