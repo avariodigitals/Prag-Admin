@@ -892,7 +892,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
           { label: 'About PRAG', href: '/about' },
           { label: 'Our Impact', href: '/about' },
           { label: 'Become a Reseller', href: '/distributor' },
-          { label: 'Careers', href: '/contact' },
+          { label: 'Careers', href: '/careers' },
           { label: 'News & Insights', href: '/knowledge-center' },
         ],
       },
