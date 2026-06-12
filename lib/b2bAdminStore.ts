@@ -182,6 +182,12 @@ export interface B2BHeaderConfig {
   contactLabel: string;
   contactHref: string;
   menuItems: B2BHeaderMenuItem[];
+  solutionsMegaTitle: string;
+  solutionsMegaBody: string;
+  productsMegaTitle: string;
+  productsMegaBody: string;
+  companyMegaTitle: string;
+  companyMegaBody: string;
 }
 
 export interface B2BFooterConfig {
@@ -722,6 +728,12 @@ const DEFAULT_SETTINGS: B2BSettings = {
     announcement: '',
     ctaLabel: 'View Store',
     ctaHref: 'https://shop.prag.global',
+    solutionsMegaTitle: 'Power Solutions For Every Space',
+    solutionsMegaBody: 'Smart and sustainable systems tailored for homes and businesses.',
+    productsMegaTitle: 'Explore PRAG Products',
+    productsMegaBody: 'Built for Nigerian power conditions with performance and reliability in mind.',
+    companyMegaTitle: 'About PRAG',
+    companyMegaBody: 'Learn more about our company, network, and what we stand for.',
     solutionsMenuItems: [
       { label: 'For Homes', href: '/solutions/residential' },
       { label: 'For Commercial', href: '/solutions/commercial' },

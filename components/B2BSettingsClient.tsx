@@ -425,6 +425,45 @@ export default function B2BSettingsClient({
               <span className="text-sm font-medium text-gray-700">Contact href</span>
               <input className={inputCls} value={settings.header.contactHref} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, contactHref: event.target.value } }))} />
             </label>
+            <div className="md:col-span-2 border-t border-gray-200 pt-4 mt-2">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3">Mega Panel — Solutions</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Title</span>
+                  <input className={inputCls} value={settings.header.solutionsMegaTitle} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, solutionsMegaTitle: event.target.value } }))} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Body</span>
+                  <input className={inputCls} value={settings.header.solutionsMegaBody} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, solutionsMegaBody: event.target.value } }))} />
+                </label>
+              </div>
+            </div>
+            <div className="md:col-span-2 border-t border-gray-200 pt-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3">Mega Panel — Products</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Title</span>
+                  <input className={inputCls} value={settings.header.productsMegaTitle} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, productsMegaTitle: event.target.value } }))} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Body</span>
+                  <input className={inputCls} value={settings.header.productsMegaBody} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, productsMegaBody: event.target.value } }))} />
+                </label>
+              </div>
+            </div>
+            <div className="md:col-span-2 border-t border-gray-200 pt-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3">Mega Panel — Company</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Title</span>
+                  <input className={inputCls} value={settings.header.companyMegaTitle} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, companyMegaTitle: event.target.value } }))} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Body</span>
+                  <input className={inputCls} value={settings.header.companyMegaBody} onChange={(event) => setSettings((prev) => ({ ...prev, header: { ...prev.header, companyMegaBody: event.target.value } }))} />
+                </label>
+              </div>
+            </div>
             <div className="md:col-span-2 grid grid-cols-1 gap-4">
               <HeaderMenuEditor
                 title="Solutions Menu"
