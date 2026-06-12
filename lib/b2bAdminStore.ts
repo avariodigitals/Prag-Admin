@@ -631,7 +631,18 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
     title: 'Become a Distributor',
     description: 'Apply to become a PRAG distributor and grow with reliable power solutions.',
     sections: [
-      { id: '/distributor-hero', title: 'Distributor Hero', type: 'hero', visible: true, kicker: 'Distributor', summary: 'Become a Distributor', content: 'Apply to become a PRAG distributor and grow with reliable power solutions.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-hero', title: 'Distributor Hero', type: 'hero', visible: true, kicker: 'Distributor', summary: 'Sell the Solutions Nigeria Needs.', content: 'Partner with PRAG and build a profitable business distributing Nigeria\'s most trusted power engineering products.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefits-header', title: 'Partner Benefits Header', type: 'section-header', visible: true, kicker: 'Partner Benefits', summary: 'Everything You Need to Build a Thriving Power Business', content: '', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-1', title: 'High-Margin Products', type: 'benefit', visible: true, summary: 'High-Margin Products', content: 'PRAG distributors earn industry-leading margins on our full product range — stabilizers, inverters, batteries, and solar.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-2', title: 'Exclusive Territories', type: 'benefit', visible: true, summary: 'Exclusive Territories', content: 'We offer protected territories so you\'re not competing with other PRAG distributors in your area.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-3', title: 'Technical Training', type: 'benefit', visible: true, summary: 'Technical Training', content: 'Comprehensive product training and certification so your team can advise customers with authority.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-4', title: 'Sales & Marketing Support', type: 'benefit', visible: true, summary: 'Sales & Marketing Support', content: 'Co-branded marketing materials, digital assets, and dedicated account management from our team.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-5', title: 'PRAG Certification', type: 'benefit', visible: true, summary: 'PRAG Certification', content: 'Carry the PRAG Certified Partner badge — a mark of quality that builds customer trust in your market.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-6', title: 'Nationwide Network', type: 'benefit', visible: true, summary: 'Nationwide Network', content: 'Join a growing network of distributors across all 36 states and leverage shared referrals and leads.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tiers-header', title: 'Partnership Tiers Header', type: 'section-header', visible: true, kicker: 'Partnership Tier', summary: 'Choose the Tier That Fits Your Business', content: '', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tier-1', title: 'Become an Authorized Dealer', type: 'tier', visible: true, summary: 'Become an Authorized Dealer', content: 'As a dealer, you\'ll be equipped with the tools, pricing, and support needed to sell confidently and grow your business in a rapidly expanding market.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tier-2', title: 'Partner as a Certified Installer', type: 'tier', visible: true, summary: 'Partner as a Certified Installer', content: 'As a certified installer, you\'ll handle system setup while we ensure you have access to the right equipment, and ongoing support to execute projects seamlessly.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tier-3', title: 'Join as a Product Reseller', type: 'tier', visible: true, summary: 'Join as a Product Reseller', content: 'Expand your offerings by reselling PRAG solar solutions to your network. With flexible purchasing options and competitive margins.', imageUrl: '', imageAlt: '' },
     ],
   },
   '/find-a-distributor': {
@@ -1870,6 +1881,30 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
     const normalizedSections = dedupeSections(sections);
     const existingIds = new Set(normalizedSections.map((section) => section.id));
     const missingDefaults = solutionsDefaults.filter((section) => !existingIds.has(section.id));
+    return [...normalizedSections, ...missingDefaults];
+  }
+
+  if (route === '/distributor') {
+    const distributorDefaults: B2BPageSection[] = [
+      { id: '/distributor-hero', title: 'Distributor Hero', type: 'hero', visible: true, kicker: 'Distributor', summary: 'Sell the Solutions Nigeria Needs.', content: 'Partner with PRAG and build a profitable business distributing Nigeria\'s most trusted power engineering products.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefits-header', title: 'Partner Benefits Header', type: 'section-header', visible: true, kicker: 'Partner Benefits', summary: 'Everything You Need to Build a Thriving Power Business', content: '', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-1', title: 'High-Margin Products', type: 'benefit', visible: true, summary: 'High-Margin Products', content: 'PRAG distributors earn industry-leading margins on our full product range — stabilizers, inverters, batteries, and solar.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-2', title: 'Exclusive Territories', type: 'benefit', visible: true, summary: 'Exclusive Territories', content: 'We offer protected territories so you\'re not competing with other PRAG distributors in your area.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-3', title: 'Technical Training', type: 'benefit', visible: true, summary: 'Technical Training', content: 'Comprehensive product training and certification so your team can advise customers with authority.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-4', title: 'Sales & Marketing Support', type: 'benefit', visible: true, summary: 'Sales & Marketing Support', content: 'Co-branded marketing materials, digital assets, and dedicated account management from our team.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-5', title: 'PRAG Certification', type: 'benefit', visible: true, summary: 'PRAG Certification', content: 'Carry the PRAG Certified Partner badge — a mark of quality that builds customer trust in your market.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-benefit-6', title: 'Nationwide Network', type: 'benefit', visible: true, summary: 'Nationwide Network', content: 'Join a growing network of distributors across all 36 states and leverage shared referrals and leads.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tiers-header', title: 'Partnership Tiers Header', type: 'section-header', visible: true, kicker: 'Partnership Tier', summary: 'Choose the Tier That Fits Your Business', content: '', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tier-1', title: 'Become an Authorized Dealer', type: 'tier', visible: true, summary: 'Become an Authorized Dealer', content: 'As a dealer, you\'ll be equipped with the tools, pricing, and support needed to sell confidently and grow your business in a rapidly expanding market.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tier-2', title: 'Partner as a Certified Installer', type: 'tier', visible: true, summary: 'Partner as a Certified Installer', content: 'As a certified installer, you\'ll handle system setup while we ensure you have access to the right equipment, and ongoing support to execute projects seamlessly.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-tier-3', title: 'Join as a Product Reseller', type: 'tier', visible: true, summary: 'Join as a Product Reseller', content: 'Expand your offerings by reselling PRAG solar solutions to your network. With flexible purchasing options and competitive margins.', imageUrl: '', imageAlt: '' },
+    ];
+
+    if (!Array.isArray(sections) || sections.length === 0) return distributorDefaults;
+
+    const normalizedSections = dedupeSections(sections);
+    const existingIds = new Set(normalizedSections.map((section) => section.id));
+    const missingDefaults = distributorDefaults.filter((section) => !existingIds.has(section.id));
     return [...normalizedSections, ...missingDefaults];
   }
 
