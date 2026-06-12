@@ -151,7 +151,7 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
 
   if (section === 'forms') {
     return (
-      <SectionShell title={SECTION_TITLES[section]} description="Routing rules for contact, distributor and installation forms.">
+      <SectionShell title={SECTION_TITLES[section]} description="Routing rules for contact, distributor, careers and installation forms.">
         <B2BSettingsClient initialSettings={store.settings} allowedTabs={['forms']} defaultTab="forms" />
       </SectionShell>
     );

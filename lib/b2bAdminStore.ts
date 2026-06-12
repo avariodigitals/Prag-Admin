@@ -940,6 +940,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
     { formKey: 'contact', formName: 'Contact Form', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
     { formKey: 'free-power-assessment', formName: 'Free Power Assessment', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
     { formKey: 'distributor', formName: 'Distributor Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
+    { formKey: 'careers', formName: 'Careers Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
     { formKey: 'installations', formName: 'Installation Request', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
   ],
   access: {
@@ -1802,7 +1803,17 @@ function mergeSettings(settings?: Partial<B2BSettings> | null): B2BSettings {
     integrations: { ...DEFAULT_SETTINGS.integrations, ...(settings?.integrations ?? {}) },
     scripts: { ...DEFAULT_SETTINGS.scripts, ...(settings?.scripts ?? {}) },
     smtp: { ...DEFAULT_SETTINGS.smtp, ...(settings?.smtp ?? {}) },
-    forms: Array.isArray(settings?.forms) ? settings.forms : DEFAULT_SETTINGS.forms,
+    forms: (() => {
+      const stored = Array.isArray(settings?.forms) ? settings.forms : [];
+      const mergedMap = new Map<string, B2BFormRoutingRule>();
+      for (const rule of stored) {
+        if (rule?.formKey) mergedMap.set(rule.formKey, rule);
+      }
+      for (const rule of DEFAULT_SETTINGS.forms) {
+        if (!mergedMap.has(rule.formKey)) mergedMap.set(rule.formKey, rule);
+      }
+      return Array.from(mergedMap.values());
+    })(),
     access: {
       ...DEFAULT_SETTINGS.access,
       ...(settings?.access ?? {}),
