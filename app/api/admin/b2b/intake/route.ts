@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     position: body?.position ? String(body.position) : undefined,
     experience: body?.experience ? String(body.experience) : undefined,
     education: body?.education ? String(body.education) : undefined,
-    cvLink: body?.cvLink ? String(body.cvLink) : undefined,
+    cvFilename: body?.cvFilename ? String(body.cvFilename) : undefined,
   };
 
   const store = await updateB2BAdminStore((current) => {
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
           `Location: ${record.location || '-'}`,
           `Experience: ${record.experience || '-'}`,
           `Education: ${record.education || '-'}`,
-          `CV/Resume: ${record.cvLink || '-'}`,
+          `CV/Resume: ${record.cvFilename || '-'} `,
           `Route: ${record.route || '-'}`,
           `Submitted At: ${record.createdAt}`,
           '',
@@ -117,11 +117,26 @@ export async function POST(req: Request) {
           record.message || '-',
         ];
 
+        const attachments: Array<{ filename: string; content: Buffer; contentType: string }> = [];
+        if (body?.cvBase64 && body?.cvFilename) {
+          try {
+            const buffer = Buffer.from(String(body.cvBase64), 'base64');
+            attachments.push({
+              filename: String(body.cvFilename),
+              content: buffer,
+              contentType: String(body.cvType || 'application/octet-stream'),
+            });
+          } catch {
+            // Ignore attachment decoding errors
+          }
+        }
+
         await transporter.sendMail({
           from: senderName ? `${senderName} <${senderEmail}>` : senderEmail,
           to: recipients.join(', '),
           subject,
           text: messageLines.join('\n'),
+          attachments: attachments.length > 0 ? attachments : undefined,
         });
 
         await appendB2BAuditLog({

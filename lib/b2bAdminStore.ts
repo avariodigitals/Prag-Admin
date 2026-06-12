@@ -104,6 +104,7 @@ export interface B2BSubmissionRecord {
   experience?: string;
   education?: string;
   cvLink?: string;
+  cvFilename?: string;
 }
 
 export interface B2BInstallationRecord {
