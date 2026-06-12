@@ -17,6 +17,7 @@ interface ProductCategory { id: number; name: string; slug: string }
 interface ProductRecord {
   id: number;
   name?: string;
+  sku?: string;
   regular_price?: string;
   sale_price?: string;
   status?: string;
@@ -53,6 +54,7 @@ export default function EditProductForm({
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   const [name, setName] = useState(product.name ?? '');
+  const [sku, setSku] = useState(product.sku ?? '');
   const [regularPrice, setRegularPrice] = useState(product.regular_price ?? '');
   const [salePrice, setSalePrice] = useState(product.sale_price ?? '');
   const [productStatus, setProductStatus] = useState(product.status ?? 'publish');
@@ -261,6 +263,7 @@ export default function EditProductForm({
     setStatus('saving');
     const payload = {
       name,
+      sku,
       regular_price: regularPrice,
       sale_price: salePrice,
       status: productStatus,
@@ -331,6 +334,10 @@ export default function EditProductForm({
               <input value={name} onChange={e => setName(e.target.value)} className={inputCls} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>SKU</label>
+                <input value={sku} onChange={e => setSku(e.target.value)} className={inputCls} placeholder="PRAG-001" />
+              </div>
               <div className="space-y-1.5">
                 <label className={labelCls}>Regular Price (₦)</label>
                 <input value={regularPrice} onChange={e => setRegularPrice(e.target.value)} className={inputCls} placeholder="0.00" />

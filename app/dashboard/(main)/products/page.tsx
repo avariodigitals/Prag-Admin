@@ -61,13 +61,13 @@ export default async function ProductsPage({ searchParams }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
-              <tr>{['Product', 'Status', 'Stock', 'Price', 'Featured', 'Actions'].map(h => (
+              <tr>{['Product', 'SKU', 'Status', 'Stock', 'Price', 'Featured', 'Actions'].map(h => (
                 <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
               ))}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {products.length === 0
-                ? <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No products found</td></tr>
+                ? <tr><td colSpan={7} className="px-6 py-10 text-center text-gray-400">No products found</td></tr>
                 : products.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
@@ -80,6 +80,9 @@ export default async function ProductsPage({ searchParams }: Props) {
                           <p className="text-xs text-gray-400">#{p.id}</p>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-mono text-gray-500">
+                      {p.sku || '—'}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${STATUS_BADGE[p.status] ?? 'bg-gray-100 text-gray-600'}`}>{p.status}</span>

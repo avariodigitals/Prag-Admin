@@ -9,6 +9,7 @@ export interface WCProduct {
   id: number;
   name: string;
   slug: string;
+  sku: string;
   status: string;
   stock_status: string;
   price: string;
