@@ -449,6 +449,9 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
       { id: '/about-value-2', title: 'Reliable Power Systems You Trust', type: 'value', visible: true, summary: 'Reliable Power Systems You Trust', content: 'Building Reliable Power Solutions That Perform Consistently Under Real-World Conditions', imageUrl: '', imageAlt: '' },
       { id: '/about-value-3', title: 'Practical Solutions for Real Conditions', type: 'value', visible: true, summary: 'Practical Solutions for Real Conditions', content: 'Delivering Practical Power Solutions Designed for Real Environments, Not Just Ideal Scenarios', imageUrl: '', imageAlt: '' },
       { id: '/about-value-4', title: 'Designed to Meet Your Needs', type: 'value', visible: true, summary: 'Designed to Meet Your Needs', content: 'Putting Client Needs First by Designing Power Systems Around Real Challenges and Requirements', imageUrl: '', imageAlt: '' },
+      { id: '/about-stat-1', title: 'System Installed', type: 'stat', visible: true, summary: '50', content: 'K+', imageUrl: '', imageAlt: '' },
+      { id: '/about-stat-2', title: 'Years Active', type: 'stat', visible: true, summary: '20', content: '+', imageUrl: '', imageAlt: '' },
+      { id: '/about-stat-3', title: 'States Covered', type: 'stat', visible: true, summary: '36', content: '', imageUrl: '', imageAlt: '' },
     ],
   },
   '/installations': {
@@ -1898,6 +1901,9 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
       { id: '/about-value-2', title: 'Reliable Power Systems You Trust', type: 'value', visible: true, summary: 'Reliable Power Systems You Trust', content: 'Building Reliable Power Solutions That Perform Consistently Under Real-World Conditions', imageUrl: '', imageAlt: '' },
       { id: '/about-value-3', title: 'Practical Solutions for Real Conditions', type: 'value', visible: true, summary: 'Practical Solutions for Real Conditions', content: 'Delivering Practical Power Solutions Designed for Real Environments, Not Just Ideal Scenarios', imageUrl: '', imageAlt: '' },
       { id: '/about-value-4', title: 'Designed to Meet Your Needs', type: 'value', visible: true, summary: 'Designed to Meet Your Needs', content: 'Putting Client Needs First by Designing Power Systems Around Real Challenges and Requirements', imageUrl: '', imageAlt: '' },
+      { id: '/about-stat-1', title: 'System Installed', type: 'stat', visible: true, summary: '50', content: 'K+', imageUrl: '', imageAlt: '' },
+      { id: '/about-stat-2', title: 'Years Active', type: 'stat', visible: true, summary: '20', content: '+', imageUrl: '', imageAlt: '' },
+      { id: '/about-stat-3', title: 'States Covered', type: 'stat', visible: true, summary: '36', content: '', imageUrl: '', imageAlt: '' },
     ];
 
     if (!Array.isArray(sections) || sections.length === 0) return aboutDefaults;
