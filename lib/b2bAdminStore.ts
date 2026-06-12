@@ -1932,6 +1932,20 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
     return [...normalizedSections, ...missingDefaults];
   }
 
+  if (route === '/free-power-assessment') {
+    const fpaDefaults: B2BPageSection[] = [
+      { id: '/free-power-assessment-hero', title: 'Free Power Assessment Hero', type: 'hero', visible: true, kicker: 'Assessment', summary: 'Get a Free Power Assessment', content: 'Kindly provide your details and we will contact you shortly to provide a free power assesment.', imageUrl: '', imageAlt: '' },
+      { id: '/free-power-assessment-form', title: 'Free Power Assessment Form', type: 'cta', visible: true, summary: 'Submit Assessment Request', content: 'Form fields are managed on the frontend. Configure the routing and recipient behavior from Site Settings > Forms.', ctaLabel: 'Submit Assessment', ctaHref: '/free-power-assessment', imageUrl: '', imageAlt: '' },
+    ];
+
+    if (!Array.isArray(sections) || sections.length === 0) return fpaDefaults;
+
+    const normalizedSections = dedupeSections(sections);
+    const existingIds = new Set(normalizedSections.map((section) => section.id));
+    const missingDefaults = fpaDefaults.filter((section) => !existingIds.has(section.id));
+    return [...normalizedSections, ...missingDefaults];
+  }
+
   if (Array.isArray(sections) && sections.length > 0) return dedupeSections(sections);
   return [
     { id: `${route}-hero`, title: 'Hero', type: 'hero', visible: true, kicker: 'Page Intro', summary: 'Top section headline.', content: 'Top section supporting copy.', ctaLabel: 'Contact Sales', ctaHref: '/contact', imageUrl: '', imageAlt: '' },
