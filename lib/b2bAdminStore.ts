@@ -687,6 +687,34 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
       { id: '/products-hero', title: 'Products Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Products', content: 'Browse all PRAG product categories and power technologies.', imageUrl: '', imageAlt: '' },
     ],
   },
+  '/products/inverters': {
+    title: 'Inverters',
+    description: 'A selection of solar inverters that convert DC power from solar panels into AC power.',
+    sections: [
+      { id: '/products-inverters-hero', title: 'Inverters Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Inverters', content: 'A selection of solar inverters that convert DC power from solar panels into AC power.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/products/all-prag-stabilizers': {
+    title: 'Voltage Stabilizers',
+    description: 'Explore our range of voltage stabilizers, designed to protect your appliances from power fluctuations.',
+    sections: [
+      { id: '/products-stabilizers-hero', title: 'Voltage Stabilizers Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Voltage Stabilizers', content: 'Explore our range of voltage stabilizers, designed to protect your appliances from power fluctuations.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/products/batteries': {
+    title: 'Batteries',
+    description: 'Explore our wide range of batteries for solar power, inverters, and other energy storage solutions.',
+    sections: [
+      { id: '/products-batteries-hero', title: 'Batteries Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Batteries', content: 'Explore our wide range of batteries for solar power, inverters, and other energy storage solutions.', imageUrl: '', imageAlt: '' },
+    ],
+  },
+  '/products/solar': {
+    title: 'Solar',
+    description: 'Explore our range of solar solutions, designed to maximize energy efficiency and protect against voltage fluctuations.',
+    sections: [
+      { id: '/products-solar-hero', title: 'Solar Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Solar', content: 'Explore our range of solar solutions, designed to maximize energy efficiency and protect against voltage fluctuations.', imageUrl: '', imageAlt: '' },
+    ],
+  },
   '/products/[category]': {
     title: 'Product Category',
     description: 'Explore products in the selected category.',
@@ -1949,6 +1977,32 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
     const normalizedSections = dedupeSections(sections);
     const existingIds = new Set(normalizedSections.map((section) => section.id));
     const missingDefaults = fpaDefaults.filter((section) => !existingIds.has(section.id));
+    return [...normalizedSections, ...missingDefaults];
+  }
+
+  if (route === '/products') {
+    const productsDefaults: B2BPageSection[] = [
+      { id: '/products-hero', title: 'Products Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Products', content: 'Browse all PRAG product categories and power technologies.', imageUrl: '', imageAlt: '' },
+    ];
+
+    if (!Array.isArray(sections) || sections.length === 0) return productsDefaults;
+
+    const normalizedSections = dedupeSections(sections);
+    const existingIds = new Set(normalizedSections.map((section) => section.id));
+    const missingDefaults = productsDefaults.filter((section) => !existingIds.has(section.id));
+    return [...normalizedSections, ...missingDefaults];
+  }
+
+  if (route.startsWith('/products/')) {
+    const productCategoryDefaults: B2BPageSection[] = [
+      { id: `${route}-hero`, title: 'Product Category Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Product Category', content: 'Explore products in the selected category.', imageUrl: '', imageAlt: '' },
+    ];
+
+    if (!Array.isArray(sections) || sections.length === 0) return productCategoryDefaults;
+
+    const normalizedSections = dedupeSections(sections);
+    const existingIds = new Set(normalizedSections.map((section) => section.id));
+    const missingDefaults = productCategoryDefaults.filter((section) => !existingIds.has(section.id));
     return [...normalizedSections, ...missingDefaults];
   }
 
