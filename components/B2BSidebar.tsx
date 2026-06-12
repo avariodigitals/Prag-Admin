@@ -4,12 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Mail, Building2, House, FileText, Settings, Menu, X, ExternalLink, LogOut, BookOpenCheck, Lightbulb, ArrowLeftRight } from 'lucide-react';
+import { LayoutDashboard, Mail, Building2, House, FileText, Settings, Menu, X, ExternalLink, LogOut, BookOpenCheck, Lightbulb, ArrowLeftRight, Users } from 'lucide-react';
 
 const MAIN_NAV = [
   { href: '/dashboard/b2b', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/b2b/enquiries', label: 'Enquiries', icon: Mail },
   { href: '/dashboard/b2b/distributors', label: 'Distributor Apps', icon: Building2 },
+  { href: '/dashboard/b2b/careers', label: 'Careers', icon: Users },
   { href: '/dashboard/b2b/installations', label: 'Installations', icon: House },
   { href: '/dashboard/b2b/case-studies', label: 'Case Studies', icon: BookOpenCheck },
   { href: '/dashboard/b2b/solutions', label: 'Solutions', icon: Lightbulb },

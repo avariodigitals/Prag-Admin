@@ -12,6 +12,7 @@ import B2BSolutionsClient from '@/components/B2BSolutionsClient';
 const SECTION_TITLES: Record<string, string> = {
   enquiries: 'Enquiries',
   distributors: 'Distributor Applications',
+  careers: 'Career Applications',
   installations: 'Installations',
   'case-studies': 'Case Studies',
   solutions: 'Solutions',

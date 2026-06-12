@@ -31,6 +31,11 @@ export async function POST(req: Request) {
     source: body?.source === 'admin' ? 'admin' as const : 'public-form' as const,
     route: String(body?.route ?? '/contact'),
     createdAt: new Date().toISOString(),
+    location: body?.location ? String(body.location) : undefined,
+    position: body?.position ? String(body.position) : undefined,
+    experience: body?.experience ? String(body.experience) : undefined,
+    education: body?.education ? String(body.education) : undefined,
+    cvLink: body?.cvLink ? String(body.cvLink) : undefined,
   };
 
   const store = await updateB2BAdminStore((current) => {
@@ -100,7 +105,11 @@ export async function POST(req: Request) {
           `Name: ${record.name || '-'}`,
           `Email: ${record.email || '-'}`,
           `Phone: ${record.phone || '-'}`,
-          `Company: ${record.company || '-'}`,
+          `Position: ${record.position || record.company || '-'}`,
+          `Location: ${record.location || '-'}`,
+          `Experience: ${record.experience || '-'}`,
+          `Education: ${record.education || '-'}`,
+          `CV/Resume: ${record.cvLink || '-'}`,
           `Route: ${record.route || '-'}`,
           `Submitted At: ${record.createdAt}`,
           '',

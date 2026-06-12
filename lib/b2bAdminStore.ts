@@ -98,6 +98,12 @@ export interface B2BSubmissionRecord {
   source: 'public-form' | 'admin';
   route: string;
   createdAt: string;
+  /** Career application extras */
+  location?: string;
+  position?: string;
+  experience?: string;
+  education?: string;
+  cvLink?: string;
 }
 
 export interface B2BInstallationRecord {

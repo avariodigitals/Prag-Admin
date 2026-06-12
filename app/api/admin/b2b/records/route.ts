@@ -15,6 +15,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ records: store.distributorApplications });
   }
 
+  if (kind === 'careers') {
+    return NextResponse.json({ records: store.careerApplications });
+  }
+
   if (kind === 'installations') {
     return NextResponse.json({ records: store.installations });
   }
