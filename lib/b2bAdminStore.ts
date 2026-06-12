@@ -2,8 +2,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { cookies } from 'next/headers';
 
-export type B2BSubmissionKind = 'contact' | 'distributor';
-export type B2BSectionKey = 'overview' | 'enquiries' | 'distributors' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit';
+export type B2BSubmissionKind = 'contact' | 'distributor' | 'careers';
+export type B2BSectionKey = 'overview' | 'enquiries' | 'distributors' | 'careers' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit';
 
 export type B2BCaseStudyCategory = 'Residential' | 'Commercial' | 'Industrial';
 
@@ -277,6 +277,7 @@ export interface B2BAuditRecord {
 export interface B2BAdminStore {
   enquiries: B2BSubmissionRecord[];
   distributorApplications: B2BSubmissionRecord[];
+  careerApplications: B2BSubmissionRecord[];
   installations: B2BInstallationRecord[];
   caseStudies: B2BCaseStudiesContent;
   solutions: B2BSolutionsContent;
@@ -680,6 +681,14 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
       { id: '/power-calculator-hero', title: 'Power Calculator Hero', type: 'hero', visible: true, kicker: 'Calculator', summary: 'Power Calculator', content: 'Estimate your power requirements and get the right PRAG recommendation.', imageUrl: '', imageAlt: '' },
     ],
   },
+  '/careers': {
+    title: 'Careers',
+    description: 'Join the PRAG team. Explore open roles and apply to build the future of power engineering in Nigeria.',
+    sections: [
+      { id: '/careers-hero', title: 'Careers Hero', type: 'hero', visible: true, kicker: 'Careers', summary: 'Build Your Future With PRAG', content: 'Join a team of engineers and professionals solving real power challenges across Nigeria.', imageUrl: '', imageAlt: '' },
+      { id: '/careers-form', title: 'Careers Application Form', type: 'cta', visible: true, summary: 'Submit Your Application', content: 'Complete the form below to apply. All fields are required.', ctaLabel: 'Submit Application', ctaHref: '/careers', imageUrl: '', imageAlt: '' },
+    ],
+  },
   '/products': {
     title: 'Products',
     description: 'Browse all PRAG product categories and power technologies.',
@@ -742,6 +751,7 @@ const DEFAULT_SECTION_VISIBILITY: Record<B2BSectionKey, boolean> = {
   overview: true,
   enquiries: true,
   distributors: true,
+  careers: true,
   installations: true,
   'case-studies': true,
   solutions: true,
@@ -931,6 +941,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
       overview: true,
       enquiries: true,
       distributors: true,
+      careers: true,
       installations: true,
       'case-studies': true,
       solutions: true,
@@ -1600,6 +1611,7 @@ const DEFAULT_SOLUTIONS: B2BSolutionsContent = {
 const DEFAULT_STORE: B2BAdminStore = {
   enquiries: [],
   distributorApplications: [],
+  careerApplications: [],
   installations: [],
   caseStudies: DEFAULT_CASE_STUDIES,
   solutions: DEFAULT_SOLUTIONS,
@@ -1980,6 +1992,20 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
     return [...normalizedSections, ...missingDefaults];
   }
 
+  if (route === '/careers') {
+    const careersDefaults: B2BPageSection[] = [
+      { id: '/careers-hero', title: 'Careers Hero', type: 'hero', visible: true, kicker: 'Careers', summary: 'Build Your Future With PRAG', content: 'Join a team of engineers and professionals solving real power challenges across Nigeria.', imageUrl: '', imageAlt: '' },
+      { id: '/careers-form', title: 'Careers Application Form', type: 'cta', visible: true, summary: 'Submit Your Application', content: 'Complete the form below to apply. All fields are required.', ctaLabel: 'Submit Application', ctaHref: '/careers', imageUrl: '', imageAlt: '' },
+    ];
+
+    if (!Array.isArray(sections) || sections.length === 0) return careersDefaults;
+
+    const normalizedSections = dedupeSections(sections);
+    const existingIds = new Set(normalizedSections.map((section) => section.id));
+    const missingDefaults = careersDefaults.filter((section) => !existingIds.has(section.id));
+    return [...normalizedSections, ...missingDefaults];
+  }
+
   if (route === '/products') {
     const productsDefaults: B2BPageSection[] = [
       { id: '/products-hero', title: 'Products Hero', type: 'hero', visible: true, kicker: 'Products', summary: 'Products', content: 'Browse all PRAG product categories and power technologies.', imageUrl: '', imageAlt: '' },
@@ -2224,6 +2250,7 @@ async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminS
   return {
     enquiries: Array.isArray(parsed.enquiries) ? parsed.enquiries : [],
     distributorApplications: Array.isArray(parsed.distributorApplications) ? parsed.distributorApplications : [],
+    careerApplications: Array.isArray(parsed.careerApplications) ? parsed.careerApplications : [],
     installations: Array.isArray(parsed.installations) ? parsed.installations : [],
     caseStudies: normalizeCaseStudiesContent(parsed.caseStudies),
     solutions: normalizeSolutionsContent(parsed.solutions),
@@ -2358,6 +2385,7 @@ async function readFromWordPress(): Promise<B2BAdminStore> {
     ...source,
     enquiries: liveEnquiries ?? source.enquiries,
     distributorApplications: liveDistributors ?? source.distributorApplications,
+    careerApplications: source.careerApplications,
   };
 
   return normalizeStore(mergedSource);
@@ -2856,6 +2884,7 @@ export function getB2BOverview(store: B2BAdminStore) {
   return {
     enquiries: store.enquiries.length,
     distributorApplications: store.distributorApplications.length,
+    careerApplications: store.careerApplications.length,
     installations: store.installations.length,
     caseStudies: store.caseStudies.studies.filter((study) => study.active).length,
     solutions: store.solutions.categories.reduce((count, category) => count + category.problems.filter((problem) => problem.active).length, 0),

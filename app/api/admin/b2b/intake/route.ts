@@ -10,7 +10,14 @@ function randomId() {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const kind: B2BSubmissionKind = body?.kind === 'distributor' ? 'distributor' : 'contact';
+  let kind: B2BSubmissionKind;
+  if (body?.kind === 'distributor') {
+    kind = 'distributor';
+  } else if (body?.kind === 'careers') {
+    kind = 'careers';
+  } else {
+    kind = 'contact';
+  }
   const record: B2BSubmissionRecord = {
     id: randomId(),
     kind,
@@ -33,6 +40,12 @@ export async function POST(req: Request) {
         distributorApplications: [record, ...current.distributorApplications].slice(0, 500),
       };
     }
+    if (kind === 'careers') {
+      return {
+        ...current,
+        careerApplications: [record, ...current.careerApplications].slice(0, 500),
+      };
+    }
 
     return {
       ...current,
@@ -43,16 +56,23 @@ export async function POST(req: Request) {
   await appendB2BAuditLog({
     actor: record.email || 'public-form',
     action: 'create',
-    target: kind === 'distributor' ? 'distributor application' : 'contact enquiry',
+    target: kind === 'distributor' ? 'distributor application' : kind === 'careers' ? 'careers application' : 'contact enquiry',
     details: `Received via ${record.route}`,
   });
 
   // Honor form routing rules saved in Site Settings -> Forms.
   try {
     const normalizedRoute = String(record.route || '').trim().toLowerCase();
-    const formKey = kind === 'distributor'
-      ? 'distributor'
-      : (normalizedRoute === '/free-power-assessment' ? 'free-power-assessment' : 'contact');
+    let formKey: string;
+    if (kind === 'distributor') {
+      formKey = 'distributor';
+    } else if (kind === 'careers' || normalizedRoute === '/careers') {
+      formKey = 'careers';
+    } else if (normalizedRoute === '/free-power-assessment') {
+      formKey = 'free-power-assessment';
+    } else {
+      formKey = 'contact';
+    }
     const rule = store.settings.forms.find((item) => item.formKey === formKey);
     const recipients = Array.isArray(rule?.recipients) ? rule.recipients.filter(Boolean) : [];
     const smtp = store.settings.smtp;
@@ -72,7 +92,7 @@ export async function POST(req: Request) {
 
         const senderEmail = (rule?.fromEmail || smtp.fromEmail || '').trim();
         const senderName = (rule?.senderName || smtp.fromName || 'PRAG B2B').trim();
-        const subjectPrefix = rule?.formName?.trim() || (kind === 'distributor' ? 'Distributor Application' : 'Contact Form');
+        const subjectPrefix = rule?.formName?.trim() || (kind === 'distributor' ? 'Distributor Application' : kind === 'careers' ? 'Careers Application' : 'Contact Form');
         const subject = `${subjectPrefix}: ${record.name || 'New submission'}`;
 
         const messageLines = [
@@ -114,7 +134,7 @@ export async function POST(req: Request) {
     await appendB2BAuditLog({
       actor: record.email || 'public-form',
       action: 'notify.failed',
-      target: kind === 'distributor' ? 'distributor routing' : 'contact routing',
+      target: kind === 'distributor' ? 'distributor routing' : kind === 'careers' ? 'careers routing' : 'contact routing',
       details: error instanceof Error ? error.message : 'Unknown notification error',
     });
   }
