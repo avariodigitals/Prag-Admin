@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, CheckCircle2, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import RichTextEditor from '@/components/RichTextEditor';
 
 const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
 
@@ -402,19 +403,19 @@ export default function EditProductForm({
         {/* ── Description ── */}
         {activeTab === 'Description' && (
           <div className="space-y-5">
-            <div className="space-y-1.5">
-              <label className={labelCls}>Short Description</label>
-              <textarea value={shortDescription} onChange={e => setShortDescription(e.target.value)} rows={4}
-                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
-                placeholder="Brief product summary shown on listing pages..." />
-            </div>
-            <div className="space-y-1.5">
-              <label className={labelCls}>Full Description</label>
-              <textarea value={description} onChange={e => setDescription(e.target.value)} rows={10}
-                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none font-mono"
-                placeholder="Full product description (HTML supported)..." />
-              <p className="text-xs text-gray-400">HTML is supported. Use &lt;p&gt;, &lt;ul&gt;, &lt;strong&gt; etc.</p>
-            </div>
+            <RichTextEditor
+              label="Short Description"
+              value={shortDescription}
+              onChange={setShortDescription}
+              simple
+              placeholder="Brief product summary shown on listing pages..."
+            />
+            <RichTextEditor
+              label="Full Description"
+              value={description}
+              onChange={setDescription}
+              placeholder="Full product description..."
+            />
           </div>
         )}
 
