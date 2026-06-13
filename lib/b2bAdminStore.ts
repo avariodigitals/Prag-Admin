@@ -658,6 +658,7 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
       { id: '/distributor-tier-1', title: 'Become an Authorized Dealer', type: 'tier', visible: true, summary: 'Become an Authorized Dealer', content: 'As a dealer, you\'ll be equipped with the tools, pricing, and support needed to sell confidently and grow your business in a rapidly expanding market.', imageUrl: '', imageAlt: '' },
       { id: '/distributor-tier-2', title: 'Partner as a Certified Installer', type: 'tier', visible: true, summary: 'Partner as a Certified Installer', content: 'As a certified installer, you\'ll handle system setup while we ensure you have access to the right equipment, and ongoing support to execute projects seamlessly.', imageUrl: '', imageAlt: '' },
       { id: '/distributor-tier-3', title: 'Join as a Product Reseller', type: 'tier', visible: true, summary: 'Join as a Product Reseller', content: 'Expand your offerings by reselling PRAG solar solutions to your network. With flexible purchasing options and competitive margins.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-form-header', title: 'Application Form Header', type: 'section-header', visible: true, kicker: 'Application Form', summary: 'Start Your PRAG Partnership', content: 'Fill in the form below and our partnership team will contact you within 2 business days.', imageUrl: '', imageAlt: '' },
     ],
   },
   '/find-a-distributor': {
@@ -1986,6 +1987,7 @@ function mergePageSections(route: string, sections?: B2BPageSection[]): B2BPageS
       { id: '/distributor-tier-1', title: 'Become an Authorized Dealer', type: 'tier', visible: true, summary: 'Become an Authorized Dealer', content: 'As a dealer, you\'ll be equipped with the tools, pricing, and support needed to sell confidently and grow your business in a rapidly expanding market.', imageUrl: '', imageAlt: '' },
       { id: '/distributor-tier-2', title: 'Partner as a Certified Installer', type: 'tier', visible: true, summary: 'Partner as a Certified Installer', content: 'As a certified installer, you\'ll handle system setup while we ensure you have access to the right equipment, and ongoing support to execute projects seamlessly.', imageUrl: '', imageAlt: '' },
       { id: '/distributor-tier-3', title: 'Join as a Product Reseller', type: 'tier', visible: true, summary: 'Join as a Product Reseller', content: 'Expand your offerings by reselling PRAG solar solutions to your network. With flexible purchasing options and competitive margins.', imageUrl: '', imageAlt: '' },
+      { id: '/distributor-form-header', title: 'Application Form Header', type: 'section-header', visible: true, kicker: 'Application Form', summary: 'Start Your PRAG Partnership', content: 'Fill in the form below and our partnership team will contact you within 2 business days.', imageUrl: '', imageAlt: '' },
     ];
 
     if (!Array.isArray(sections) || sections.length === 0) return distributorDefaults;
