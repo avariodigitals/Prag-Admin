@@ -26,6 +26,7 @@ const cards = [
   { key: 'pages', label: 'Pages', href: '/dashboard/b2b/pages' },
   { key: 'livePages', label: 'Published Pages', href: '/dashboard/b2b/pages' },
   { key: 'pendingResponses', label: 'New Enquiries', href: '/dashboard/b2b/enquiries' },
+  { key: 'pendingCareers', label: 'New Job Applications', href: '/dashboard/b2b/careers' },
   { key: 'pendingSupport', label: 'New Support Tickets', href: '/dashboard/b2b/support' },
 ] as const;
 

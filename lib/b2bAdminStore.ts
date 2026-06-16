@@ -2920,5 +2920,6 @@ export function getB2BOverview(store: B2BAdminStore) {
     livePages: store.pages.filter((page) => page.published).length,
     pendingResponses: store.enquiries.filter((record) => record.status === 'new').length,
     pendingSupport: (store.supportSubmissions ?? []).filter((record) => record.status === 'new').length,
+    pendingCareers: store.careerApplications.filter((record) => record.status === 'new').length,
   };
 }
