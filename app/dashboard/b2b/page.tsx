@@ -17,6 +17,7 @@ type TrendPoint = {
 
 const cards = [
   { key: 'enquiries', label: 'Enquiries', href: '/dashboard/b2b/enquiries' },
+  { key: 'supportSubmissions', label: 'Support Tickets', href: '/dashboard/b2b/support' },
   { key: 'distributorApplications', label: 'Distributor Apps', href: '/dashboard/b2b/distributors' },
   { key: 'careerApplications', label: 'Career Apps', href: '/dashboard/b2b/careers' },
   { key: 'installations', label: 'Installations', href: '/dashboard/b2b/installations' },
@@ -25,6 +26,7 @@ const cards = [
   { key: 'pages', label: 'Pages', href: '/dashboard/b2b/pages' },
   { key: 'livePages', label: 'Published Pages', href: '/dashboard/b2b/pages' },
   { key: 'pendingResponses', label: 'New Enquiries', href: '/dashboard/b2b/enquiries' },
+  { key: 'pendingSupport', label: 'New Support Tickets', href: '/dashboard/b2b/support' },
 ] as const;
 
 function parseDate(value?: string) {

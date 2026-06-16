@@ -2,8 +2,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { cookies } from 'next/headers';
 
-export type B2BSubmissionKind = 'contact' | 'distributor' | 'careers';
-export type B2BSectionKey = 'overview' | 'enquiries' | 'distributors' | 'careers' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit';
+export type B2BSubmissionKind = 'contact' | 'distributor' | 'careers' | 'support';
+export type B2BSectionKey = 'overview' | 'enquiries' | 'support' | 'distributors' | 'careers' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit';
 
 export type B2BCaseStudyCategory = 'Residential' | 'Commercial' | 'Industrial';
 
@@ -88,7 +88,7 @@ export interface B2BSolutionsContent {
 export interface B2BSubmissionRecord {
   id: string;
   kind: B2BSubmissionKind;
-  status: 'new' | 'in-review' | 'resolved';
+  status: string;
   name: string;
   email: string;
   phone?: string;
@@ -285,6 +285,7 @@ export interface B2BAdminStore {
   enquiries: B2BSubmissionRecord[];
   distributorApplications: B2BSubmissionRecord[];
   careerApplications: B2BSubmissionRecord[];
+  supportSubmissions: B2BSubmissionRecord[];
   installations: B2BInstallationRecord[];
   caseStudies: B2BCaseStudiesContent;
   solutions: B2BSolutionsContent;
@@ -758,6 +759,7 @@ const ROUTE_PRESETS: Record<string, Partial<B2BPageRecord>> = {
 const DEFAULT_SECTION_VISIBILITY: Record<B2BSectionKey, boolean> = {
   overview: true,
   enquiries: true,
+  support: true,
   distributors: true,
   careers: true,
   installations: true,
@@ -942,6 +944,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
     { formKey: 'free-power-assessment', formName: 'Free Power Assessment', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
     { formKey: 'distributor', formName: 'Distributor Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
     { formKey: 'careers', formName: 'Careers Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
+    { formKey: 'technical-support', formName: 'Technical Support', recipients: ['support@prag.global'], fromEmail: 'support@prag.global', senderName: 'PRAG Support' },
     { formKey: 'installations', formName: 'Installation Request', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
   ],
   access: {
@@ -949,6 +952,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
     shop_manager: {
       overview: true,
       enquiries: true,
+      support: true,
       distributors: true,
       careers: true,
       installations: true,
@@ -1621,6 +1625,7 @@ const DEFAULT_STORE: B2BAdminStore = {
   enquiries: [],
   distributorApplications: [],
   careerApplications: [],
+  supportSubmissions: [],
   installations: [],
   caseStudies: DEFAULT_CASE_STUDIES,
   solutions: DEFAULT_SOLUTIONS,
@@ -2271,6 +2276,7 @@ async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminS
     enquiries: Array.isArray(parsed.enquiries) ? parsed.enquiries : [],
     distributorApplications: Array.isArray(parsed.distributorApplications) ? parsed.distributorApplications : [],
     careerApplications: Array.isArray(parsed.careerApplications) ? parsed.careerApplications : [],
+    supportSubmissions: Array.isArray(parsed.supportSubmissions) ? parsed.supportSubmissions : [],
     installations: Array.isArray(parsed.installations) ? parsed.installations : [],
     caseStudies: normalizeCaseStudiesContent(parsed.caseStudies),
     solutions: normalizeSolutionsContent(parsed.solutions),
@@ -2406,6 +2412,7 @@ async function readFromWordPress(): Promise<B2BAdminStore> {
     enquiries: liveEnquiries ?? source.enquiries,
     distributorApplications: liveDistributors ?? source.distributorApplications,
     careerApplications: source.careerApplications,
+    supportSubmissions: source.supportSubmissions,
   };
 
   return normalizeStore(mergedSource);
@@ -2905,11 +2912,13 @@ export function getB2BOverview(store: B2BAdminStore) {
     enquiries: store.enquiries.length,
     distributorApplications: store.distributorApplications.length,
     careerApplications: store.careerApplications.length,
+    supportSubmissions: (store.supportSubmissions ?? []).length,
     installations: store.installations.length,
     caseStudies: store.caseStudies.studies.filter((study) => study.active).length,
     solutions: store.solutions.categories.reduce((count, category) => count + category.problems.filter((problem) => problem.active).length, 0),
     pages: store.pages.length,
     livePages: store.pages.filter((page) => page.published).length,
     pendingResponses: store.enquiries.filter((record) => record.status === 'new').length,
+    pendingSupport: (store.supportSubmissions ?? []).filter((record) => record.status === 'new').length,
   };
 }

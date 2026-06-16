@@ -23,6 +23,7 @@ type UsersResponse = {
 const B2B_MENU_OPTIONS = [
   { key: 'overview', label: 'Overview' },
   { key: 'enquiries', label: 'Enquiries' },
+  { key: 'support', label: 'Technical Support' },
   { key: 'distributors', label: 'Distributor Apps' },
   { key: 'installations', label: 'Installations' },
   { key: 'case-studies', label: 'Case Studies' },

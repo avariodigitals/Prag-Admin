@@ -243,7 +243,7 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
                           />
                         </label>
                         <label className="flex flex-col gap-2 text-xs text-gray-700 rounded-xl border border-dashed border-gray-300 p-3 bg-gray-50">
-                          <span className="font-medium text-gray-700 inline-flex items-center gap-2"><ImagePlus size={14} /> Upload to WordPress</span>
+                          <span className="font-medium text-gray-700 inline-flex items-center gap-2"><ImagePlus size={14} /> Upload</span>
                           <input
                             type="file"
                             accept="image/*"

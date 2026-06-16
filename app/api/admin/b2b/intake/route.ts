@@ -15,6 +15,8 @@ export async function POST(req: Request) {
     kind = 'distributor';
   } else if (body?.kind === 'careers') {
     kind = 'careers';
+  } else if (body?.kind === 'support') {
+    kind = 'support';
   } else {
     kind = 'contact';
   }
@@ -51,6 +53,12 @@ export async function POST(req: Request) {
         careerApplications: [record, ...current.careerApplications].slice(0, 500),
       };
     }
+    if (kind === 'support') {
+      return {
+        ...current,
+        supportSubmissions: [record, ...(current.supportSubmissions ?? [])].slice(0, 500),
+      };
+    }
 
     return {
       ...current,
@@ -61,7 +69,7 @@ export async function POST(req: Request) {
   await appendB2BAuditLog({
     actor: record.email || 'public-form',
     action: 'create',
-    target: kind === 'distributor' ? 'distributor application' : kind === 'careers' ? 'careers application' : 'contact enquiry',
+    target: kind === 'distributor' ? 'distributor application' : kind === 'careers' ? 'careers application' : kind === 'support' ? 'support ticket' : 'contact enquiry',
     details: `Received via ${record.route}`,
   });
 
@@ -73,6 +81,8 @@ export async function POST(req: Request) {
       formKey = 'distributor';
     } else if (kind === 'careers' || normalizedRoute === '/careers') {
       formKey = 'careers';
+    } else if (kind === 'support' || normalizedRoute === '/technical-support') {
+      formKey = 'technical-support';
     } else if (normalizedRoute === '/free-power-assessment') {
       formKey = 'free-power-assessment';
     } else {

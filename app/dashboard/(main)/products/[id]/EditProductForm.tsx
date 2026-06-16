@@ -543,7 +543,7 @@ export default function EditProductForm({
                   </div>
                   <button type="button" onClick={uploadDocument} disabled={!docFile || uploadingDoc}
                     className="px-4 py-2 bg-sky-700 text-white rounded-lg text-sm font-medium hover:bg-sky-800 disabled:opacity-60">
-                    {uploadingDoc ? 'Uploading...' : 'Upload to WordPress Media'}
+                    {uploadingDoc ? 'Uploading...' : 'Upload'}
                   </button>
                 </div>
 
