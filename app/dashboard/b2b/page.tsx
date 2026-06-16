@@ -17,7 +17,6 @@ type TrendPoint = {
 
 const cards = [
   { key: 'enquiries', label: 'Enquiries', href: '/dashboard/b2b/enquiries' },
-  { key: 'supportSubmissions', label: 'Support Tickets', href: '/dashboard/b2b/support' },
   { key: 'distributorApplications', label: 'Distributor Apps', href: '/dashboard/b2b/distributors' },
   { key: 'careerApplications', label: 'Career Apps', href: '/dashboard/b2b/careers' },
   { key: 'installations', label: 'Installations', href: '/dashboard/b2b/installations' },

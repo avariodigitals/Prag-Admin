@@ -2348,6 +2348,44 @@ function mapWpDistributor(item: Record<string, unknown>): B2BSubmissionRecord {
   };
 }
 
+function mapWpSupport(item: Record<string, unknown>): B2BSubmissionRecord {
+  return {
+    id: String(item.id ?? ''),
+    kind: 'support',
+    status: normalizeWpStatus(item.status),
+    name: String(item.name ?? ''),
+    email: String(item.email ?? ''),
+    phone: String(item.phone ?? ''),
+    company: String(item.company ?? ''),
+    subject: String(item.subject ?? item.type ?? 'Technical Support'),
+    message: String(item.message ?? ''),
+    source: 'public-form',
+    route: String(item.route ?? '/technical-support'),
+    createdAt: toIsoDate(item.date ?? item.createdAt ?? item.created_at ?? item.submitted_at),
+  };
+}
+
+function mapWpCareer(item: Record<string, unknown>): B2BSubmissionRecord {
+  return {
+    id: String(item.id ?? ''),
+    kind: 'careers',
+    status: normalizeWpStatus(item.status),
+    name: String(item.name ?? ''),
+    email: String(item.email ?? ''),
+    phone: String(item.phone ?? ''),
+    company: String(item.position ?? item.company ?? ''),
+    subject: String(item.subject ?? `Position: ${String(item.position ?? '')}`),
+    message: String(item.message ?? ''),
+    source: 'public-form',
+    route: '/careers',
+    location: String(item.location ?? ''),
+    position: String(item.position ?? ''),
+    experience: String(item.experience ?? ''),
+    education: String(item.education ?? ''),
+    createdAt: toIsoDate(item.date ?? item.createdAt ?? item.created_at ?? item.submitted_at),
+  };
+}
+
 async function fetchWpB2BCollection(
   endpoint: string,
   mapper: (item: Record<string, unknown>) => B2BSubmissionRecord,
@@ -2402,17 +2440,19 @@ async function readFromWordPress(): Promise<B2BAdminStore> {
     ? nested as Partial<B2BAdminStore>
     : {};
 
-  const [liveEnquiries, liveDistributors] = await Promise.all([
+  const [liveEnquiries, liveDistributors, liveSupport, liveCareers] = await Promise.all([
     fetchWpB2BCollection('b2b/enquiries', mapWpEnquiry),
     fetchWpB2BCollection('b2b/distributors', mapWpDistributor),
+    fetchWpB2BCollection('b2b/support', mapWpSupport),
+    fetchWpB2BCollection('b2b/careers', mapWpCareer),
   ]);
 
   const mergedSource: Partial<B2BAdminStore> = {
     ...source,
     enquiries: liveEnquiries ?? source.enquiries,
     distributorApplications: liveDistributors ?? source.distributorApplications,
-    careerApplications: source.careerApplications,
-    supportSubmissions: source.supportSubmissions,
+    supportSubmissions: liveSupport ?? source.supportSubmissions,
+    careerApplications: liveCareers ?? source.careerApplications,
   };
 
   return normalizeStore(mergedSource);
