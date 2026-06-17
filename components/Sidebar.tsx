@@ -13,6 +13,7 @@ const NAV = [
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, moduleKey: 'reports' },
   { href: '/dashboard/customers', label: 'Customers', icon: Users, moduleKey: 'customers' },
   { href: '/dashboard/blog', label: 'Blog Posts', icon: FileText, moduleKey: 'blog' },
+  { href: '/dashboard/pages', label: 'Pages', icon: FileText, moduleKey: 'pages' },
   { href: '/dashboard/stores', label: 'Stores', icon: MapPin, moduleKey: 'stores' },
   { href: '/dashboard/settings', label: 'Site Settings', icon: Settings, moduleKey: 'siteSettings' },
 ];
