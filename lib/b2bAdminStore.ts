@@ -2327,7 +2327,7 @@ function mapWpEnquiry(item: Record<string, unknown>): B2BSubmissionRecord {
     subject: String(item.type ?? item.subject ?? ''),
     message: String(item.message ?? ''),
     source: 'public-form',
-    route: '/contact',
+    route: String(item.route ?? '/contact'),
     createdAt: toIsoDate(item.date ?? item.createdAt ?? item.created_at ?? item.submitted_at),
   };
 }
@@ -2449,7 +2449,7 @@ async function readFromWordPress(): Promise<B2BAdminStore> {
 
   const mergedSource: Partial<B2BAdminStore> = {
     ...source,
-    enquiries: liveEnquiries ?? source.enquiries,
+    enquiries: liveEnquiries?.filter((e) => e.route !== '/technical-support' && !e.subject?.toLowerCase().includes('technical support')) ?? source.enquiries,
     distributorApplications: liveDistributors ?? source.distributorApplications,
     supportSubmissions: liveSupport ?? source.supportSubmissions,
     careerApplications: liveCareers ?? source.careerApplications,

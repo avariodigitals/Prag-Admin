@@ -87,7 +87,12 @@ export async function GET(req: NextRequest) {
     const data = await res.json();
     const total = Number(res.headers.get('X-WP-Total') ?? data.length ?? 0);
     if (Array.isArray(data) && data.length > 0) {
-      return NextResponse.json({ data, total });
+      const filtered = data.filter((item: Record<string, unknown>) => {
+        const route = String(item.route || '');
+        const subject = String(item.subject || item.type || '');
+        return route !== '/technical-support' && !subject.toLowerCase().includes('technical support');
+      });
+      return NextResponse.json({ data: filtered, total: Math.max(0, total - (data.length - filtered.length)) });
     }
 
     const local = await getLocalEnquiries({ page: pageNum, search, status });
