@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Search, Trash2, X } from 'lucide-react';
+import { Search, Trash2, X, CheckSquare, Square } from 'lucide-react';
 
 interface Distributor {
   id: number | string;
@@ -122,6 +122,8 @@ export default function DistributorsPage() {
   const [selectedDistributor, setSelectedDistributor] = useState<Distributor | null>(null);
   const [savingAction, setSavingAction] = useState(false);
   const [deletingId, setDeletingId] = useState<number | string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const totalPages = Math.ceil(total / 20);
 
@@ -133,9 +135,24 @@ export default function DistributorsPage() {
     setDistributors(json.data ?? []);
     setTotal(json.total ?? 0);
     setLoading(false);
+    setSelectedIds(new Set()); // Clear selection when data reloads
   }, [page, query, status]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { 
+    let cancelled = false;
+    const controller = new AbortController();
+    
+    (async () => {
+      if (!cancelled) {
+        await load();
+      }
+    })();
+    
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [load]);
 
   function handleSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -151,10 +168,52 @@ export default function DistributorsPage() {
       if (res.ok) {
         setDistributors((current) => current.filter((item) => item.id !== id));
         setTotal((prev) => Math.max(0, prev - 1));
+        setSelectedIds((current) => {
+          const newSet = new Set(current);
+          newSet.delete(id);
+          return newSet;
+        });
       }
     } finally {
       setDeletingId(null);
     }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected distributor applications? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedIds).map(id => 
+        fetch(`/api/b2b/distributors?id=${encodeURIComponent(String(id))}`, { method: 'DELETE' })
+      );
+      await Promise.all(deletePromises);
+      setDistributors((current) => current.filter((item) => !selectedIds.has(item.id)));
+      setTotal((prev) => Math.max(0, prev - selectedIds.size));
+      setSelectedIds(new Set());
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
+  function handleSelectAll() {
+    if (selectedIds.size === distributors.length && distributors.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(distributors.map(d => d.id)));
+    }
+  }
+
+  function handleSelectOne(id: string | number) {
+    setSelectedIds((current) => {
+      const newSet = new Set(current);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   }
 
   return (
@@ -186,11 +245,40 @@ export default function DistributorsPage() {
         </button>
       </form>
 
+      {selectedIds.size > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+          <p className="text-sm text-amber-800">
+            {selectedIds.size} {selectedIds.size === 1 ? 'distributor application' : 'distributor applications'} selected
+          </p>
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkDeleting}
+            className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            {bulkDeleting ? 'Deleting...' : `Delete Selected`}
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-5 py-3 text-left">
+                  <button
+                    onClick={handleSelectAll}
+                    className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700"
+                  >
+                    {selectedIds.size === distributors.length && distributors.length > 0 ? (
+                      <CheckSquare size={16} className="text-amber-600" />
+                    ) : (
+                      <Square size={16} />
+                    )}
+                    Select All
+                  </button>
+                </th>
                 {['Company', 'Contact', 'Email', 'Phone', 'Location', 'Action Taken', 'Date', ''].map((h) => (
                   <th key={h || 'actions'} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                 ))}
@@ -198,12 +286,24 @@ export default function DistributorsPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={8} className="px-6 py-10 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={9} className="px-6 py-10 text-center text-gray-400">Loading...</td></tr>
               ) : distributors.length === 0 ? (
-                <tr><td colSpan={8} className="px-6 py-10 text-center text-gray-400">No distributors found</td></tr>
+                <tr><td colSpan={9} className="px-6 py-10 text-center text-gray-400">No distributors found</td></tr>
               ) : (
                 distributors.map((d) => (
                   <tr key={d.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => handleSelectOne(d.id)}
+                        className="flex items-center justify-center"
+                      >
+                        {selectedIds.has(d.id) ? (
+                          <CheckSquare size={16} className="text-amber-600" />
+                        ) : (
+                          <Square size={16} />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-5 py-4 font-medium text-gray-900">{d.company ?? '—'}</td>
                     <td className="px-5 py-4 text-gray-600">{d.name ?? '—'}</td>
                     <td className="px-5 py-4 text-gray-500">{d.email ?? '—'}</td>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Trash2, X, Users, UserCheck, UserX, Clock } from 'lucide-react';
+import { Search, Trash2, X, Users, UserCheck, UserX, Clock, CheckSquare, Square } from 'lucide-react';
 
 interface Applicant {
   id: string;
@@ -142,6 +142,8 @@ export default function CareersAdminPage() {
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [savingAction, setSavingAction] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [stats, setStats] = useState({ total: 0, new: 0, inReview: 0, shortlisted: 0, contacted: 0, resolved: 0, rejected: 0 });
 
   const totalPages = Math.ceil(total / 20);
@@ -157,6 +159,7 @@ export default function CareersAdminPage() {
         setApplicants(json.data ?? []);
         setTotal(json.total ?? 0);
         setLoading(false);
+        setSelectedIds(new Set()); // Clear selection when data reloads
       }
     }
     fetchData();
@@ -199,10 +202,52 @@ export default function CareersAdminPage() {
       if (res.ok) {
         setApplicants((current) => current.filter((item) => item.id !== id));
         setTotal((prev) => Math.max(0, prev - 1));
+        setSelectedIds((current) => {
+          const newSet = new Set(current);
+          newSet.delete(id);
+          return newSet;
+        });
       }
     } finally {
       setDeletingId(null);
     }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected applicants? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedIds).map(id => 
+        fetch(`/api/b2b/careers?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      );
+      await Promise.all(deletePromises);
+      setApplicants((current) => current.filter((item) => !selectedIds.has(item.id)));
+      setTotal((prev) => Math.max(0, prev - selectedIds.size));
+      setSelectedIds(new Set());
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
+  function handleSelectAll() {
+    if (selectedIds.size === applicants.length && applicants.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(applicants.map(a => a.id)));
+    }
+  }
+
+  function handleSelectOne(id: string) {
+    setSelectedIds((current) => {
+      const newSet = new Set(current);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   }
 
   return (
@@ -255,11 +300,40 @@ export default function CareersAdminPage() {
         </button>
       </form>
 
+      {selectedIds.size > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+          <p className="text-sm text-amber-800">
+            {selectedIds.size} {selectedIds.size === 1 ? 'applicant' : 'applicants'} selected
+          </p>
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkDeleting}
+            className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            {bulkDeleting ? 'Deleting...' : `Delete Selected`}
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-5 py-3 text-left">
+                  <button
+                    onClick={handleSelectAll}
+                    className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700"
+                  >
+                    {selectedIds.size === applicants.length && applicants.length > 0 ? (
+                      <CheckSquare size={16} className="text-amber-600" />
+                    ) : (
+                      <Square size={16} />
+                    )}
+                    Select All
+                  </button>
+                </th>
                 {['Name', 'Position', 'Experience', 'Education', 'Location', 'Status', 'Date', ''].map((h) => (
                   <th key={h || 'actions'} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
@@ -267,12 +341,24 @@ export default function CareersAdminPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={8} className="px-6 py-10 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={9} className="px-6 py-10 text-center text-gray-400">Loading...</td></tr>
               ) : applicants.length === 0 ? (
-                <tr><td colSpan={8} className="px-6 py-10 text-center text-gray-400">No applicants found</td></tr>
+                <tr><td colSpan={9} className="px-6 py-10 text-center text-gray-400">No applicants found</td></tr>
               ) : (
                 applicants.map((a) => (
                   <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => handleSelectOne(a.id)}
+                        className="flex items-center justify-center"
+                      >
+                        {selectedIds.has(a.id) ? (
+                          <CheckSquare size={16} className="text-amber-600" />
+                        ) : (
+                          <Square size={16} />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-5 py-4">
                       <p className="font-medium text-gray-900">{a.name ?? '—'}</p>
                       <p className="text-xs text-gray-400">{a.email ?? ''}</p>

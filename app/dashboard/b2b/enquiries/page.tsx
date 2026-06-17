@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Search, Trash2, X } from 'lucide-react';
+import { Search, Trash2, X, CheckSquare, Square } from 'lucide-react';
 
 interface Enquiry {
   id: string;
@@ -128,6 +128,8 @@ export default function EnquiriesPage() {
   const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null);
   const [savingAction, setSavingAction] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const totalPages = Math.ceil(total / 20);
 
@@ -139,9 +141,24 @@ export default function EnquiriesPage() {
     setEnquiries(json.data ?? []);
     setTotal(json.total ?? 0);
     setLoading(false);
+    setSelectedIds(new Set()); // Clear selection when data reloads
   }, [page, query, status]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { 
+    let cancelled = false;
+    const controller = new AbortController();
+    
+    (async () => {
+      if (!cancelled) {
+        await load();
+      }
+    })();
+    
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [load]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -157,10 +174,52 @@ export default function EnquiriesPage() {
       if (res.ok) {
         setEnquiries((current) => current.filter((item) => item.id !== id));
         setTotal((prev) => Math.max(0, prev - 1));
+        setSelectedIds((current) => {
+          const newSet = new Set(current);
+          newSet.delete(id);
+          return newSet;
+        });
       }
     } finally {
       setDeletingId(null);
     }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected enquiries? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedIds).map(id => 
+        fetch(`/api/b2b/enquiries?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      );
+      await Promise.all(deletePromises);
+      setEnquiries((current) => current.filter((item) => !selectedIds.has(item.id)));
+      setTotal((prev) => Math.max(0, prev - selectedIds.size));
+      setSelectedIds(new Set());
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
+  function handleSelectAll() {
+    if (selectedIds.size === enquiries.length && enquiries.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(enquiries.map(e => e.id)));
+    }
+  }
+
+  function handleSelectOne(id: string) {
+    setSelectedIds((current) => {
+      const newSet = new Set(current);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   }
 
   return (
@@ -192,11 +251,40 @@ export default function EnquiriesPage() {
         </button>
       </form>
 
+      {selectedIds.size > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+          <p className="text-sm text-amber-800">
+            {selectedIds.size} {selectedIds.size === 1 ? 'enquiry' : 'enquiries'} selected
+          </p>
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkDeleting}
+            className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            {bulkDeleting ? 'Deleting...' : `Delete Selected`}
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-5 py-3 text-left">
+                  <button
+                    onClick={handleSelectAll}
+                    className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700"
+                  >
+                    {selectedIds.size === enquiries.length && enquiries.length > 0 ? (
+                      <CheckSquare size={16} className="text-amber-600" />
+                    ) : (
+                      <Square size={16} />
+                    )}
+                    Select All
+                  </button>
+                </th>
                 {['Company', 'Contact', 'Type', 'Action Taken', 'Date', ''].map((h) => (
                   <th key={h || 'actions'} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                 ))}
@@ -204,12 +292,24 @@ export default function EnquiriesPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-6 py-10 text-center text-gray-400">Loading...</td></tr>
               ) : enquiries.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No enquiries found</td></tr>
+                <tr><td colSpan={7} className="px-6 py-10 text-center text-gray-400">No enquiries found</td></tr>
               ) : (
                 enquiries.map((e) => (
                   <tr key={e.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => handleSelectOne(e.id)}
+                        className="flex items-center justify-center"
+                      >
+                        {selectedIds.has(e.id) ? (
+                          <CheckSquare size={16} className="text-amber-600" />
+                        ) : (
+                          <Square size={16} />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-5 py-4 font-medium text-gray-900">{e.company ?? '—'}</td>
                     <td className="px-5 py-4">
                       <p className="text-gray-900">{e.name ?? '—'}</p>
