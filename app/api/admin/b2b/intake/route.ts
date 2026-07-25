@@ -149,6 +149,32 @@ export async function POST(req: Request) {
           attachments: attachments.length > 0 ? attachments : undefined,
         });
 
+        // --- Customer acknowledgment (best-effort) ---
+        if (record.email) {
+          const ackSubjects: Record<string, string> = {
+            contact: 'We received your message – PRAG',
+            distributor: 'We received your PRAG partnership application',
+            careers: 'We received your application – PRAG',
+            support: 'We received your support request – PRAG',
+          };
+          const ackBodies: Record<string, string> = {
+            contact: `Hi ${record.name || 'there'},\r\n\r\nThank you for reaching out. We have received your message and will get back to you shortly.\r\n\r\n-- \r\nPRAG\r\n`,
+            distributor: `Hi ${record.name || 'there'},\r\n\r\nThank you for applying to become a PRAG distributor.\r\nOur partnership team will review your application and contact you within 2 business days.\r\n\r\n-- \r\nPRAG\r\n`,
+            careers: `Hi ${record.name || 'there'},\r\n\r\nThank you for your interest in joining PRAG.\r\nWe have received your application and will review it shortly.\r\n\r\n-- \r\nPRAG\r\n`,
+            support: `Hi ${record.name || 'there'},\r\n\r\nWe have received your technical support request and our team will get back to you shortly.\r\n\r\n-- \r\nPRAG\r\n`,
+          };
+          try {
+            await transporter.sendMail({
+              from: senderName ? `${senderName} <${senderEmail}>` : senderEmail,
+              to: record.email,
+              subject: ackSubjects[kind] || ackSubjects.contact,
+              text: ackBodies[kind] || ackBodies.contact,
+            });
+          } catch {
+            // Best-effort acknowledgment; ignore failures
+          }
+        }
+
         await appendB2BAuditLog({
           actor: record.email || 'public-form',
           action: 'notify',
