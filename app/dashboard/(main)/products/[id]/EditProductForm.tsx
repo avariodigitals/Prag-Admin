@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, CheckCircle2, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Save, CheckCircle2, AlertCircle, Plus, Trash2, Library } from 'lucide-react';
 import Image from 'next/image';
-import RichTextEditor from '@/components/RichTextEditor';
+import MediaPicker from '@/components/MediaPicker';
+
+const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
+import { revalidateProducts } from '@/lib/revalidateFrontend';
 
 const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL || 'https://central.prag.global/wp-json';
 
@@ -15,6 +19,11 @@ const TABS = ['General', 'Description', 'Specifications', 'Images', 'Documents']
 interface Attribute { id: number; name: string; options: string[] }
 interface ProductImage { id: number; src: string; alt: string }
 interface ProductCategory { id: number; name: string; slug: string }
+interface CustomTab {
+  title: string;
+  id: string;
+  content: string;
+}
 interface ProductRecord {
   id: number;
   name?: string;
@@ -77,6 +86,11 @@ export default function EditProductForm({
   const [docStatus, setDocStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [docTitle, setDocTitle] = useState('');
   const [docFile, setDocFile] = useState<File | null>(null);
+  const [customTabs, setCustomTabs] = useState<CustomTab[]>([]);
+  const [customTabsLoading, setCustomTabsLoading] = useState(false);
+  const [customTabsStatus, setCustomTabsStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<'main' | 'gallery'>('gallery');
 
   useEffect(() => {
     async function loadDocs() {
@@ -86,6 +100,17 @@ export default function EditProductForm({
       setDocs(await res.json());
     }
     void loadDocs();
+  }, [product.id]);
+
+  useEffect(() => {
+    async function loadCustomTabs() {
+      if (!product.id) return;
+      const res = await fetch(`/api/products/${product.id}/custom-tabs`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const tabs = await res.json();
+      setCustomTabs(Array.isArray(tabs) && tabs.length > 0 ? tabs : [{ title: 'Specifications', id: 'specifications', content: '' }]);
+    }
+    void loadCustomTabs();
   }, [product.id]);
 
   function addAttribute() {
@@ -104,7 +129,7 @@ export default function EditProductForm({
     setAttributes(prev => prev.map((a, idx) => idx === i ? { ...a, options: val.split(',').map(s => s.trim()) } : a));
   }
 
-  async function uploadImages(files: FileList | null) {
+  async function uploadImages(files: FileList | null, target: 'main' | 'gallery' = 'gallery') {
     if (!files || files.length === 0) return;
     setUploadingImages(true);
 
@@ -129,7 +154,11 @@ export default function EditProductForm({
       uploaded.push({ id: media.id ?? Date.now(), src: media.source_url, alt: name || file.name.replace(/\.[^.]+$/, '') });
     }
 
-    setImages((prev) => [...prev, ...uploaded]);
+    if (target === 'main') {
+      setImages((prev) => [...uploaded, ...prev]);
+    } else {
+      setImages((prev) => [...prev, ...uploaded]);
+    }
     setUploadingImages(false);
   }
 
@@ -238,6 +267,7 @@ export default function EditProductForm({
 
     const created = await createRes.json();
     setDocs((prev) => [created, ...prev]);
+    await revalidateProducts();
     setDocTitle('');
     setDocFile(null);
     setDocStatus('success');
@@ -258,6 +288,29 @@ export default function EditProductForm({
       return;
     }
     setDocs((prev) => prev.filter((d) => d.id !== doc.id));
+    await revalidateProducts();
+  }
+
+  async function saveCustomTabs() {
+    if (!product.id) return;
+    setCustomTabsLoading(true);
+    setCustomTabsStatus('idle');
+    try {
+      const res = await fetch(`/api/products/${product.id}/custom-tabs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customTabs),
+      });
+      setCustomTabsStatus(res.ok ? 'success' : 'error');
+      if (res.ok) {
+        await revalidateProducts();
+        setTimeout(() => setCustomTabsStatus('idle'), 2500);
+      }
+    } catch {
+      setCustomTabsStatus('error');
+    } finally {
+      setCustomTabsLoading(false);
+    }
   }
 
   async function handleSave() {
@@ -276,7 +329,7 @@ export default function EditProductForm({
       dimensions,
       categories: selectedCategories.map((c) => ({ id: c.id })),
       attributes: attributes.map(a => ({ id: a.id, name: a.name, options: a.options, visible: true })),
-      images: images.map(img => ({ src: img.src, alt: img.alt })),
+      images: images.map(img => ({ id: img.id, src: img.src, alt: img.alt })),
     };
 
     const res = await fetch('/api/products', {
@@ -288,6 +341,7 @@ export default function EditProductForm({
     setStatus(res.ok ? 'success' : 'error');
     if (res.ok) {
       const data = await res.json();
+      await revalidateProducts();
       setTimeout(() => {
         setStatus('idle');
         if (isCreateMode && data?.id) {
@@ -422,22 +476,72 @@ export default function EditProductForm({
         {/* ── Specifications ── */}
         {activeTab === 'Specifications' && (
           <div className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <label className={labelCls}>Weight (kg)</label>
-                <input value={weight} onChange={e => setWeight(e.target.value)} className={inputCls} placeholder="0.00" />
+            {/* Custom Tab Content (YIKES Custom Product Tabs) */}
+            <div className="space-y-3 pt-0">
+              <div className="flex items-center justify-between">
+                <label className={labelCls}>Custom Specification Tab (from WordPress)</label>
+                <button type="button" onClick={saveCustomTabs} disabled={customTabsLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors disabled:opacity-60">
+                  <Save size={13} /> {customTabsLoading ? 'Saving...' : 'Save Custom Tab'}
+                </button>
               </div>
-              <div className="space-y-1.5">
-                <label className={labelCls}>Length (cm)</label>
-                <input value={dimensions.length} onChange={e => setDimensions(d => ({ ...d, length: e.target.value }))} className={inputCls} placeholder="0" />
-              </div>
-              <div className="space-y-1.5">
-                <label className={labelCls}>Width (cm)</label>
-                <input value={dimensions.width} onChange={e => setDimensions(d => ({ ...d, width: e.target.value }))} className={inputCls} placeholder="0" />
-              </div>
-              <div className="space-y-1.5">
-                <label className={labelCls}>Height (cm)</label>
-                <input value={dimensions.height} onChange={e => setDimensions(d => ({ ...d, height: e.target.value }))} className={inputCls} placeholder="0" />
+              {customTabsStatus === 'success' && (
+                <div className="p-2.5 rounded-lg border border-green-100 bg-green-50 text-green-700 text-xs">
+                  Custom tab saved successfully.
+                </div>
+              )}
+              {customTabsStatus === 'error' && (
+                <div className="p-2.5 rounded-lg border border-red-100 bg-red-50 text-red-600 text-xs">
+                  Failed to save custom tab. Please try again.
+                </div>
+              )}
+              {customTabs.map((tab, i) => (
+                <div key={i} className="space-y-2 p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <input
+                      value={tab.title}
+                      onChange={e => setCustomTabs(prev => prev.map((t, idx) => idx === i ? { ...t, title: e.target.value } : t))}
+                      className="flex-1 h-9 px-3 rounded-lg border border-gray-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Tab title (e.g. Specifications)"
+                    />
+                    {customTabs.length > 1 && (
+                      <button type="button" onClick={() => setCustomTabs(prev => prev.filter((_, idx) => idx !== i))}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                  <RichTextEditor
+                    value={tab.content}
+                    onChange={html => setCustomTabs(prev => prev.map((t, idx) => idx === i ? { ...t, content: html } : t))}
+                    placeholder="Specification table or content from WordPress..."
+                  />
+                </div>
+              ))}
+              <button type="button" onClick={() => setCustomTabs(prev => [...prev, { title: 'Specifications', id: `specifications-${Date.now()}`, content: '' }])}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
+                <Plus size={13} /> Add Custom Tab
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Weight (kg)</label>
+                  <input value={weight} onChange={e => setWeight(e.target.value)} className={inputCls} placeholder="0.00" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Length (cm)</label>
+                  <input value={dimensions.length} onChange={e => setDimensions(d => ({ ...d, length: e.target.value }))} className={inputCls} placeholder="0" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Width (cm)</label>
+                  <input value={dimensions.width} onChange={e => setDimensions(d => ({ ...d, width: e.target.value }))} className={inputCls} placeholder="0" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Height (cm)</label>
+                  <input value={dimensions.height} onChange={e => setDimensions(d => ({ ...d, height: e.target.value }))} className={inputCls} placeholder="0" />
+                </div>
               </div>
             </div>
 
@@ -480,40 +584,143 @@ export default function EditProductForm({
 
         {/* ── Images ── */}
         {activeTab === 'Images' && (
-          <div className="space-y-5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((img, i) => (
-                <div key={i} className="relative group rounded-xl overflow-hidden border border-gray-200 aspect-square bg-gray-50">
-                  <Image src={img.src} alt={img.alt || 'Product'} fill className="object-contain p-2" sizes="150px" />
-                  {i === 0 && (
+          <div className="space-y-6">
+            {/* Main Image */}
+            <div className="space-y-3">
+              <label className={labelCls}>Main Product Image</label>
+              <p className="text-xs text-gray-400">This is the primary image shown on product listings and search results.</p>
+              {images[0] ? (
+                <div className="flex items-start gap-4">
+                  <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+                    <Image src={images[0].src} alt={images[0].alt || 'Main product'} fill className="object-contain p-2" sizes="128px" unoptimized />
                     <span className="absolute top-1 left-1 bg-sky-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">Main</span>
-                  )}
-                  <button type="button" onClick={() => removeImage(i)}
-                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Trash2 size={11} />
+                    <button type="button" onClick={() => removeImage(0)}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex items-center justify-center px-4 h-10 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                      {uploadingImages ? 'Uploading...' : 'Replace Main Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (event) => {
+                          if (event.target.files?.[0]) {
+                            await uploadImages(event.target.files, 'main');
+                          }
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => { setMediaPickerTarget('main'); setMediaPickerOpen(true); }}
+                      className="inline-flex items-center gap-2 px-4 h-10 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Library size={15} />
+                      Select from Library
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:bg-gray-50 cursor-pointer transition-colors">
+                    {uploadingImages ? 'Uploading...' : 'Upload Main Image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (event) => {
+                        if (event.target.files?.[0]) {
+                          await uploadImages(event.target.files, 'main');
+                        }
+                        event.target.value = '';
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => { setMediaPickerTarget('main'); setMediaPickerOpen(true); }}
+                    className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Library size={15} />
+                    Select from Library
                   </button>
                 </div>
-              ))}
+              )}
             </div>
-            <div className="space-y-1.5 pt-2 border-t border-gray-100">
-              <label className={labelCls}>Upload Product Images</label>
-              <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
-                {uploadingImages ? 'Uploading...' : 'Upload Images'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={async (event) => {
-                    await uploadImages(event.target.files);
-                    event.target.value = '';
-                  }}
-                />
-              </label>
-              <p className="text-xs text-gray-400">First image is used as the main product image.</p>
+
+            {/* Product Gallery */}
+            <div className="space-y-3 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <label className={labelCls}>Product Gallery</label>
+                <span className="text-xs text-gray-400">{Math.max(0, images.length - 1)} image{images.length - 1 === 1 ? '' : 's'}</span>
+              </div>
+              <p className="text-xs text-gray-400">Additional images shown on the product detail page gallery.</p>
+              {images.length > 1 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {images.slice(1).map((img, i) => (
+                    <div key={i} className="relative group rounded-xl overflow-hidden border border-gray-200 aspect-square bg-gray-50">
+                      <Image src={img.src} alt={img.alt || 'Gallery'} fill className="object-contain p-2" sizes="150px" unoptimized />
+                      <button type="button" onClick={() => removeImage(i + 1)}
+                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 border-2 border-dashed border-gray-200 rounded-xl text-center">
+                  <p className="text-sm text-gray-400">No gallery images yet. Upload or select from the library below.</p>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                  {uploadingImages ? 'Uploading...' : 'Upload Gallery Images'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={async (event) => {
+                      await uploadImages(event.target.files, 'gallery');
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => { setMediaPickerTarget('gallery'); setMediaPickerOpen(true); }}
+                  className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Library size={15} />
+                  Select from Library
+                </button>
+              </div>
             </div>
           </div>
         )}
+
+        <MediaPicker
+          open={mediaPickerOpen}
+          onClose={() => setMediaPickerOpen(false)}
+          multiple={mediaPickerTarget === 'gallery'}
+          excludeIds={images.map((img) => img.id)}
+          onSelect={(items) => {
+            const newImages: ProductImage[] = items.map((item) => ({
+              id: item.id,
+              src: item.source_url,
+              alt: item.alt || item.title || name,
+            }));
+            if (mediaPickerTarget === 'main') {
+              setImages((prev) => [...newImages, ...prev]);
+            } else {
+              setImages((prev) => [...prev, ...newImages]);
+            }
+          }}
+        />
 
         {activeTab === 'Documents' && (
           <div className="space-y-5">

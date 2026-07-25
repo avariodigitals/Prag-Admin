@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Save } from 'lucide-react';
+import { revalidateB2BContent } from '@/lib/revalidateFrontend';
 import type { B2BFormRoutingRule } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -30,6 +31,7 @@ export default function B2BFormsRoutingClient({ initialForms }: { initialForms: 
       if (Array.isArray(data?.settings?.forms)) {
         setForms(data.settings.forms as B2BFormRoutingRule[]);
       }
+      await revalidateB2BContent();
     } catch {
       setStatus('error');
     } finally {

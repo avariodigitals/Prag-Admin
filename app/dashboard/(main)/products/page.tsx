@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { getSession, isSuperAdmin } from '@/lib/auth';
-import { getProducts } from '@/lib/api';
+import { getProducts, getProductCategories } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductActions from './ProductActions';
 
-interface Props { searchParams: Promise<{ page?: string; search?: string; status?: string }> }
+interface Props { searchParams: Promise<{ page?: string; search?: string; status?: string; category?: string; orderby?: string; order?: string; stock?: string }> }
 
 const STATUS_BADGE: Record<string, string> = {
   publish: 'bg-green-100 text-green-700',
@@ -15,11 +15,15 @@ const STATUS_BADGE: Record<string, string> = {
   private: 'bg-purple-100 text-purple-700',
 };
 
-function pageHref(page: number, params: { search?: string; status?: string }) {
+function pageHref(page: number, params: { search?: string; status?: string; category?: string; orderby?: string; order?: string; stock?: string }) {
   const qs = new URLSearchParams();
   qs.set('page', String(page));
   if (params.search) qs.set('search', params.search);
   if (params.status) qs.set('status', params.status);
+  if (params.category) qs.set('category', params.category);
+  if (params.orderby) qs.set('orderby', params.orderby);
+  if (params.order) qs.set('order', params.order);
+  if (params.stock) qs.set('stock', params.stock);
   return `?${qs.toString()}`;
 }
 
@@ -27,7 +31,13 @@ export default async function ProductsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const session = await getSession();
   const page = Number(sp.page ?? 1);
-  const { data: products, total } = await getProducts(page, sp.search ?? '', sp.status ?? 'any');
+  const orderby = sp.orderby ?? '';
+  const order = sp.order ?? '';
+  const [productResult, categories] = await Promise.all([
+    getProducts(page, sp.search ?? '', sp.status ?? 'any', sp.category ?? '', orderby, order, sp.stock ?? ''),
+    getProductCategories(),
+  ]);
+  const { data: products, total } = productResult;
   const totalPages = Math.ceil(total / 20);
   const canManageAccess = session ? await isSuperAdmin(session.token) : false;
 
@@ -54,6 +64,34 @@ export default async function ProductsPage({ searchParams }: Props) {
           <option value="draft">Draft</option>
           <option value="pending">Pending</option>
         </select>
+        <select name="category" defaultValue={sp.category ?? ''}
+          className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 w-full md:w-auto">
+          <option value="">All Categories</option>
+          {categories.map((c: { id: number; name: string }) => (
+            <option key={c.id} value={String(c.id)}>{c.name}</option>
+          ))}
+        </select>
+        <select name="stock" defaultValue={sp.stock ?? ''}
+          className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 w-full md:w-auto">
+          <option value="">All Stock</option>
+          <option value="instock">In Stock</option>
+          <option value="outofstock">Out of Stock</option>
+          <option value="onbackorder">On Backorder</option>
+        </select>
+        <select name="orderby" defaultValue={orderby}
+          className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 w-full md:w-auto">
+          <option value="">Sort: Default</option>
+          <option value="price">Price</option>
+          <option value="title">Name</option>
+          <option value="date">Date Created</option>
+          <option value="modified">Date Modified</option>
+          <option value="id">Product ID</option>
+        </select>
+        <select name="order" defaultValue={order || 'desc'}
+          className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 w-full md:w-auto">
+          <option value="desc">Descending</option>
+          <option value="asc">Ascending</option>
+        </select>
         <button type="submit" className="h-10 px-5 bg-sky-700 text-white rounded-xl text-sm font-medium hover:bg-sky-800 transition-colors w-full md:w-auto">Filter</button>
       </form>
 
@@ -73,7 +111,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0 relative">
-                          {p.images?.[0] && <Image src={p.images[0].src} alt={p.name} fill className="object-contain p-1" sizes="40px" />}
+                          {p.images?.[0] && <Image src={p.images[0].src} alt={p.name} fill className="object-contain p-1" sizes="40px" unoptimized />}
                         </div>
                         <div>
                           <p className="font-medium text-gray-900 line-clamp-1 max-w-[200px]">{p.name}</p>

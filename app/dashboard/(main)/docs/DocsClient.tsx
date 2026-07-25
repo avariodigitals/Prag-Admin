@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, Trash2, Save, Pencil, X, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
+import { revalidateProducts } from '@/lib/revalidateFrontend';
 
 const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
 const labelCls = 'text-sm font-semibold text-gray-700';
@@ -50,6 +51,7 @@ export default function DocsClient({ initialDocs }: { initialDocs: Doc[] }) {
       else setDocs(p => p.map(d => d.id === saved.id ? saved : d));
       closeEdit();
       showToast('success', isNew ? 'Document created!' : 'Document updated!');
+      await revalidateProducts();
     } else {
       showToast('error', 'Failed to save document.');
     }
@@ -63,6 +65,7 @@ export default function DocsClient({ initialDocs }: { initialDocs: Doc[] }) {
     if (res.ok) {
       setDocs(p => p.filter(d => d.id !== id));
       showToast('success', 'Document deleted.');
+      await revalidateProducts();
     } else {
       showToast('error', 'Failed to delete.');
     }

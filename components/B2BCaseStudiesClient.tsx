@@ -1,8 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Plus, Save, Trash2, Upload } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Plus, Save, Trash2, Upload, Library } from 'lucide-react';
+import MediaPicker from '@/components/MediaPicker';
 import type { B2BCaseStudiesContent, B2BCaseStudy, B2BCaseStudyCategory, B2BCaseStudyProcessStep } from '@/lib/b2bAdminStore';
+import { revalidateB2BContent } from '@/lib/revalidateFrontend';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
 const areaCls = 'w-full min-h-24 p-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -43,6 +45,13 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
   const [data, setData] = useState<B2BCaseStudiesContent>(initialCaseStudies);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
+
+  function openMediaPicker(callback: (url: string) => void) {
+    mediaPickerCallback.current = callback;
+    setMediaPickerOpen(true);
+  }
 
   const grouped = useMemo(() => (
     CATEGORIES.map((category) => ({
@@ -88,6 +97,7 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
 
       setData(payload.caseStudies || nextCaseStudies);
       setStatus('success');
+      await revalidateB2BContent();
     } catch {
       setStatus('error');
     } finally {
@@ -137,6 +147,7 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
   }
 
   return (
+    <>
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">Section Content</h2>
@@ -344,6 +355,15 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
                       }}
                     />
                   </label>
+                  <button type="button" onClick={() => openMediaPicker((url) => {
+                    setData((prev) => ({
+                      ...prev,
+                      studies: prev.studies.map((s) => s.id === study.id ? { ...s, imageUrl: url } : s),
+                    }));
+                  })}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Library size={15} /> Library
+                  </button>
                 </div>
                 {study.imageUrl && (
                   <div className="md:col-span-2 rounded-xl border border-gray-200 bg-gray-50 p-2">
@@ -431,5 +451,17 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
         </div>
       </div>
     </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(items) => {
+          if (items[0] && mediaPickerCallback.current) {
+            mediaPickerCallback.current(items[0].source_url);
+          }
+        }}
+      />
+    </>
   );
 }

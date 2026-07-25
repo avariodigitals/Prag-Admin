@@ -1,9 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { SiteSettings, SlideItem, CategoryItem } from '@/lib/types';
-import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library } from 'lucide-react';
+import MediaPicker from '@/components/MediaPicker';
+import { revalidateSettings } from '@/lib/revalidateFrontend';
 
 const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
 const labelCls = 'text-sm font-semibold text-gray-700';
@@ -71,6 +73,13 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
   const [activeTab, setActiveTab] = useState('Contact');
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [uploadingField, setUploadingField] = useState<string | null>(null);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
+
+  function openMediaPicker(callback: (url: string) => void) {
+    mediaPickerCallback.current = callback;
+    setMediaPickerOpen(true);
+  }
 
   function setField(field: keyof SiteSettings, value: unknown) {
     setForm(p => ({ ...p, [field]: value }));
@@ -129,9 +138,14 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
     });
     setStatus(res.ok ? 'success' : 'error');
     setTimeout(() => setStatus('idle'), 3000);
+
+    if (res.ok) {
+      await revalidateSettings();
+    }
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       {status === 'success' && (
         <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-100 rounded-xl text-green-700 text-sm">
@@ -228,21 +242,27 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                   className={inputCls}
                   placeholder="https://... or /images/hero-bg.jpg"
                 />
-                <label className="shrink-0 inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors whitespace-nowrap">
-                  {uploadingField === 'hero-bg' ? 'Uploading...' : 'Upload Image'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (event) => {
-                      const file = event.target.files?.[0];
-                      if (!file) return;
-                      const url = await uploadMedia(file, 'hero-bg');
-                      if (url) setField('hero_background', url);
-                      event.target.value = '';
-                    }}
-                  />
-                </label>
+                <div className="shrink-0 flex gap-2">
+                  <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors whitespace-nowrap">
+                    {uploadingField === 'hero-bg' ? 'Uploading...' : 'Upload Image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        const url = await uploadMedia(file, 'hero-bg');
+                        if (url) setField('hero_background', url);
+                        event.target.value = '';
+                      }}
+                    />
+                  </label>
+                  <button type="button" onClick={() => openMediaPicker((url) => setField('hero_background', url))}
+                    className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
+                    <Library size={15} /> Library
+                  </button>
+                </div>
               </div>
               {form.hero_background && (
                 <Image src={form.hero_background} alt="Hero background preview" width={400} height={120} unoptimized
@@ -294,21 +314,27 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className={labelCls}>Product Image</label>
-                  <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
-                    {uploadingField === `slide-${i}` ? 'Uploading...' : 'Upload Image'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (event) => {
-                        const file = event.target.files?.[0];
-                        if (!file) return;
-                        const url = await uploadMedia(file, `slide-${i}`);
-                        if (url) setSlide(i, 'productImage', url);
-                        event.target.value = '';
-                      }}
-                    />
-                  </label>
+                  <div className="flex gap-2">
+                    <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                      {uploadingField === `slide-${i}` ? 'Uploading...' : 'Upload Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (event) => {
+                          const file = event.target.files?.[0];
+                          if (!file) return;
+                          const url = await uploadMedia(file, `slide-${i}`);
+                          if (url) setSlide(i, 'productImage', url);
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+                    <button type="button" onClick={() => openMediaPicker((url) => setSlide(i, 'productImage', url))}
+                      className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                      <Library size={15} /> Library
+                    </button>
+                  </div>
                   {slide.productImage && (
                     <Image src={slide.productImage} alt="preview" width={160} height={80} unoptimized className="h-20 w-auto object-contain rounded-lg border border-gray-100 mt-1" />
                   )}
@@ -348,21 +374,27 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <label className={labelCls}>Product Image</label>
-              <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
-                {uploadingField === 'brand-banner' ? 'Uploading...' : 'Upload Image'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) return;
-                    const url = await uploadMedia(file, 'brand-banner');
-                    if (url) setField('brand_banner_image', url);
-                    event.target.value = '';
-                  }}
-                />
-              </label>
+              <div className="flex gap-2">
+                <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                  {uploadingField === 'brand-banner' ? 'Uploading...' : 'Upload Image'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      const url = await uploadMedia(file, 'brand-banner');
+                      if (url) setField('brand_banner_image', url);
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+                <button type="button" onClick={() => openMediaPicker((url) => setField('brand_banner_image', url))}
+                  className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Library size={15} /> Library
+                </button>
+              </div>
               {form.brand_banner_image && (
                 <Image src={form.brand_banner_image} alt="preview" width={192} height={96} unoptimized className="h-24 w-auto object-contain rounded-lg border border-gray-100 mt-1" />
               )}
@@ -406,21 +438,27 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className={labelCls}>Image</label>
-                  <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
-                    {uploadingField === `category-${i}` ? 'Uploading...' : 'Upload Image'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (event) => {
-                        const file = event.target.files?.[0];
-                        if (!file) return;
-                        const url = await uploadMedia(file, `category-${i}`);
-                        if (url) setCategory(i, 'image', url);
-                        event.target.value = '';
-                      }}
-                    />
-                  </label>
+                  <div className="flex gap-2">
+                    <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                      {uploadingField === `category-${i}` ? 'Uploading...' : 'Upload Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (event) => {
+                          const file = event.target.files?.[0];
+                          if (!file) return;
+                          const url = await uploadMedia(file, `category-${i}`);
+                          if (url) setCategory(i, 'image', url);
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+                    <button type="button" onClick={() => openMediaPicker((url) => setCategory(i, 'image', url))}
+                      className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                      <Library size={15} /> Library
+                    </button>
+                  </div>
                   {cat.image && (
                     <Image src={cat.image} alt="preview" width={128} height={64} unoptimized className="h-16 w-auto object-contain rounded-lg border border-gray-100 mt-1" />
                   )}
@@ -475,5 +513,17 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
         </button>
       </div>
     </form>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(items) => {
+          if (items[0] && mediaPickerCallback.current) {
+            mediaPickerCallback.current(items[0].source_url);
+          }
+        }}
+      />
+    </>
   );
 }

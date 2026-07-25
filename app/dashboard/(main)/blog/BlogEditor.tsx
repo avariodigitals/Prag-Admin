@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle2, Library } from 'lucide-react';
+import MediaPicker from '@/components/MediaPicker';
+import { revalidateBlog } from '@/lib/revalidateFrontend';
 
 interface BlogEditorProps {
   mode: 'create' | 'edit';
@@ -56,6 +58,7 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
 
   const [imageUploading, setImageUploading] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
 
   async function uploadImage(file: File) {
     setImageUploading(true);
@@ -113,6 +116,8 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
     const saved = await res.json();
     setSaveState('success');
 
+    await revalidateBlog();
+
     setTimeout(() => {
       setSaveState('idle');
       if (mode === 'create') {
@@ -124,6 +129,7 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
   }
 
   return (
+    <>
     <div className="space-y-6">
       {saveState === 'success' && (
         <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-100 rounded-xl text-green-700 text-sm"><CheckCircle2 size={16} /> Saved successfully.</div>
@@ -170,10 +176,16 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
         <h2 className="text-base font-semibold text-gray-900">Featured Image</h2>
-        <input type="file" onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void uploadImage(file);
-        }} className="h-11 px-3 rounded-xl border border-gray-200 text-sm" />
+        <div className="flex flex-wrap gap-2">
+          <input type="file" onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void uploadImage(file);
+          }} className="h-11 px-3 rounded-xl border border-gray-200 text-sm" />
+          <button type="button" onClick={() => setMediaPickerOpen(true)}
+            className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            <Library size={15} /> Library
+          </button>
+        </div>
         <p className="text-xs text-gray-500">{imageUploading ? 'Uploading image...' : featuredMedia ? `Media ID: ${featuredMedia}` : 'No image uploaded yet.'}</p>
       </div>
 
@@ -192,5 +204,15 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
         </button>
       </div>
     </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(items) => {
+          if (items[0]) setFeaturedMedia(items[0].id);
+        }}
+      />
+    </>
   );
 }

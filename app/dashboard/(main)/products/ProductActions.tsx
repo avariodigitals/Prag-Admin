@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
+import { revalidateProducts } from '@/lib/revalidateFrontend';
 
 interface Props {
   id: number;
@@ -24,6 +25,7 @@ export default function ProductActions({ id, field, value, label, toggleValue, p
     setLoading(false);
     setConfirming(false);
     if (!res.ok) return;
+    await revalidateProducts();
     router.refresh();
   }
 
@@ -66,6 +68,7 @@ export default function ProductActions({ id, field, value, label, toggleValue, p
     });
     setLoading(false);
     if (!res.ok) return;
+    await revalidateProducts();
     router.refresh();
   }
 

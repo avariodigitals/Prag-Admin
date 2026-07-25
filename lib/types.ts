@@ -18,7 +18,7 @@ export interface WCProduct {
   on_sale: boolean;
   featured: boolean;
   categories: { id: number; name: string; slug: string }[];
-  images: { src: string; alt: string }[];
+  images: { id: number; src: string; alt: string; name?: string }[];
   date_created: string;
   total_sales: number;
 }

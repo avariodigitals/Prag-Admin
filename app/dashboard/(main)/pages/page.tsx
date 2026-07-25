@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Search, FileText, Edit, Save, X, Eye, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Search, FileText, Edit, Save, X, Eye, Plus, Library } from 'lucide-react';
+import MediaPicker from '@/components/MediaPicker';
 
 interface PageContent {
   id: string;
@@ -32,6 +33,13 @@ function PageEditor({ page, onSave, onClose }: { page: PageContent; onSave: (pag
   const [editingPage, setEditingPage] = useState<PageContent>(page);
   const [sections, setSections] = useState<PageSection[]>([]);
   const [saving, setSaving] = useState(false);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
+
+  function openMediaPicker(callback: (url: string) => void) {
+    mediaPickerCallback.current = callback;
+    setMediaPickerOpen(true);
+  }
 
   useEffect(() => {
     // Parse content into sections
@@ -98,6 +106,7 @@ function PageEditor({ page, onSave, onClose }: { page: PageContent; onSave: (pag
   }
 
   return (
+    <>
     <div className="fixed inset-0 z-50 bg-black/40 p-4 md:p-8 flex items-center justify-center">
       <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl border border-gray-200 shadow-2xl">
         {/* Header */}
@@ -243,12 +252,18 @@ function PageEditor({ page, onSave, onClose }: { page: PageContent; onSave: (pag
 
               {section.type === 'image' && (
                 <div className="space-y-2">
-                  <input
-                    value={section.content.url}
-                    onChange={(e) => updateSection(section.id, { ...section.content, url: e.target.value })}
-                    className="w-full p-2 border border-gray-200 rounded-lg"
-                    placeholder="Image URL"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      value={section.content.url}
+                      onChange={(e) => updateSection(section.id, { ...section.content, url: e.target.value })}
+                      className="w-full p-2 border border-gray-200 rounded-lg"
+                      placeholder="Image URL"
+                    />
+                    <button type="button" onClick={() => openMediaPicker((url) => updateSection(section.id, { ...section.content, url }))}
+                      className="inline-flex items-center gap-2 px-3 h-10 shrink-0 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                      <Library size={14} /> Library
+                    </button>
+                  </div>
                   <input
                     value={section.content.alt}
                     onChange={(e) => updateSection(section.id, { ...section.content, alt: e.target.value })}
@@ -338,6 +353,18 @@ function PageEditor({ page, onSave, onClose }: { page: PageContent; onSave: (pag
         </div>
       </div>
     </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(items) => {
+          if (items[0] && mediaPickerCallback.current) {
+            mediaPickerCallback.current(items[0].source_url);
+          }
+        }}
+      />
+    </>
   );
 }
 

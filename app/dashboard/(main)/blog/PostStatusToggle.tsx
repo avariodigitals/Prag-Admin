@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { revalidateBlog } from '@/lib/revalidateFrontend';
 
 export default function PostStatusToggle({ id, currentStatus }: { id: number; currentStatus: string }) {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function PostStatusToggle({ id, currentStatus }: { id: number; cu
       body: JSON.stringify({ id, status: newStatus }),
     });
     setLoading(false);
+    await revalidateBlog();
     router.refresh();
   }
 

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, Plus, Save, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowDown, ArrowUp, Plus, Save, Trash2, Library } from 'lucide-react';
+import MediaPicker from '@/components/MediaPicker';
 import type { B2BSolutionsContent } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -60,6 +61,13 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
   const [catalogCategories, setCatalogCategories] = useState<CatalogCategory[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [productSearch, setProductSearch] = useState('');
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
+
+  function openMediaPicker(callback: (url: string) => void) {
+    mediaPickerCallback.current = callback;
+    setMediaPickerOpen(true);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -162,6 +170,7 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
   if (!category) return null;
 
   return (
+    <>
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 space-y-4">
         <div className="flex items-center justify-between gap-3">
@@ -346,10 +355,19 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
                 </label>
                 <label className="space-y-1 md:col-span-2">
                   <span className="text-sm font-medium text-gray-700">Image URL</span>
-                  <input className={inputCls} value={problem.imageUrl} onChange={(event) => updateCategory((current) => ({
-                    ...current,
-                    problems: current.problems.map((entry, entryIndex) => entryIndex === index ? { ...entry, imageUrl: event.target.value } : entry),
-                  }))} />
+                  <div className="flex gap-2">
+                    <input className={inputCls} value={problem.imageUrl} onChange={(event) => updateCategory((current) => ({
+                      ...current,
+                      problems: current.problems.map((entry, entryIndex) => entryIndex === index ? { ...entry, imageUrl: event.target.value } : entry),
+                    }))} />
+                    <button type="button" onClick={() => openMediaPicker((url) => updateCategory((current) => ({
+                      ...current,
+                      problems: current.problems.map((entry, entryIndex) => entryIndex === index ? { ...entry, imageUrl: url } : entry),
+                    })))}
+                      className="inline-flex items-center gap-2 px-3 h-10 shrink-0 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                      <Library size={14} /> Library
+                    </button>
+                  </div>
                 </label>
                 <label className="space-y-1">
                   <span className="text-sm font-medium text-gray-700">Impact (one per line)</span>
@@ -504,5 +522,17 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
         </div>
       </div>
     </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(items) => {
+          if (items[0] && mediaPickerCallback.current) {
+            mediaPickerCallback.current(items[0].source_url);
+          }
+        }}
+      />
+    </>
   );
 }

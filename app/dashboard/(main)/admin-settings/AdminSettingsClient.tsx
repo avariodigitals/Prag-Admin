@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, AlertCircle, Save, Plus, FileSpreadsheet, FileText, Trash2, Power } from 'lucide-react';
+import { revalidateSettings } from '@/lib/revalidateFrontend';
 
 type Portal = 'b2c' | 'b2b';
 
@@ -228,19 +229,7 @@ export default function AdminSettingsClient() {
       }, 2600);
       if (res.ok) {
         await loadData();
-        // Trigger frontend cache revalidation immediately
-        try {
-          await fetch(
-            `https://prag.global/api/revalidate?secret=${process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret'}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ path: '/' }),
-            }
-          );
-        } catch {
-          // Silently fail if revalidation doesn't work
-        }
+        await revalidateSettings();
       }
     } catch {
       setSaving(false);
@@ -282,19 +271,7 @@ export default function AdminSettingsClient() {
           ...prev,
           ...data.data,
         }));
-        // Trigger frontend cache revalidation immediately
-        try {
-          await fetch(
-            `https://prag.global/api/revalidate?secret=${process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret'}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ path: '/' }),
-            }
-          );
-        } catch {
-          // Silently fail if revalidation doesn't work
-        }
+        await revalidateSettings();
       }
     } catch (err) {
       console.error('Save maintenance failed:', err);

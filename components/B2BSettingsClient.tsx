@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCcw, Save } from 'lucide-react';
+import { revalidateB2BContent } from '@/lib/revalidateFrontend';
 import B2BAccessClient from '@/components/B2BAccessClient';
 import type { B2BAuditRecord, B2BHeaderMenuItem, B2BSettings, B2BSectionKey } from '@/lib/b2bAdminStore';
 
@@ -286,6 +287,7 @@ export default function B2BSettingsClient({
         setStatus(ok ? 'success' : 'error');
         if (ok && data?.settings) {
           setSettings(data.settings as B2BSettings);
+          revalidateB2BContent();
         }
       })
       .catch(() => {

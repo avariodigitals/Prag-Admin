@@ -74,9 +74,17 @@ export async function getDashboardStats() {
 }
 
 // ── Products ───────────────────────────────────────────────
-export async function getProducts(page = 1, search = '', status = 'any') {
-  const qs = new URLSearchParams({ per_page: '20', page: String(page), ...(search && { search }), ...(status !== 'any' && { status }) });
+export async function getProducts(page = 1, search = '', status = 'any', category = '', orderby = '', order = '', stockStatus = '') {
+  const qs = new URLSearchParams({ per_page: '20', page: String(page), ...(search && { search }), ...(status !== 'any' && { status }), ...(category && { category }), ...(orderby && { orderby }), ...(order && { order }), ...(stockStatus && { stock_status: stockStatus }) });
   return wcFetchWithTotal<WCProduct>(`/products?${qs}`, { cache: 'no-store' });
+}
+
+export async function getProductCategories() {
+  try {
+    const res = await fetchWithTimeout(`${wcBase()}/products/categories?per_page=100&orderby=name&order=asc&${auth()}`, { next: { revalidate: 300 } }, 1);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
 }
 
 export async function updateProduct(id: number, data: Partial<WCProduct>) {
@@ -98,10 +106,6 @@ export async function createProduct(data: Record<string, unknown>) {
   });
   if (!res.ok) return null;
   return await res.json();
-}
-
-export async function getProductCategories() {
-  return wcFetch<{ id: number; name: string; slug: string }[]>('/products/categories?per_page=100', []);
 }
 
 export async function createProductCategory(data: { name: string; slug?: string }) {

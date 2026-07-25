@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
-import { Plus, Trash2, Save, Pencil, X, CheckCircle2, AlertCircle, Database } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Plus, Trash2, Save, Pencil, X, CheckCircle2, AlertCircle, Database, Library } from 'lucide-react';
+import MediaPicker from '@/components/MediaPicker';
+import { revalidateStores } from '@/lib/revalidateFrontend';
 
 const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
 const labelCls = 'text-sm font-semibold text-gray-700';
@@ -40,6 +42,13 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
+
+  function openMediaPicker(callback: (url: string) => void) {
+    mediaPickerCallback.current = callback;
+    setMediaPickerOpen(true);
+  }
 
   function showToast(type: 'success' | 'error', msg: string) {
     setToast({ type, msg });
@@ -92,6 +101,7 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
       else setStores(p => p.map(s => s.id === saved.id ? saved : s));
       closeEdit();
       showToast('success', isNew ? 'Store created!' : 'Store updated!');
+      await revalidateStores();
     } else {
       showToast('error', 'Failed to save store.');
     }
@@ -105,6 +115,7 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
     if (res.ok) {
       setStores(p => p.filter(s => s.id !== id));
       showToast('success', 'Store deleted.');
+      await revalidateStores();
     } else {
       showToast('error', 'Failed to delete store.');
     }
@@ -123,6 +134,7 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
     const payload = await res.json() as { stores?: Store[]; created?: number };
     if (payload.stores) setStores(payload.stores);
     showToast('success', payload.created ? `Imported ${payload.created} existing stores.` : 'Existing stores already synced.');
+    await revalidateStores();
   }
 
   const storesByType = SECTION_ORDER.reduce<Record<StoreType, Store[]>>((acc, type) => {
@@ -133,6 +145,7 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
   const showLocationFields = editing?.store_type === 'prag';
 
   return (
+    <>
     <div className="space-y-4">
       {toast && (
         <div className={`flex items-center gap-2 p-3 rounded-xl text-sm border ${toast.type === 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-600'}`}>
@@ -218,6 +231,10 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
                     }}
                   />
                 </label>
+                <button type="button" onClick={() => openMediaPicker((url) => updateEditing('logo_url', url))}
+                  className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Library size={15} /> Library
+                </button>
               </div>
             </div>
             <div className="space-y-1.5 md:col-span-2">
@@ -299,5 +316,17 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
         ))}
       </div>
     </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(items) => {
+          if (items[0] && mediaPickerCallback.current) {
+            mediaPickerCallback.current(items[0].source_url);
+          }
+        }}
+      />
+    </>
   );
 }

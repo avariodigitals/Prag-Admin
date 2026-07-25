@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ExternalLink, ImagePlus, Save } from 'lucide-react';
+import { ExternalLink, ImagePlus, Library, Save } from 'lucide-react';
+import MediaPicker from '@/components/MediaPicker';
 import type { B2BPageRecord } from '@/lib/b2bAdminStore';
+import { revalidateB2BContent } from '@/lib/revalidateFrontend';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
 const areaCls = 'w-full min-h-20 p-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -15,6 +17,13 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadingKey, setUploadingKey] = useState('');
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
+
+  function openMediaPicker(callback: (url: string) => void) {
+    mediaPickerCallback.current = callback;
+    setMediaPickerOpen(true);
+  }
   const selectedPage = pages.find((page) => page.route === selectedRoute) ?? null;
 
   if (!selectedPage) {
@@ -54,6 +63,7 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
       if (Array.isArray(data?.pages)) {
         setPages(data.pages as B2BPageRecord[]);
       }
+      await revalidateB2BContent();
     } catch {
       setStatus('error');
     } finally {
@@ -61,8 +71,8 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
     }
   }
 
-  async function handleImageUpload(route: string, sectionIndex: number, file: File) {
-    const uploadKey = `${route}-${sectionIndex}`;
+  async function handleImageUpload(route: string, sectionIndex: number, file: File, field: 'imageUrl' | 'mobileImageUrl' = 'imageUrl') {
+    const uploadKey = `${route}-${sectionIndex}-${field}`;
     setUploadingKey(uploadKey);
     const formData = new FormData();
     formData.append('file', file);
@@ -78,21 +88,19 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
       }
 
       let nextPagesSnapshot: B2BPageRecord[] | null = null;
-      setPages((currentPages) => {
-        const nextPages = currentPages.map((page) => {
-          if (page.route !== route) return page;
-          return {
-            ...page,
-            sections: page.sections.map((section, currentIndex) => (
-              currentIndex === sectionIndex
-                ? { ...section, imageUrl: data.url, imageAlt: data.alt ?? section.title }
-                : section
-            )),
-          };
-        });
-        nextPagesSnapshot = nextPages;
-        return nextPages;
+      const nextPages = pages.map((page) => {
+        if (page.route !== route) return page;
+        return {
+          ...page,
+          sections: page.sections.map((section, currentIndex) => (
+            currentIndex === sectionIndex
+              ? { ...section, [field]: data.url, imageAlt: data.alt ?? section.title }
+              : section
+          )),
+        };
       });
+      nextPagesSnapshot = nextPages;
+      setPages(nextPages);
 
       if (nextPagesSnapshot) {
         await persistPages(nextPagesSnapshot);
@@ -109,6 +117,7 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
   }
 
   return (
+    <>
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="px-4 md:px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -247,7 +256,7 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
                           <input
                             type="file"
                             accept="image/*"
-                            disabled={uploadingKey === `${selectedPage.route}-${index}`}
+                            disabled={uploadingKey === `${selectedPage.route}-${index}-imageUrl`}
                             onChange={(event) => {
                               const file = event.target.files?.[0];
                               if (file) {
@@ -255,8 +264,69 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
                               }
                             }}
                           />
-                          {uploadingKey === `${selectedPage.route}-${index}` && <span className="text-sky-600">Uploading...</span>}
+                          {uploadingKey === `${selectedPage.route}-${index}-imageUrl` && <span className="text-sky-600">Uploading...</span>}
                         </label>
+                        <button type="button" onClick={() => openMediaPicker((url) => {
+                          updatePage(selectedPage.route, (current) => ({
+                            ...current,
+                            sections: current.sections.map((item, itemIndex) => itemIndex === index ? { ...item, imageUrl: url } : item),
+                          }));
+                          void persistPages(pages.map((page) => page.route === selectedPage.route ? { ...page, sections: page.sections.map((item, itemIndex) => itemIndex === index ? { ...item, imageUrl: url } : item) } : page));
+                        })}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                          <Library size={14} /> Library
+                        </button>
+                        {section.type === 'hero' && (
+                          <div className="space-y-2 pt-2 border-t border-gray-100">
+                            <span className="text-xs font-semibold text-gray-700">Mobile Image (Portrait)</span>
+                            {section.mobileImageUrl && (
+                              <div className="relative h-32 w-full max-w-[180px] rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                                <Image
+                                  src={section.mobileImageUrl}
+                                  alt="Mobile preview"
+                                  fill
+                                  className="object-cover"
+                                  sizes="180px"
+                                  unoptimized
+                                />
+                              </div>
+                            )}
+                            <input
+                              className={inputCls}
+                              value={section.mobileImageUrl ?? ''}
+                              placeholder="Mobile image URL (optional)"
+                              onChange={(event) => updatePage(selectedPage.route, (current) => ({
+                                ...current,
+                                sections: current.sections.map((item, itemIndex) => itemIndex === index ? { ...item, mobileImageUrl: event.target.value } : item),
+                              }))}
+                            />
+                            <label className="flex flex-col gap-2 text-xs text-gray-700 rounded-xl border border-dashed border-gray-300 p-3 bg-gray-50">
+                              <span className="font-medium text-gray-700 inline-flex items-center gap-2"><ImagePlus size={14} /> Upload Mobile Image</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                disabled={uploadingKey === `${selectedPage.route}-${index}-mobileImageUrl`}
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0];
+                                  if (file) {
+                                    void handleImageUpload(selectedPage.route, index, file, 'mobileImageUrl');
+                                  }
+                                }}
+                              />
+                              {uploadingKey === `${selectedPage.route}-${index}-mobileImageUrl` && <span className="text-sky-600">Uploading...</span>}
+                            </label>
+                            <button type="button" onClick={() => openMediaPicker((url) => {
+                              updatePage(selectedPage.route, (current) => ({
+                                ...current,
+                                sections: current.sections.map((item, itemIndex) => itemIndex === index ? { ...item, mobileImageUrl: url } : item),
+                              }));
+                              void persistPages(pages.map((page) => page.route === selectedPage.route ? { ...page, sections: page.sections.map((item, itemIndex) => itemIndex === index ? { ...item, mobileImageUrl: url } : item) } : page));
+                            })}
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                              <Library size={14} /> Library
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -371,6 +441,18 @@ export default function B2BPagesClient({ initialPages, selectedRoute }: { initia
         </div>
       </div>
     </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(items) => {
+          if (items[0] && mediaPickerCallback.current) {
+            mediaPickerCallback.current(items[0].source_url);
+          }
+        }}
+      />
+    </>
   );
 }
 

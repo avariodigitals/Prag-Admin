@@ -130,6 +130,7 @@ export interface B2BPageSection {
   secondaryCtaHref?: string;
   imageUrl?: string;
   imageAlt?: string;
+  mobileImageUrl?: string;
 }
 
 export interface B2BPageRecord {
@@ -2095,6 +2096,7 @@ function mergePageRecord(route: string, record?: Partial<B2BPageRecord>): B2BPag
         secondaryCtaHref: sectionSecondaryCtaHref || (sectionSecondaryCtaLabel ? '/contact' : ''),
         imageUrl: sectionImageUrl,
         imageAlt: String(section.imageAlt ?? '').trim() || (sectionImageUrl ? sectionTitle : ''),
+        mobileImageUrl: String(section.mobileImageUrl ?? '').trim(),
       };
     }),
   };
@@ -2188,6 +2190,7 @@ function mergeSeededPageRecord(seed: B2BPageRecord, stored?: Partial<B2BPageReco
         secondaryCtaHref: preferSeededValue(current.secondaryCtaHref, placeholder?.secondaryCtaHref, section.secondaryCtaHref),
         imageUrl: preferSeededValue(current.imageUrl, placeholder?.imageUrl, section.imageUrl),
         imageAlt: preferSeededValue(current.imageAlt, placeholder?.imageAlt, section.imageAlt),
+        mobileImageUrl: current.mobileImageUrl ?? section.mobileImageUrl ?? '',
       };
     }),
   });

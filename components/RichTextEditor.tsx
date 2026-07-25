@@ -39,23 +39,25 @@ export default function RichTextEditor({ value, onChange, label, simple = false,
 
   return (
     <div className="space-y-1.5">
-      {label && (
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
+        {label ? (
           <label className="text-sm font-semibold text-gray-700">{label}</label>
-          <button
-            type="button"
-            onClick={() => setSourceMode((s) => !s)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-              sourceMode
-                ? 'bg-sky-100 text-sky-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <Code size={13} />
-            {sourceMode ? 'Visual' : 'Source'}
-          </button>
-        </div>
-      )}
+        ) : (
+          <span />
+        )}
+        <button
+          type="button"
+          onClick={() => setSourceMode((s) => !s)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+            sourceMode
+              ? 'bg-sky-100 text-sky-700'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <Code size={13} />
+          {sourceMode ? 'Visual' : 'Source'}
+        </button>
+      </div>
 
       {sourceMode ? (
         <textarea
