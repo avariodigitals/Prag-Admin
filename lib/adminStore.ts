@@ -47,7 +47,7 @@ export interface TrackingConfig {
 }
 
 export interface SmtpConfig {
-  provider: 'microsoft365';
+  provider: 'brevo' | 'microsoft365';
   useWordPressMailer: boolean;
   host: string;
   port: number;
@@ -160,15 +160,15 @@ const DEFAULT_STORE: AdminConfigStore = {
     customFooterScripts: '',
   },
   smtp: {
-    provider: 'microsoft365',
+    provider: 'brevo',
     useWordPressMailer: false,
-    host: 'smtp.office365.com',
+    host: 'smtp-relay.brevo.com',
     port: 587,
     secure: false,
     username: '',
     password: '',
-    fromEmail: '',
-    fromName: 'PRAG Store',
+    fromEmail: 'notifications@prag.global',
+    fromName: 'PRAG',
   },
   forms: [
     {

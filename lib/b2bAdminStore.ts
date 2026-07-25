@@ -238,7 +238,7 @@ export interface B2BLaunchConfig {
 }
 
 export interface B2BSmtpConfig {
-  provider: 'microsoft365';
+  provider: 'brevo' | 'microsoft365';
   useWordPressMailer: boolean;
   host: string;
   port: number;
@@ -930,15 +930,15 @@ const DEFAULT_SETTINGS: B2BSettings = {
     footer: '',
   },
   smtp: {
-    provider: 'microsoft365',
-    useWordPressMailer: true,
-    host: 'smtp.office365.com',
+    provider: 'brevo',
+    useWordPressMailer: false,
+    host: 'smtp-relay.brevo.com',
     port: 587,
     secure: false,
     username: '',
     password: '',
-    fromEmail: 'sales@prag.global',
-    fromName: 'PRAG B2B',
+    fromEmail: 'notifications@prag.global',
+    fromName: 'PRAG',
   },
   forms: [
     { formKey: 'contact', formName: 'Contact Form', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },

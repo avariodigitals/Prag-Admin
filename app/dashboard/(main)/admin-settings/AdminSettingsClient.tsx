@@ -52,7 +52,7 @@ type SettingsPayload = {
     customFooterScripts: string;
   };
   smtp: {
-    provider: 'microsoft365';
+    provider: 'brevo' | 'microsoft365';
     useWordPressMailer: boolean;
     host: string;
     port: number;
@@ -144,7 +144,7 @@ export default function AdminSettingsClient() {
       { key: 'access', label: 'Backend Access' },
       { key: 'launch', label: 'Launch Control' },
       { key: 'tracking', label: 'Ecommerce Scripts' },
-      { key: 'smtp', label: 'SMTP (Microsoft 365)' },
+      { key: 'smtp', label: 'SMTP (Brevo)' },
       { key: 'forms', label: 'Forms Routing' },
       { key: 'audit', label: 'Audit Trail' },
     ],
@@ -923,7 +923,7 @@ export default function AdminSettingsClient() {
 
         {activeTab === 'smtp' && (
           <div className="space-y-4">
-            <h2 className="text-base font-semibold text-gray-900">Microsoft 365 SMTP</h2>
+            <h2 className="text-base font-semibold text-gray-900">Brevo SMTP</h2>
             <label className="flex items-start gap-3 p-3 border border-sky-100 rounded-xl bg-sky-50/40">
               <input
                 type="checkbox"
@@ -934,17 +934,17 @@ export default function AdminSettingsClient() {
               <span className="text-sm text-sky-900">
                 <span className="font-semibold">Send all emails using WordPress</span>
                 <span className="block text-xs text-sky-800/80 mt-1">
-                  When enabled, WordPress handles order confirmations and all other email delivery. SMTP fields below are bypassed.
+                  When enabled, WordPress handles order confirmations and all other email delivery. Brevo SMTP fields below are bypassed.
                 </span>
               </span>
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.host} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, host: e.target.value } } : p)} placeholder="smtp.office365.com" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.host} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, host: e.target.value } } : p)} placeholder="smtp-relay.brevo.com" />
               <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.port} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, port: Number(e.target.value) || 587 } } : p)} placeholder="587" />
-              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.username} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, username: e.target.value } } : p)} placeholder="SMTP Username" />
-              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} type="password" value={settings.smtp.password} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, password: e.target.value } } : p)} placeholder="SMTP Password" />
-              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.fromEmail} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromEmail: e.target.value } } : p)} placeholder="From Email" />
-              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.fromName} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromName: e.target.value } } : p)} placeholder="Sender Name" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.username} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, username: e.target.value } } : p)} placeholder="Brevo SMTP Login (e.g. xxx@brevo.com)" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} type="password" value={settings.smtp.password} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, password: e.target.value } } : p)} placeholder="Brevo SMTP Key (master password)" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.fromEmail} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromEmail: e.target.value } } : p)} placeholder="From Email (e.g. notifications@prag.global)" />
+              <input disabled={settings.smtp.useWordPressMailer} className={inputCls} value={settings.smtp.fromName} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, fromName: e.target.value } } : p)} placeholder="Sender Name (e.g. PRAG)" />
             </div>
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input disabled={settings.smtp.useWordPressMailer} type="checkbox" checked={settings.smtp.secure} onChange={(e) => setSettings((p) => p ? { ...p, smtp: { ...p.smtp, secure: e.target.checked } } : p)} /> Use secure TLS
@@ -954,7 +954,7 @@ export default function AdminSettingsClient() {
                 <h3 className="text-sm font-semibold text-gray-900">Test Email Deliverability</h3>
                 <p className="text-xs text-gray-500 mt-1">
                   {settings.smtp.useWordPressMailer
-                    ? 'WordPress mailer override is enabled. SMTP test is bypassed.'
+                    ? 'WordPress mailer override is enabled. Brevo SMTP test is bypassed.'
                     : 'Save the SMTP settings first, then send a test message to confirm delivery.'}
                 </p>
               </div>
