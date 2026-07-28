@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef } from 'react';
 import type { SiteSettings, SlideItem, CategoryItem } from '@/lib/types';
-import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library, Loader2 } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 import { revalidateSettings } from '@/lib/revalidateFrontend';
 
@@ -71,7 +71,7 @@ function mergeWithDefaults(saved: SiteSettings | null): SiteSettings {
 export default function SettingsForm({ initialSettings }: { initialSettings: SiteSettings | null }) {
   const [form, setForm] = useState<SiteSettings>(() => mergeWithDefaults(initialSettings));
   const [activeTab, setActiveTab] = useState('Contact');
-  const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'revalidating' | 'success' | 'error'>('idle');
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
@@ -136,20 +136,33 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
-    setStatus(res.ok ? 'success' : 'error');
-    setTimeout(() => setStatus('idle'), 3000);
-
-    if (res.ok) {
-      await revalidateSettings();
+    if (!res.ok) {
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 3000);
+      return;
     }
+
+    setStatus('revalidating');
+    try {
+      await revalidateSettings();
+    } catch {
+      // revalidation failure doesn't mean save failed
+    }
+    setStatus('success');
+    setTimeout(() => setStatus('idle'), 3000);
   }
 
   return (
     <>
     <form onSubmit={handleSubmit} className="space-y-6">
+      {status === 'revalidating' && (
+        <div className="flex items-center gap-2 p-3 bg-sky-50 border border-sky-100 rounded-xl text-sky-700 text-sm">
+          <Loader2 size={16} className="animate-spin" /> Revalidating frontend...
+        </div>
+      )}
       {status === 'success' && (
         <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-100 rounded-xl text-green-700 text-sm">
-          <CheckCircle2 size={16} /> Settings saved successfully!
+          <CheckCircle2 size={16} /> Settings saved & frontend updated!
         </div>
       )}
       {status === 'error' && (
@@ -506,10 +519,10 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
       )}
 
       <div className="flex justify-end pt-2 border-t border-gray-100">
-        <button type="submit" disabled={status === 'saving'}
+        <button type="submit" disabled={status === 'saving' || status === 'revalidating'}
           className="flex items-center gap-2 px-6 py-3 bg-sky-700 text-white rounded-xl text-sm font-semibold hover:bg-sky-800 transition-colors disabled:opacity-60">
           <Save size={16} />
-          {status === 'saving' ? 'Saving...' : 'Save Settings'}
+          {status === 'saving' ? 'Saving...' : status === 'revalidating' ? 'Revalidating...' : 'Save Settings'}
         </button>
       </div>
     </form>

@@ -58,7 +58,10 @@ export async function revalidateFrontend(options: RevalidateOptions = {}) {
 
   await Promise.allSettled(
     targets.map((base) =>
-      fetch(`${base}/api/revalidate?secret=${secret}`, fetchOpts).catch(() => {})
+      fetch(`${base}/api/revalidate?secret=${secret}`, {
+        ...fetchOpts,
+        signal: AbortSignal.timeout(10_000),
+      }).catch(() => {})
     )
   );
 }
