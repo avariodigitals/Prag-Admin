@@ -2494,12 +2494,12 @@ async function writeToWordPress(data: B2BAdminStore): Promise<void> {
 
 export async function readB2BAdminStore(): Promise<B2BAdminStore> {
   try {
-    if (process.env.VERCEL) {
+    if (process.env.NODE_ENV === 'production') {
       return await readFromWordPress();
     }
     return await readFromFile();
   } catch (error) {
-    if (process.env.VERCEL) {
+    if (process.env.NODE_ENV === 'production') {
       throw error;
     }
     return normalizeStore(DEFAULT_STORE);
@@ -2507,7 +2507,7 @@ export async function readB2BAdminStore(): Promise<B2BAdminStore> {
 }
 
 export async function writeB2BAdminStore(next: B2BAdminStore): Promise<void> {
-  if (process.env.VERCEL) {
+  if (process.env.NODE_ENV === 'production') {
     await writeToWordPress(next);
   } else {
     await writeToFile(next);
@@ -2709,7 +2709,7 @@ function mergeMissingDefaultFooterColumns(settings: B2BSettings): { settings: B2
 }
 
 async function readRawStoreForStructureSync(): Promise<Partial<B2BAdminStore>> {
-  if (process.env.VERCEL) {
+  if (process.env.NODE_ENV === 'production') {
     try {
       const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
         headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
@@ -2870,7 +2870,7 @@ export async function appendB2BAuditLog(record: Omit<B2BAuditRecord, 'id' | 'at'
 }
 
 export async function runB2BAdminHealthCheck(): Promise<B2BAdminHealthCheck> {
-  const storageMode: 'wordpress' | 'file' = process.env.VERCEL ? 'wordpress' : 'file';
+  const storageMode: 'wordpress' | 'file' = process.env.NODE_ENV === 'production' ? 'wordpress' : 'file';
   const env = {
     hasWpApiUrl: Boolean(WP_API_URL),
     hasWpAppUser: Boolean(WP_APP_USER),

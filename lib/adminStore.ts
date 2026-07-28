@@ -291,7 +291,7 @@ async function writeToFile(data: AdminConfigStore): Promise<void> {
 
 export async function readAdminStore(): Promise<AdminConfigStore> {
   try {
-    if (process.env.VERCEL) {
+    if (process.env.NODE_ENV === 'production') {
       return await readFromWordPress();
     }
     return await readFromFile();
@@ -301,7 +301,7 @@ export async function readAdminStore(): Promise<AdminConfigStore> {
 }
 
 export async function writeAdminStore(next: AdminConfigStore): Promise<void> {
-  if (process.env.VERCEL) {
+  if (process.env.NODE_ENV === 'production') {
     await writeToWordPress(next);
   } else {
     await writeToFile(next);
