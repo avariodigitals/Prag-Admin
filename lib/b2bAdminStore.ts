@@ -176,6 +176,7 @@ export interface B2BSiteContact {
 export interface B2BHeaderMenuItem {
   label: string;
   href: string;
+  image?: string;
   children?: B2BHeaderMenuItem[];
 }
 
@@ -1721,10 +1722,13 @@ function normalizeHeaderMenuItems(value: unknown): B2BHeaderMenuItem[] {
   for (const raw of value) {
     const label = String((raw as { label?: unknown })?.label ?? '').trim();
     const href = String((raw as { href?: unknown })?.href ?? '').trim();
+    const image = String((raw as { image?: unknown })?.image ?? '').trim();
     if (!label || !href) continue;
 
     const children = normalizeHeaderMenuItems((raw as { children?: unknown })?.children);
-    normalized.push(children.length > 0 ? { label, href, children } : { label, href });
+    const item: B2BHeaderMenuItem = children.length > 0 ? { label, href, children } : { label, href };
+    if (image) item.image = image;
+    normalized.push(item);
   }
 
   return normalized;

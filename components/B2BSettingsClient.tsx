@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { RefreshCcw, Save } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Library, RefreshCcw, Save } from 'lucide-react';
 import { revalidateB2BContent } from '@/lib/revalidateFrontend';
 import B2BAccessClient from '@/components/B2BAccessClient';
+import MediaPicker from '@/components/MediaPicker';
 import type { B2BAuditRecord, B2BHeaderMenuItem, B2BSettings, B2BSectionKey } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -30,8 +31,10 @@ function normalizeHeaderMenuItems(items: B2BHeaderMenuItem[] | undefined): B2BHe
     .map((item) => {
       const label = String(item?.label ?? '').trim();
       const href = String(item?.href ?? '').trim();
+      const image = String(item?.image ?? '').trim();
       const children = normalizeHeaderMenuItems(item?.children);
       const normalized: B2BHeaderMenuItem = { label, href };
+      if (image) normalized.image = image;
       if (children.length > 0) normalized.children = children;
       return normalized;
     })
@@ -92,9 +95,20 @@ function HeaderMenuEditor({
   onChange: (next: B2BHeaderMenuItem[]) => void;
 }) {
   const normalized = normalizeHeaderMenuItems(items);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
 
-  function updateAtPath(path: number[], key: 'label' | 'href', value: string) {
-    const next = updateMenuItemAtPath(normalized, path, (item) => ({ ...item, [key]: value }));
+  function openMediaPicker(callback: (url: string) => void) {
+    mediaPickerCallback.current = callback;
+    setMediaPickerOpen(true);
+  }
+
+  function updateAtPath(path: number[], key: 'label' | 'href' | 'image', value: string) {
+    const next = updateMenuItemAtPath(normalized, path, (item) => {
+      const updated = { ...item, [key]: value };
+      if (key === 'image' && !value) delete updated.image;
+      return updated;
+    });
     onChange(normalizeHeaderMenuItems(next));
   }
 
@@ -150,6 +164,27 @@ function HeaderMenuEditor({
               Remove
             </button>
           </div>
+          {level === 0 && (
+            <div className="flex items-center gap-2">
+              <label className="flex-1 space-y-1">
+                <span className="text-xs text-gray-500">Image URL (optional)</span>
+                <input
+                  className={inputCls}
+                  value={item.image ?? ''}
+                  onChange={(event) => updateAtPath(path, 'image', event.target.value)}
+                  placeholder="https://central.prag.global/wp-content/uploads/..."
+                />
+              </label>
+              <button
+                type="button"
+                className="h-10 px-3 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-1"
+                onClick={() => openMediaPicker((url) => updateAtPath(path, 'image', url))}
+              >
+                <Library size={14} />
+                Pick
+              </button>
+            </div>
+          )}
 
           {hasChildren ? (
             <div className="ml-2 border-l border-gray-200 pl-3 space-y-2">
@@ -179,6 +214,17 @@ function HeaderMenuEditor({
           <p className="text-sm text-gray-500">No menu items yet.</p>
         )}
       </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        multiple={false}
+        onSelect={(selectedItems) => {
+          if (selectedItems[0] && mediaPickerCallback.current) {
+            mediaPickerCallback.current(selectedItems[0].source_url);
+          }
+        }}
+      />
     </div>
   );
 }
