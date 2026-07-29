@@ -25,12 +25,31 @@ async function getPost(id: string, token: string) {
   }
 }
 
+async function getMediaUrl(mediaId: number, token: string): Promise<string | null> {
+  if (!mediaId) return null;
+  try {
+    const res = await fetch(`${WP}/media/${mediaId}`, {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.source_url ?? data?.media_details?.sizes?.full?.source_url ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function EditBlogPage({ params }: Props) {
   const { id } = await params;
   const session = await getSession();
   const post = await getPost(id, session?.token ?? '');
 
   if (!post) notFound();
+
+  const featuredImageUrl = post.featured_media
+    ? await getMediaUrl(post.featured_media, session?.token ?? '')
+    : null;
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -43,7 +62,7 @@ export default async function EditBlogPage({ params }: Props) {
           <p className="text-xs text-gray-500 mt-0.5">Post #{post.id}</p>
         </div>
       </div>
-      <BlogEditor mode="edit" initialPost={post} />
+      <BlogEditor mode="edit" initialPost={post} initialFeaturedImageUrl={featuredImageUrl} />
     </div>
   );
 }

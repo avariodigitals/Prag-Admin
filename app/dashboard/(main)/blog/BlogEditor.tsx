@@ -2,9 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, AlertCircle, CheckCircle2, Library } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Save, AlertCircle, CheckCircle2, Library, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import MediaPicker from '@/components/MediaPicker';
 import { revalidateBlog } from '@/lib/revalidateFrontend';
+
+const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
 interface BlogEditorProps {
   mode: 'create' | 'edit';
@@ -22,12 +26,13 @@ interface BlogEditorProps {
       _yoast_wpseo_focuskw?: string;
     };
   };
+  initialFeaturedImageUrl?: string | null;
 }
 
 const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
 const areaCls = 'w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-y';
 
-export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
+export default function BlogEditor({ mode, initialPost, initialFeaturedImageUrl }: BlogEditorProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialPost?.title?.rendered ?? '');
   const [slug, setSlug] = useState(initialPost?.slug ?? '');
@@ -36,6 +41,7 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
   const [content, setContent] = useState(initialPost?.content?.rendered ?? '');
   const [status, setStatus] = useState(initialPost?.status ?? 'draft');
   const [featuredMedia, setFeaturedMedia] = useState<number>(initialPost?.featured_media ?? 0);
+  const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(initialFeaturedImageUrl ?? null);
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -79,6 +85,7 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
 
     const media = await res.json();
     setFeaturedMedia(media.id);
+    setFeaturedImageUrl(media.source_url ?? null);
   }
 
   async function savePost() {
@@ -168,25 +175,77 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
             <textarea className={areaCls} rows={3} value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
           </div>
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-sm font-semibold text-gray-700">Content (HTML allowed)</label>
-            <textarea className={areaCls} rows={12} value={content} onChange={(e) => setContent(e.target.value)} />
+            <RichTextEditor
+              label="Content"
+              value={content}
+              onChange={setContent}
+              placeholder="Write your blog post content here..."
+            />
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
         <h2 className="text-base font-semibold text-gray-900">Featured Image</h2>
-        <div className="flex flex-wrap gap-2">
-          <input type="file" onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void uploadImage(file);
-          }} className="h-11 px-3 rounded-xl border border-gray-200 text-sm" />
-          <button type="button" onClick={() => setMediaPickerOpen(true)}
-            className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-            <Library size={15} /> Library
-          </button>
-        </div>
-        <p className="text-xs text-gray-500">{imageUploading ? 'Uploading image...' : featuredMedia ? `Media ID: ${featuredMedia}` : 'No image uploaded yet.'}</p>
+        {featuredImageUrl ? (
+          <div className="flex items-start gap-4">
+            <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+              <Image src={featuredImageUrl} alt="Featured image" fill className="object-contain p-2" sizes="128px" unoptimized />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="inline-flex items-center justify-center px-4 h-10 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                {imageUploading ? 'Uploading...' : 'Replace Image'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void uploadImage(file);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => setMediaPickerOpen(true)}
+                className="inline-flex items-center gap-2 px-4 h-10 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Library size={15} /> Library
+              </button>
+              <button
+                type="button"
+                onClick={() => { setFeaturedMedia(0); setFeaturedImageUrl(null); }}
+                className="inline-flex items-center gap-1.5 text-sm text-red-500 hover:text-red-600"
+              >
+                <Trash2 size={14} /> Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:bg-gray-50 cursor-pointer transition-colors">
+              {imageUploading ? 'Uploading...' : 'Upload Image'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void uploadImage(file);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setMediaPickerOpen(true)}
+              className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Library size={15} /> Library
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
@@ -210,7 +269,10 @@ export default function BlogEditor({ mode, initialPost }: BlogEditorProps) {
         onClose={() => setMediaPickerOpen(false)}
         multiple={false}
         onSelect={(items) => {
-          if (items[0]) setFeaturedMedia(items[0].id);
+          if (items[0]) {
+            setFeaturedMedia(items[0].id);
+            setFeaturedImageUrl(items[0].source_url);
+          }
         }}
       />
     </>

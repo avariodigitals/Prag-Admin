@@ -51,8 +51,8 @@ export default async function CustomersPage({ searchParams }: Props) {
         <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
         <p className="text-gray-500 text-sm mt-1">{total} registered customers</p>
         <div className="mt-3 flex items-center gap-2">
-          <a href="/api/customers/export?format=xlsx" className="px-3 py-1.5 rounded-lg text-xs font-medium bg-sky-700 text-white hover:bg-sky-800 transition-colors">Export Excel</a>
-          <a href="/api/customers/export?format=pdf" className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900 text-white hover:bg-black transition-colors">Export PDF</a>
+          <a href="/api/customers/export?format=xlsx" title="Export customer list as Excel spreadsheet" className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-700 text-white hover:bg-sky-800 transition-colors cursor-pointer">Export Excel</a>
+          <a href="/api/customers/export?format=pdf" title="Export customer list as PDF document" className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-white hover:bg-black transition-colors cursor-pointer">Export PDF</a>
         </div>
       </div>
 

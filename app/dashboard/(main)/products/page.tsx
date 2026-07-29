@@ -5,6 +5,7 @@ import { getProducts, getProductCategories } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductActions from './ProductActions';
+import QuickEditButton from './QuickEditButton';
 
 interface Props { searchParams: Promise<{ page?: string; search?: string; status?: string; category?: string; orderby?: string; order?: string; stock?: string }> }
 
@@ -139,9 +140,20 @@ export default async function ProductsPage({ searchParams }: Props) {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Link href={`/dashboard/products/${p.id}`}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors">
+                          title="Open full product editor"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-700 text-white hover:bg-sky-800 transition-colors cursor-pointer">
                           Edit
                         </Link>
+                        <QuickEditButton
+                          product={{
+                            id: p.id,
+                            name: p.name,
+                            stock_status: p.stock_status,
+                            regular_price: p.regular_price,
+                            sale_price: p.sale_price,
+                            images: p.images,
+                          }}
+                        />
                         <ProductActions
                           id={p.id}
                           field="status"

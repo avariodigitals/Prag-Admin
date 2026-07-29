@@ -7,15 +7,15 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight } from 'lucide-react';
 
 const NAV = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true, moduleKey: 'dashboard' },
-  { href: '/dashboard/products', label: 'Products', icon: ShoppingBag, moduleKey: 'products' },
-  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, moduleKey: 'orders' },
-  { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, moduleKey: 'reports' },
-  { href: '/dashboard/customers', label: 'Customers', icon: Users, moduleKey: 'customers' },
-  { href: '/dashboard/blog', label: 'Blog Posts', icon: FileText, moduleKey: 'blog' },
-  { href: '/dashboard/pages', label: 'Pages', icon: FileText, moduleKey: 'pages' },
-  { href: '/dashboard/stores', label: 'Stores', icon: MapPin, moduleKey: 'stores' },
-  { href: '/dashboard/settings', label: 'Site Settings', icon: Settings, moduleKey: 'siteSettings' },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true, moduleKey: 'dashboard', tooltip: 'View dashboard overview and stats' },
+  { href: '/dashboard/products', label: 'Products', icon: ShoppingBag, moduleKey: 'products', tooltip: 'Manage WooCommerce products, prices and stock' },
+  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, moduleKey: 'orders', tooltip: 'View and manage customer orders' },
+  { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, moduleKey: 'reports', tooltip: 'View sales and performance reports' },
+  { href: '/dashboard/customers', label: 'Customers', icon: Users, moduleKey: 'customers', tooltip: 'View and export customer list' },
+  { href: '/dashboard/blog', label: 'Blog Posts', icon: FileText, moduleKey: 'blog', tooltip: 'Manage Knowledge Center blog posts' },
+  { href: '/dashboard/pages', label: 'Pages', icon: FileText, moduleKey: 'pages', tooltip: 'Edit static page content (About, Contact, etc.)' },
+  { href: '/dashboard/stores', label: 'Stores', icon: MapPin, moduleKey: 'stores', tooltip: 'Manage PRAG store locations' },
+  { href: '/dashboard/settings', label: 'Site Settings', icon: Settings, moduleKey: 'siteSettings', tooltip: 'Configure site-wide settings' },
 ];
 
 export default function Sidebar({
@@ -35,7 +35,7 @@ export default function Sidebar({
   const allowed = new Set(allowedModules ?? []);
   const baseItems = NAV.filter((item) => allowed.size === 0 || allowed.has(item.moduleKey));
   const navItems = canManageAccess && (allowed.size === 0 || allowed.has('adminSettings'))
-    ? [...baseItems, { href: '/dashboard/admin-settings', label: 'Admin Settings', icon: Shield, moduleKey: 'adminSettings' }]
+    ? [...baseItems, { href: '/dashboard/admin-settings', label: 'Admin Settings', icon: Shield, moduleKey: 'adminSettings', exact: false, tooltip: 'Manage admin users and role permissions' }]
     : baseItems;
 
   async function logout() {
@@ -78,10 +78,10 @@ export default function Sidebar({
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon, exact }) => {
+          {navItems.map(({ href, label, icon: Icon, exact, tooltip }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
             return (
-              <Link key={href} href={href} onClick={() => setIsOpen(false)}
+              <Link key={href} href={href} onClick={() => setIsOpen(false)} title={tooltip ?? label}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   active ? 'bg-sky-700 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}>
@@ -97,10 +97,10 @@ export default function Sidebar({
             <ArrowLeftRight size={16} className="text-amber-600 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-600">Portal</p>
-              <Link href="/dashboard/b2b" onClick={() => setIsOpen(false)} className="text-xs text-amber-700 hover:underline font-medium">Switch to B2B →</Link>
+              <Link href="/dashboard/b2b" onClick={() => setIsOpen(false)} title="Switch to the B2B admin portal" className="text-xs text-amber-700 hover:underline font-medium">Switch to B2B →</Link>
             </div>
           </div>
-          <a href="https://shop.prag.global" target="_blank" rel="noopener noreferrer"
+          <a href="https://shop.prag.global" target="_blank" rel="noopener noreferrer" title="Open the PRAG storefront in a new tab"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors">
             <ExternalLink size={16} />
             View Store
@@ -114,7 +114,7 @@ export default function Sidebar({
               <p className="text-xs text-gray-400 truncate">{email}</p>
             </div>
           </div>
-          <button onClick={logout}
+          <button onClick={logout} title="Sign out of your admin session"
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors font-medium">
             <LogOut size={16} />
             Logout

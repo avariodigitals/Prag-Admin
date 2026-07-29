@@ -304,9 +304,9 @@ export default function StoresClient({ initialStores }: { initialStores: Store[]
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button onClick={() => openEdit(store)} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors"><Pencil size={14} /></button>
-                      <button onClick={() => store.id && handleDelete(store.id)} disabled={deleting === store.id}
-                        className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"><Trash2 size={14} /></button>
+                      <button onClick={() => openEdit(store)} title="Edit store details" className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"><Pencil size={14} /></button>
+                      <button onClick={() => store.id && handleDelete(store.id)} disabled={deleting === store.id} title="Delete this store"
+                        className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 cursor-pointer"><Trash2 size={14} /></button>
                     </div>
                   </div>
                 ))}

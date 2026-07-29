@@ -519,7 +519,8 @@ export default function PagesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setEditingPage(selectedPage)}
-                    className="px-4 py-2 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors flex items-center gap-2"
+                    title="Edit this page content"
+                    className="px-4 py-2 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <Edit size={14} />
                     Edit

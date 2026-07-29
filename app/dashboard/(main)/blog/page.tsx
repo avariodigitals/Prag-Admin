@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { getPosts } from '@/lib/api';
 import { getSession } from '@/lib/auth';
 import Link from 'next/link';
+import Image from 'next/image';
 import PostStatusToggle from './PostStatusToggle';
 
 interface Props { searchParams: Promise<{ page?: string; search?: string }> }
@@ -48,15 +49,26 @@ export default async function BlogPage({ searchParams }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
-              <tr>{['Title', 'Status', 'Date', 'Action'].map(h => (
+              <tr>{['Image', 'Title', 'Status', 'Date', 'Action'].map(h => (
                 <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
               ))}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {posts.length === 0
-                ? <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400">No posts found</td></tr>
-                : posts.map((p) => (
+                ? <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">No posts found</td></tr>
+                : posts.map((p) => {
+                  const featuredUrl = p._embedded?.['wp:featuredmedia']?.[0]?.source_url;
+                  return (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      {featuredUrl ? (
+                        <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+                          <Image src={featuredUrl} alt="" fill className="object-cover" sizes="48px" unoptimized />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg border border-dashed border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 text-[10px]">No img</div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 max-w-sm">
                       <Link href={`/dashboard/blog/${p.id}`} className="font-medium text-sky-700 line-clamp-1 hover:underline" dangerouslySetInnerHTML={{ __html: p.title.rendered }} />
                       <p className="text-xs text-gray-400 mt-0.5 line-clamp-1" dangerouslySetInnerHTML={{ __html: p.excerpt.rendered.replace(/<[^>]+>/g, '') }} />
@@ -69,7 +81,8 @@ export default async function BlogPage({ searchParams }: Props) {
                       <PostStatusToggle id={p.id} currentStatus={p.status} />
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
             </tbody>
           </table>
         </div>

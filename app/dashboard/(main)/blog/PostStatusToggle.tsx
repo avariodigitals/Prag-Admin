@@ -23,10 +23,11 @@ export default function PostStatusToggle({ id, currentStatus }: { id: number; cu
 
   return (
     <button onClick={toggle} disabled={loading}
-      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
+      title={currentStatus === 'publish' ? 'Unpublish this blog post (move to draft)' : 'Publish this blog post to the Knowledge Center'}
+      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer ${
         currentStatus === 'publish'
-          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-          : 'bg-green-50 text-green-700 hover:bg-green-100'
+          ? 'bg-green-600 text-white hover:bg-green-700'
+          : 'bg-sky-700 text-white hover:bg-sky-800'
       }`}>
       {loading ? '...' : currentStatus === 'publish' ? 'Unpublish' : 'Publish'}
     </button>

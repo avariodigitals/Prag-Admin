@@ -2,4 +2,19 @@
 
 body {
   font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 15px;
+}
+
+button,
+a,
+[role="button"],
+label[for],
+select,
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }

@@ -31,7 +31,8 @@ export default function OrderStatusSelect({ id, currentStatus }: { id: number; c
 
   return (
     <select defaultValue={currentStatus} onChange={handleChange} disabled={loading}
-      className="h-8 px-2 rounded-lg border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 bg-white">
+      title="Update order status"
+      className="h-8 px-2 rounded-lg border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 bg-white cursor-pointer">
       {STATUSES.map(s => (
         <option key={s} value={s}>{STATUS_LABELS[s] ?? s}</option>
       ))}

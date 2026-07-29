@@ -7,16 +7,16 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Mail, Building2, House, FileText, Settings, Menu, X, ExternalLink, LogOut, BookOpenCheck, Lightbulb, ArrowLeftRight, Users } from 'lucide-react';
 
 const MAIN_NAV = [
-  { href: '/dashboard/b2b', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/b2b/enquiries', label: 'Enquiries', icon: Mail },
-  { href: '/dashboard/b2b/distributors', label: 'Distributor Apps', icon: Building2 },
-  { href: '/dashboard/b2b/careers', label: 'Careers', icon: Users },
-  { href: '/dashboard/b2b/installations', label: 'Installations', icon: House },
-  { href: '/dashboard/b2b/case-studies', label: 'Case Studies', icon: BookOpenCheck },
-  { href: '/dashboard/b2b/solutions', label: 'Solutions', icon: Lightbulb },
-  { href: '/dashboard/b2b/pages', label: 'Pages', icon: FileText },
-  { href: '/dashboard/b2b/site-settings', label: 'Site Settings', icon: Settings },
-  { href: '/dashboard/b2b/super-settings', label: 'Super Settings', icon: Settings },
+  { href: '/dashboard/b2b', label: 'Overview', icon: LayoutDashboard, exact: true, tooltip: 'B2B dashboard overview and stats' },
+  { href: '/dashboard/b2b/enquiries', label: 'Enquiries', icon: Mail, tooltip: 'View B2B customer enquiries and contact form submissions' },
+  { href: '/dashboard/b2b/distributors', label: 'Distributor Apps', icon: Building2, tooltip: 'Review and manage distributor applications' },
+  { href: '/dashboard/b2b/careers', label: 'Careers', icon: Users, tooltip: 'Manage job postings and career applications' },
+  { href: '/dashboard/b2b/installations', label: 'Installations', icon: House, tooltip: 'Manage installation records and requests' },
+  { href: '/dashboard/b2b/case-studies', label: 'Case Studies', icon: BookOpenCheck, tooltip: 'Create and edit B2B case study showcases' },
+  { href: '/dashboard/b2b/solutions', label: 'Solutions', icon: Lightbulb, tooltip: 'Configure B2B solution pages and product catalogs' },
+  { href: '/dashboard/b2b/pages', label: 'Pages', icon: FileText, tooltip: 'Edit B2B static page content' },
+  { href: '/dashboard/b2b/site-settings', label: 'Site Settings', icon: Settings, tooltip: 'Configure B2B site-wide settings' },
+  { href: '/dashboard/b2b/super-settings', label: 'Super Settings', icon: Settings, tooltip: 'Advanced settings: scripts, SMTP, access control, audit logs' },
 ];
 
 function routeToSection(href: string) {
@@ -82,11 +82,13 @@ export default function B2BSidebar({ displayName, email, allowedSections }: { di
           <div className="space-y-0.5">
             {mainNavItems.map(({ href, label, icon: Icon, exact }) => {
               const active = exact ? pathname === href : pathname.startsWith(href);
+              const navItem = MAIN_NAV.find((n) => n.href === href);
               return (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setIsOpen(false)}
+                  title={navItem?.tooltip ?? label}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active ? 'bg-sky-700 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                 >
                   <Icon size={17} />
@@ -102,13 +104,14 @@ export default function B2BSidebar({ displayName, email, allowedSections }: { di
             <ArrowLeftRight size={16} className="text-sky-600 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-600">Portal</p>
-              <Link href="/dashboard" onClick={() => setIsOpen(false)} className="text-xs text-sky-700 hover:underline font-medium">Switch to B2C →</Link>
+              <Link href="/dashboard" onClick={() => setIsOpen(false)} title="Switch to the B2C admin portal" className="text-xs text-sky-700 hover:underline font-medium">Switch to B2C →</Link>
             </div>
           </div>
           <a
             href="https://shop.prag.global"
             target="_blank"
             rel="noopener noreferrer"
+            title="Open the PRAG storefront in a new tab"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
           >
             <ExternalLink size={16} />
@@ -125,6 +128,7 @@ export default function B2BSidebar({ displayName, email, allowedSections }: { di
           </div>
           <button
             onClick={logout}
+            title="Sign out of your admin session"
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors font-medium"
           >
             <LogOut size={16} />
