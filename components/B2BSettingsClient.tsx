@@ -925,19 +925,21 @@ export default function B2BSettingsClient({
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">When</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Source</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Target</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Redirect</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {logs404.length === 0 ? (
-                    <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400">No 404 logs yet.</td></tr>
+                    <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">No 404 logs yet.</td></tr>
                   ) : logs404.map((entry) => (
                     <tr key={entry.id}>
                       <td className="px-6 py-4 text-gray-500">{new Date(entry.at).toLocaleString('en-GB')}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{entry.action}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">{entry.actor}</td>
                       <td className="px-6 py-4 text-gray-600">{entry.target}</td>
+                      <td className="px-6 py-4 text-gray-600">{entry.redirect ? <a href={entry.redirect} className="text-sky-600 hover:text-sky-800 underline">{entry.redirect}</a> : '-'}</td>
                       <td className="px-6 py-4 text-gray-600">{entry.details ?? '-'}</td>
                     </tr>
                   ))}

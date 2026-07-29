@@ -1,5 +1,5 @@
-const PRAG_URL = 'https://prag.global';
-const B2B_URL = 'https://b2b.prag.global';
+const PRAG_URL = 'https://shop.prag.global';
+const B2B_URL = 'https://prag.global';
 
 type RevalidateOptions = {
   paths?: string[];
@@ -68,7 +68,7 @@ export async function revalidateFrontend(options: RevalidateOptions = {}) {
 
 export async function revalidateProducts() {
   await revalidateFrontend({
-    paths: ['/', '/products'],
+    paths: ['/', '/products', '/sitemap.xml'],
     tags: [
       'products-list', 'product-by-slug', 'featured-products', 'flash-sale-products',
       'product-categories', 'all-product-slugs', 'product-custom-tabs', 'tech-documents',
@@ -80,7 +80,7 @@ export async function revalidateProducts() {
 
 export async function revalidateBlog() {
   await revalidateFrontend({
-    paths: ['/blog'],
+    paths: ['/blog', '/sitemap.xml'],
     tags: ['wordpress-content'],
     b2cOnly: true,
   });
@@ -88,22 +88,22 @@ export async function revalidateBlog() {
 
 export async function revalidateStores() {
   await revalidateFrontend({
-    paths: ['/stores'],
+    paths: ['/stores', '/sitemap.xml'],
     tags: ['wc-stores', 'b2b-stores'],
   });
 }
 
 export async function revalidateSettings() {
   await revalidateFrontend({
-    paths: ['/', '/products'],
+    paths: ['/', '/products', '/sitemap.xml', '/robots.txt'],
     tags: ['site-settings', 'b2b-site-settings', 'wordpress-content', 'wc-settings'],
   });
 }
 
 export async function revalidateB2BContent() {
   await revalidateFrontend({
-    paths: ['/'],
-    tags: ['b2b-site-settings', 'b2b-categories', 'b2b-products-list', 'b2b-public-content'],
+    paths: ['/', '/sitemap.xml', '/robots.txt'],
+    tags: ['b2b-site-settings', 'b2b-categories', 'b2b-products-list', 'b2b-public-content', 'b2b-sitemap'],
     b2bOnly: true,
   });
 }

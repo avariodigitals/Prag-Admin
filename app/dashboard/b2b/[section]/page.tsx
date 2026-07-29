@@ -160,26 +160,28 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
   if (section === 'audit') {
     const logs = store.audit.filter((entry) => entry.action === '404.not-found');
     return (
-      <SectionShell title={SECTION_TITLES[section]} description="404 error logs from the prag-b2b website domain.">
+      <SectionShell title={SECTION_TITLES[section]} description="404 error logs from the prag.global and b2b.prag.global websites.">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">When</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Source</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Target</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Redirect</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {logs.length === 0 ? (
-                  <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400">No 404 logs yet.</td></tr>
+                  <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">No 404 logs yet.</td></tr>
                 ) : logs.map((entry) => (
                   <tr key={entry.id}>
                     <td className="px-6 py-4 text-gray-500">{new Date(entry.at).toLocaleString('en-GB')}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{entry.action}</td>
+                    <td className="px-6 py-4 font-medium text-gray-900">{entry.actor}</td>
                     <td className="px-6 py-4 text-gray-600">{entry.target}</td>
+                    <td className="px-6 py-4 text-gray-600">{entry.redirect ? <a href={entry.redirect} className="text-sky-600 hover:text-sky-800 underline">{entry.redirect}</a> : '-'}</td>
                     <td className="px-6 py-4 text-gray-600">{entry.details ?? '-'}</td>
                   </tr>
                 ))}

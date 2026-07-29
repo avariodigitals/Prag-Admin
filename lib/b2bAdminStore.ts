@@ -281,6 +281,7 @@ export interface B2BAuditRecord {
   action: string;
   target: string;
   details?: string;
+  redirect?: string;
 }
 
 export interface B2BAdminStore {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { appendB2BAuditLog } from '@/lib/b2bAdminStore';
 
-function isAllowedB2BHost(host: string) {
+function isAllowedHost(host: string) {
   const normalized = host.toLowerCase();
   const allowed = (process.env.B2B_404_ALLOWED_HOSTS ?? 'localhost,127.0.0.1,prag.global').split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
   return allowed.some((item) => normalized === item || normalized.endsWith(`.${item}`));
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const loggedPath = String(body.path ?? '').trim();
     const loggedHost = String(body.host ?? '').trim();
 
-    if (!loggedPath.startsWith('/') || !loggedHost || !isAllowedB2BHost(loggedHost)) {
+    if (!loggedPath.startsWith('/') || !loggedHost || !isAllowedHost(loggedHost)) {
       return NextResponse.json({ success: false, ignored: true });
     }
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       .join(' | ');
 
     await appendB2BAuditLog({
-      actor: 'prag-b2b',
+      actor: 'prag-b2c',
       action: '404.not-found',
       target: loggedPath,
       details,
