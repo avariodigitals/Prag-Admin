@@ -27,6 +27,7 @@ function makeStudy(category: B2BCaseStudyCategory): B2BCaseStudy {
     solution: '',
     tags: [],
     results: [{ label: '', value: '' }],
+    outcome: '',
     featured: false,
     active: true,
   };
@@ -377,6 +378,10 @@ export default function B2BCaseStudiesClient({ initialCaseStudies }: { initialCa
                 <label className="space-y-1">
                   <span className="text-sm font-medium text-gray-700">Solution</span>
                   <textarea className={areaCls} value={study.solution} onChange={(event) => updateStudy(study.id, (item) => ({ ...item, solution: event.target.value }))} />
+                </label>
+                <label className="space-y-1 md:col-span-2">
+                  <span className="text-sm font-medium text-gray-700">Outcome</span>
+                  <textarea className={areaCls} value={study.outcome ?? ''} onChange={(event) => updateStudy(study.id, (item) => ({ ...item, outcome: event.target.value }))} placeholder="Narrative outcome text shown on the frontend. Leave blank to auto-generate from results." />
                 </label>
                 <label className="space-y-1 md:col-span-2">
                   <span className="text-sm font-medium text-gray-700">Tags (comma separated)</span>

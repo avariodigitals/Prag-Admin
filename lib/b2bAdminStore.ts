@@ -23,6 +23,7 @@ export interface B2BCaseStudy {
   solution: string;
   tags: string[];
   results: B2BCaseStudyResult[];
+  outcome?: string;
   featured: boolean;
   active: boolean;
 }
@@ -1679,6 +1680,7 @@ export function normalizeCaseStudiesContent(content?: Partial<B2BCaseStudiesCont
           .map((item) => ({ label: String(item?.label ?? '').trim(), value: String(item?.value ?? '').trim() }))
           .filter((item) => item.label && item.value)
         : [],
+      outcome: String(raw?.outcome ?? '').trim(),
       featured: Boolean(raw?.featured),
       active: raw?.active ?? true,
     });
