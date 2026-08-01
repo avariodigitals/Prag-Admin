@@ -998,6 +998,65 @@ export default function B2BSettingsClient({
                   onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, whatsappChatText: event.target.value } }))}
                 />
               </label>
+              <div className="border-t border-gray-200 pt-3">
+                <p className="text-sm font-semibold text-gray-900 mb-1">WhatsApp Menu Options</p>
+                <p className="text-xs text-gray-500 mb-3">Each menu option in the chat widget can route to a different WhatsApp number.</p>
+                <div className="flex flex-col gap-3">
+                  {(settings.integrations.whatsappChatOptions ?? []).map((opt, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg border border-gray-200 p-3 bg-white">
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">Label</span>
+                        <input
+                          className={inputCls}
+                          value={opt.label}
+                          onChange={(event) => setSettings((prev) => {
+                            const options = [...(prev.integrations.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], label: event.target.value };
+                            return { ...prev, integrations: { ...prev.integrations, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">WhatsApp Number</span>
+                        <input
+                          className={inputCls}
+                          placeholder="2348032170129"
+                          value={opt.number}
+                          onChange={(event) => setSettings((prev) => {
+                            const options = [...(prev.integrations.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], number: event.target.value };
+                            return { ...prev, integrations: { ...prev.integrations, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">Subtitle</span>
+                        <input
+                          className={inputCls}
+                          value={opt.subtitle}
+                          onChange={(event) => setSettings((prev) => {
+                            const options = [...(prev.integrations.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], subtitle: event.target.value };
+                            return { ...prev, integrations: { ...prev.integrations, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">Prefill Message</span>
+                        <input
+                          className={inputCls}
+                          value={opt.prefill}
+                          onChange={(event) => setSettings((prev) => {
+                            const options = [...(prev.integrations.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], prefill: event.target.value };
+                            return { ...prev, integrations: { ...prev.integrations, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
             <label className="space-y-1 md:col-span-2">
               <span className="text-sm font-medium text-gray-700">Custom Domain Hook</span>

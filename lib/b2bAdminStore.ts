@@ -149,6 +149,13 @@ export interface B2BTrackingScripts {
   footer: string;
 }
 
+export interface B2BWhatsAppChatOption {
+  label: string;
+  subtitle: string;
+  prefill: string;
+  number: string;
+}
+
 export interface B2BIntegrationsConfig {
   googleAnalyticsId: string;
   googleTagManagerId: string;
@@ -158,6 +165,7 @@ export interface B2BIntegrationsConfig {
   whatsappChatEnabled: boolean;
   whatsappChatNumber: string;
   whatsappChatText: string;
+  whatsappChatOptions: B2BWhatsAppChatOption[];
 }
 
 export interface B2BSiteContact {
@@ -921,6 +929,12 @@ const DEFAULT_SETTINGS: B2BSettings = {
     whatsappChatEnabled: false,
     whatsappChatNumber: '',
     whatsappChatText: 'Chat with us on WhatsApp',
+    whatsappChatOptions: [
+      { label: 'General Enquiries', subtitle: 'Ask anything', prefill: 'Hi PRAG, I have a general enquiry.', number: '2348032170129' },
+      { label: 'Sales', subtitle: 'Pricing & product advice', prefill: 'Hi PRAG Sales, I want to buy and need help.', number: '2347036463977' },
+      { label: 'Support', subtitle: 'Technical help', prefill: 'Hi PRAG Support, I need technical assistance.', number: '2348111043239' },
+      { label: 'Delivery', subtitle: 'Orders & logistics', prefill: 'Hi PRAG, I need help with delivery / logistics.', number: '2347036463977' },
+    ],
   },
   launch: {
     enabled: false,
@@ -1814,7 +1828,18 @@ function mergeSettings(settings?: Partial<B2BSettings> | null): B2BSettings {
       columns: Array.isArray(settings?.footer?.columns) ? settings.footer.columns : DEFAULT_SETTINGS.footer.columns,
     },
     launch: { ...DEFAULT_SETTINGS.launch, ...(settings?.launch ?? {}) },
-    integrations: { ...DEFAULT_SETTINGS.integrations, ...(settings?.integrations ?? {}) },
+    integrations: {
+      ...DEFAULT_SETTINGS.integrations,
+      ...(settings?.integrations ?? {}),
+      whatsappChatOptions: Array.isArray(settings?.integrations?.whatsappChatOptions) && settings.integrations.whatsappChatOptions.length > 0
+        ? settings.integrations.whatsappChatOptions.map((opt) => ({
+            label: String(opt?.label ?? '').trim(),
+            subtitle: String(opt?.subtitle ?? '').trim(),
+            prefill: String(opt?.prefill ?? '').trim(),
+            number: String(opt?.number ?? '').trim(),
+          }))
+        : DEFAULT_SETTINGS.integrations.whatsappChatOptions,
+    },
     scripts: { ...DEFAULT_SETTINGS.scripts, ...(settings?.scripts ?? {}) },
     smtp: { ...DEFAULT_SETTINGS.smtp, ...(settings?.smtp ?? {}) },
     forms: (() => {
