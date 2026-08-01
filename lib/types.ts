@@ -107,6 +107,12 @@ export interface SiteSettings {
   slides: SlideItem[];
   // Category Grid
   categories: CategoryItem[];
+  // Hidden product categories (array of slugs)
+  hidden_categories: string[];
+  // Category display order (array of slugs)
+  category_order: string[];
+  // Subcategory display order per parent (key = parent slug, value = array of child slugs)
+  subcategory_order: Record<string, string[]>;
   // Payments
   paystack_public_key: string;
 }

@@ -1,14 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight, ChevronDown, FolderTree } from 'lucide-react';
 
-const NAV = [
+interface NavChild {
+  href: string;
+  label: string;
+  tooltip: string;
+}
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  moduleKey: string;
+  tooltip: string;
+  children?: NavChild[];
+}
+
+const NAV: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true, moduleKey: 'dashboard', tooltip: 'View dashboard overview and stats' },
-  { href: '/dashboard/products', label: 'Products', icon: ShoppingBag, moduleKey: 'products', tooltip: 'Manage WooCommerce products, prices and stock' },
+  {
+    href: '/dashboard/products',
+    label: 'Products',
+    icon: ShoppingBag,
+    moduleKey: 'products',
+    tooltip: 'Manage WooCommerce products, prices and stock',
+    children: [
+      { href: '/dashboard/products', label: 'All Products', tooltip: 'Browse and manage all WooCommerce products' },
+      { href: '/dashboard/products/categories', label: 'Category Visibility', tooltip: 'Toggle product categories on or off on the storefront' },
+    ],
+  },
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, moduleKey: 'orders', tooltip: 'View and manage customer orders' },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, moduleKey: 'reports', tooltip: 'View sales and performance reports' },
   { href: '/dashboard/customers', label: 'Customers', icon: Users, moduleKey: 'customers', tooltip: 'View and export customer list' },
@@ -32,11 +58,28 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const allowed = new Set(allowedModules ?? []);
   const baseItems = NAV.filter((item) => allowed.size === 0 || allowed.has(item.moduleKey));
-  const navItems = canManageAccess && (allowed.size === 0 || allowed.has('adminSettings'))
+  const navItems: NavItem[] = canManageAccess && (allowed.size === 0 || allowed.has('adminSettings'))
     ? [...baseItems, { href: '/dashboard/admin-settings', label: 'Admin Settings', icon: Shield, moduleKey: 'adminSettings', exact: false, tooltip: 'Manage admin users and role permissions' }]
     : baseItems;
+
+  // Auto-expand Products sub-menu when on a products sub-page
+  useEffect(() => {
+    if (pathname.startsWith('/dashboard/products')) {
+      setExpandedMenus((prev) => new Set(prev).add('/dashboard/products'));
+    }
+  }, [pathname]);
+
+  function toggleMenu(href: string) {
+    setExpandedMenus((prev) => {
+      const next = new Set(prev);
+      if (next.has(href)) next.delete(href);
+      else next.add(href);
+      return next;
+    });
+  }
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -78,16 +121,55 @@ export default function Sidebar({
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon, exact, tooltip }) => {
+          {navItems.map(({ href, label, icon: Icon, exact, tooltip, children }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
+            const hasChildren = children && children.length > 0;
+            const expanded = expandedMenus.has(href);
             return (
-              <Link key={href} href={href} onClick={() => setIsOpen(false)} title={tooltip ?? label}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  active ? 'bg-sky-700 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}>
-                <Icon size={17} />
-                {label}
-              </Link>
+              <div key={href}>
+                {hasChildren ? (
+                  <button
+                    onClick={() => toggleMenu(href)}
+                    title={tooltip ?? label}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      active ? 'bg-sky-700 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon size={17} />
+                    <span className="flex-1 text-left">{label}</span>
+                    <ChevronDown size={15} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                  </button>
+                ) : (
+                  <Link href={href} onClick={() => setIsOpen(false)} title={tooltip ?? label}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      active ? 'bg-sky-700 text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}>
+                    <Icon size={17} />
+                    {label}
+                  </Link>
+                )}
+                {hasChildren && expanded && (
+                  <div className="mt-0.5 space-y-0.5">
+                    {children!.map((child) => {
+                      const childActive = pathname === child.href || (child.href !== href && pathname.startsWith(child.href));
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          onClick={() => setIsOpen(false)}
+                          title={child.tooltip ?? child.label}
+                          className={`flex items-center gap-2 pl-10 pr-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            childActive ? 'text-sky-700 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <FolderTree size={14} />
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

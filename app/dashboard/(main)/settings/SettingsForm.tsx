@@ -54,6 +54,9 @@ const HARDCODED_DEFAULTS: SiteSettings = {
     { name: 'Batteries',           slug: 'batteries',            image: 'https://central.prag.global/wp-content/uploads/2026/04/dd4b835690b546ee636b7659added08cd02d9891.png' },
   ],
   paystack_public_key: '',
+  hidden_categories: [],
+  category_order: [],
+  subcategory_order: {},
 };
 
 function mergeWithDefaults(saved: SiteSettings | null): SiteSettings {
@@ -65,6 +68,9 @@ function mergeWithDefaults(saved: SiteSettings | null): SiteSettings {
     slides: Array.isArray(saved.slides) && saved.slides.length > 0 ? saved.slides : HARDCODED_DEFAULTS.slides,
     categories: Array.isArray(saved.categories) && saved.categories.length > 0 ? saved.categories : HARDCODED_DEFAULTS.categories,
     paystack_public_key: saved.paystack_public_key ?? '',
+    hidden_categories: Array.isArray(saved.hidden_categories) ? saved.hidden_categories : [],
+    category_order: Array.isArray(saved.category_order) ? saved.category_order : [],
+    subcategory_order: saved.subcategory_order && typeof saved.subcategory_order === 'object' ? saved.subcategory_order : {},
   };
 }
 
