@@ -36,6 +36,13 @@ type AdminModuleKey =
   | 'siteSettings'
   | 'adminSettings';
 
+type WhatsAppChatOption = {
+  label: string;
+  subtitle: string;
+  prefill: string;
+  number: string;
+};
+
 type SettingsPayload = {
   tracking: {
     ecommerceDomain: string;
@@ -47,6 +54,7 @@ type SettingsPayload = {
     whatsappChatEnabled: boolean;
     whatsappChatNumber: string;
     whatsappChatText: string;
+    whatsappChatOptions: WhatsAppChatOption[];
     customHeadScripts: string;
     customBodyScripts: string;
     customFooterScripts: string;
@@ -913,6 +921,69 @@ export default function AdminSettingsClient() {
                   onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, whatsappChatText: e.target.value } } : p)}
                   placeholder="Button Text (e.g. Chat with us on WhatsApp)"
                 />
+              </div>
+              <div className="border-t border-gray-200 pt-3">
+                <p className="text-sm font-semibold text-gray-900 mb-1">WhatsApp Menu Options</p>
+                <p className="text-xs text-gray-500 mb-3">Each menu option in the chat widget can route to a different WhatsApp number.</p>
+                <div className="flex flex-col gap-3">
+                  {(settings.tracking.whatsappChatOptions ?? []).map((opt, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg border border-gray-200 p-3 bg-white">
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">Label</span>
+                        <input
+                          className={inputCls}
+                          value={opt.label}
+                          onChange={(e) => setSettings((p) => {
+                            if (!p) return p;
+                            const options = [...(p.tracking.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], label: e.target.value };
+                            return { ...p, tracking: { ...p.tracking, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">WhatsApp Number</span>
+                        <input
+                          className={inputCls}
+                          placeholder="2348032170129"
+                          value={opt.number}
+                          onChange={(e) => setSettings((p) => {
+                            if (!p) return p;
+                            const options = [...(p.tracking.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], number: e.target.value };
+                            return { ...p, tracking: { ...p.tracking, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">Subtitle</span>
+                        <input
+                          className={inputCls}
+                          value={opt.subtitle}
+                          onChange={(e) => setSettings((p) => {
+                            if (!p) return p;
+                            const options = [...(p.tracking.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], subtitle: e.target.value };
+                            return { ...p, tracking: { ...p.tracking, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-medium text-gray-600">Prefill Message</span>
+                        <input
+                          className={inputCls}
+                          value={opt.prefill}
+                          onChange={(e) => setSettings((p) => {
+                            if (!p) return p;
+                            const options = [...(p.tracking.whatsappChatOptions ?? [])];
+                            options[idx] = { ...options[idx], prefill: e.target.value };
+                            return { ...p, tracking: { ...p.tracking, whatsappChatOptions: options } };
+                          })}
+                        />
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
             <textarea className={areaCls} value={settings.tracking.customHeadScripts} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, customHeadScripts: e.target.value } } : p)} placeholder="Custom scripts for <head>" />

@@ -31,6 +31,13 @@ export interface ManagedUserState {
   b2cModules?: AdminModuleKey[];
 }
 
+export interface WhatsAppChatOption {
+  label: string;
+  subtitle: string;
+  prefill: string;
+  number: string;
+}
+
 export interface TrackingConfig {
   ecommerceDomain: string;
   googleAnalyticsId: string;
@@ -41,6 +48,7 @@ export interface TrackingConfig {
   whatsappChatEnabled: boolean;
   whatsappChatNumber: string;
   whatsappChatText: string;
+  whatsappChatOptions: WhatsAppChatOption[];
   customHeadScripts: string;
   customBodyScripts: string;
   customFooterScripts: string;
@@ -155,6 +163,12 @@ const DEFAULT_STORE: AdminConfigStore = {
     whatsappChatEnabled: false,
     whatsappChatNumber: '',
     whatsappChatText: 'Chat with us on WhatsApp',
+    whatsappChatOptions: [
+      { label: 'General Enquiries', subtitle: 'Ask anything', prefill: 'Hi, I have a general enquiry about your products.', number: '2348032170129' },
+      { label: 'Sales', subtitle: 'Pricing & product advice', prefill: 'Hi, I am interested in purchasing from PRAG.', number: '2347036463977' },
+      { label: 'Support', subtitle: 'Technical help', prefill: 'Hello, I need support from PRAG.', number: '2348111043239' },
+      { label: 'Delivery', subtitle: 'Orders & logistics', prefill: 'Hi, I need to inquire about delivery options.', number: '2347036463977' },
+    ],
     customHeadScripts: '',
     customBodyScripts: '',
     customFooterScripts: '',
@@ -226,7 +240,18 @@ function mergeWithDefaults(parsed: Partial<AdminConfigStore>): AdminConfigStore 
     ...DEFAULT_STORE,
     ...parsed,
     users: parsed.users ?? {},
-    tracking: { ...DEFAULT_STORE.tracking, ...(parsed.tracking ?? {}) },
+    tracking: {
+      ...DEFAULT_STORE.tracking,
+      ...(parsed.tracking ?? {}),
+      whatsappChatOptions: Array.isArray(parsed.tracking?.whatsappChatOptions) && parsed.tracking.whatsappChatOptions.length > 0
+        ? parsed.tracking.whatsappChatOptions.map((opt) => ({
+            label: String(opt?.label ?? '').trim(),
+            subtitle: String(opt?.subtitle ?? '').trim(),
+            prefill: String(opt?.prefill ?? '').trim(),
+            number: String(opt?.number ?? '').trim(),
+          }))
+        : DEFAULT_STORE.tracking.whatsappChatOptions,
+    },
     smtp: { ...DEFAULT_STORE.smtp, ...(parsed.smtp ?? {}) },
     forms: Array.isArray(parsed.forms) ? parsed.forms : DEFAULT_STORE.forms,
     roleModuleVisibility: {
