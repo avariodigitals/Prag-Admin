@@ -84,6 +84,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           <option value="">Sort: Default</option>
           <option value="price">Price</option>
           <option value="title">Name</option>
+          <option value="sku">SKU</option>
           <option value="date">Date Created</option>
           <option value="modified">Date Modified</option>
           <option value="id">Product ID</option>
@@ -100,9 +101,19 @@ export default async function ProductsPage({ searchParams }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
-              <tr>{['Product', 'SKU', 'Status', 'Stock', 'Price', 'Featured', 'Actions'].map(h => (
-                <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-              ))}</tr>
+              <tr>
+                {['Product', 'Status', 'Stock', 'Price', 'Featured', 'Actions'].map(h => (
+                  <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                )).flatMap((node, i) => i === 0 ? [
+                  node,
+                  <th key="SKU" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <Link href={pageHref(page, { ...sp, orderby: 'sku', order: orderby === 'sku' && order === 'asc' ? 'desc' : 'asc' })} className="hover:text-sky-700 inline-flex items-center gap-1">
+                      SKU
+                      {orderby === 'sku' && <span className="text-sky-700">{order === 'asc' ? '↑' : '↓'}</span>}
+                    </Link>
+                  </th>
+                ] : [node])}
+              </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {products.length === 0
