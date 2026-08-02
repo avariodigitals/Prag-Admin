@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { appendAuditLog } from '@/lib/adminStore';
+import { revalidateCategories } from '@/lib/revalidateFrontend';
 
 const WC = `${process.env.NEXT_PUBLIC_WP_API_URL?.replace('/wp-json', '/wp-json/wc/v3') ?? 'https://central.prag.global/wp-json/wc/v3'}`;
 const AUTH = `consumer_key=${process.env.WC_CONSUMER_KEY}&consumer_secret=${process.env.WC_CONSUMER_SECRET}`;
@@ -86,17 +87,8 @@ export async function PUT(req: NextRequest) {
       target: `category:${updated.slug ?? slug}`,
       details: `Renamed category to "${rename.name}"`,
     });
-    // Trigger revalidation
-    const revalidateSecret = process.env.REVALIDATE_SECRET || process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret';
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_SHOP_URL ?? 'https://shop.prag.global'}/api/revalidate?secret=${revalidateSecret}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paths: ['/', '/products'] }),
-      });
-    } catch {
-      // best-effort
-    }
+    // Trigger revalidation on both frontends
+    await revalidateCategories();
     return NextResponse.json({ success: true, id: rename.id, name: rename.name, slug: updated.slug ?? slug });
   }
 
@@ -118,17 +110,8 @@ export async function PUT(req: NextRequest) {
       target: 'subcategories',
       details: `Updated subcategory order`,
     });
-    // Trigger revalidation
-    const revalidateSecret = process.env.REVALIDATE_SECRET || process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret';
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_SHOP_URL ?? 'https://shop.prag.global'}/api/revalidate?secret=${revalidateSecret}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paths: ['/', '/products'] }),
-      });
-    } catch {
-      // best-effort
-    }
+    // Trigger revalidation on both frontends
+    await revalidateCategories();
     return NextResponse.json({ success: true, subcategory_order });
   }
 
@@ -153,17 +136,8 @@ export async function PUT(req: NextRequest) {
       details: `Reordered categories: ${category_order.join(', ')}`,
     });
 
-    // Trigger revalidation on the storefront
-    const revalidateSecret = process.env.REVALIDATE_SECRET || process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret';
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_SHOP_URL ?? 'https://shop.prag.global'}/api/revalidate?secret=${revalidateSecret}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paths: ['/', '/products'] }),
-      });
-    } catch {
-      // Revalidation is best-effort
-    }
+    // Trigger revalidation on both frontends
+    await revalidateCategories();
 
     return NextResponse.json({ success: true, category_order });
   }
@@ -205,17 +179,8 @@ export async function PUT(req: NextRequest) {
     details: `${hidden ? 'Hid' : 'Showed'} category ${slug}`,
   });
 
-  // Trigger revalidation on the storefront
-  const revalidateSecret = process.env.REVALIDATE_SECRET || process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret';
-  try {
-    await fetch(`${process.env.NEXT_PUBLIC_SHOP_URL ?? 'https://shop.prag.global'}/api/revalidate?secret=${revalidateSecret}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paths: ['/', '/products'] }),
-    });
-  } catch {
-    // Revalidation is best-effort
-  }
+  // Trigger revalidation on both frontends
+  await revalidateCategories();
 
   return NextResponse.json({ success: true, slug, hidden, hidden_categories: updatedHidden });
 }

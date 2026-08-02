@@ -35,6 +35,7 @@ const B2B_TAGS = [
   'b2b-stores',
   'b2b-product-custom-tabs',
   'b2b-all-product-slugs',
+  'b2b-hidden-categories',
 ];
 
 export async function revalidateFrontend(options: RevalidateOptions = {}) {
@@ -105,5 +106,15 @@ export async function revalidateB2BContent() {
     paths: ['/', '/sitemap.xml', '/robots.txt'],
     tags: ['b2b-site-settings', 'b2b-categories', 'b2b-products-list', 'b2b-public-content', 'b2b-sitemap'],
     b2bOnly: true,
+  });
+}
+
+export async function revalidateCategories() {
+  await revalidateFrontend({
+    paths: ['/', '/products', '/sitemap.xml'],
+    tags: [
+      'product-categories', 'site-settings', 'wc-settings', 'wordpress-content',
+      'b2b-categories', 'b2b-hidden-categories', 'b2b-site-settings',
+    ],
   });
 }
