@@ -75,6 +75,18 @@ export async function getDashboardStats() {
 
 // ── Products ───────────────────────────────────────────────
 export async function getProducts(page = 1, search = '', status = 'any', category = '', orderby = '', order = '', stockStatus = '') {
+  if (orderby === 'sku') {
+    const qs = new URLSearchParams({ per_page: '100', page: '1', ...(search && { search }), ...(status !== 'any' && { status }), ...(category && { category }), ...(stockStatus && { stock_status: stockStatus }) });
+    const result = await wcFetchWithTotal<WCProduct>(`/products?${qs}`, { cache: 'no-store' });
+    const sorted = [...result.data].sort((a, b) => {
+      const aSku = a.sku ?? '';
+      const bSku = b.sku ?? '';
+      const cmp = aSku.localeCompare(bSku, undefined, { numeric: true, sensitivity: 'base' });
+      return order === 'desc' ? -cmp : cmp;
+    });
+    const start = (page - 1) * 20;
+    return { data: sorted.slice(start, start + 20), total: sorted.length };
+  }
   const qs = new URLSearchParams({ per_page: '20', page: String(page), ...(search && { search }), ...(status !== 'any' && { status }), ...(category && { category }), ...(orderby && { orderby }), ...(order && { order }), ...(stockStatus && { stock_status: stockStatus }) });
   return wcFetchWithTotal<WCProduct>(`/products?${qs}`, { cache: 'no-store' });
 }
