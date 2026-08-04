@@ -8,9 +8,12 @@ export const metadata: Metadata = {
   title: 'PRAG Admin',
   description: 'PRAG Control Center — Developed by Avario Digitals',
   icons: {
-    icon: '/icon.png',
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
     shortcut: '/icon.png',
-    apple: '/icon.png',
+    apple: '/icon-192.png',
   },
   manifest: '/manifest.json',
 };
