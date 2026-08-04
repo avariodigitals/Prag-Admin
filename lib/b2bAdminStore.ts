@@ -3,7 +3,7 @@ import path from 'node:path';
 import { cookies } from 'next/headers';
 
 export type B2BSubmissionKind = 'contact' | 'distributor' | 'careers' | 'support';
-export type B2BSectionKey = 'overview' | 'enquiries' | 'support' | 'distributors' | 'careers' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit';
+export type B2BSectionKey = 'overview' | 'enquiries' | 'support' | 'distributors' | 'careers' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit' | 'redirects';
 
 export type B2BCaseStudyCategory = 'Residential' | 'Commercial' | 'Industrial';
 
@@ -271,6 +271,16 @@ export interface B2BAccessRoleVisibility {
   [role: string]: Record<B2BSectionKey, boolean>;
 }
 
+export interface B2BRedirectRule {
+  id: string;
+  source: string;
+  destination: string;
+  permanent: boolean;
+  active: boolean;
+  createdAt: string;
+  hits: number;
+}
+
 export interface B2BSettings {
   contact: B2BSiteContact;
   header: B2BHeaderConfig;
@@ -281,6 +291,7 @@ export interface B2BSettings {
   smtp: B2BSmtpConfig;
   forms: B2BFormRoutingRule[];
   access: B2BAccessRoleVisibility;
+  redirects: B2BRedirectRule[];
 }
 
 export interface B2BAuditRecord {
@@ -785,6 +796,7 @@ const DEFAULT_SECTION_VISIBILITY: Record<B2BSectionKey, boolean> = {
   smtp: true,
   forms: true,
   audit: true,
+  redirects: true,
 };
 
 const DEFAULT_SETTINGS: B2BSettings = {
@@ -984,8 +996,10 @@ const DEFAULT_SETTINGS: B2BSettings = {
       smtp: false,
       forms: true,
       audit: false,
+      redirects: true,
     },
   },
+  redirects: [],
 };
 
 const DEFAULT_CASE_STUDIES: B2BCaseStudiesContent = {

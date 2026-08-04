@@ -8,6 +8,7 @@ import B2BSettingsClient from '@/components/B2BSettingsClient';
 import B2BAccessClient from '@/components/B2BAccessClient';
 import B2BCaseStudiesClient from '@/components/B2BCaseStudiesClient';
 import B2BSolutionsClient from '@/components/B2BSolutionsClient';
+import B2BRedirectsClient from '@/components/B2BRedirectsClient';
 
 const SECTION_TITLES: Record<string, string> = {
   enquiries: 'Enquiries',
@@ -25,6 +26,7 @@ const SECTION_TITLES: Record<string, string> = {
   smtp: 'SMTP',
   forms: 'Forms Routing',
   audit: '404 Logs',
+  redirects: 'URL Redirects',
 };
 
 function SectionShell({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -48,7 +50,7 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
   const superAdmin = await isSuperAdmin(session.token);
   if (!superAdmin) {
     const allowed = await getB2BAllowedSections(session.token);
-    const superSettingsChildren = ['site-settings', 'scripts', 'smtp', 'forms', 'access', 'launch', 'audit'];
+    const superSettingsChildren = ['site-settings', 'scripts', 'smtp', 'forms', 'access', 'launch', 'audit', 'redirects'];
     const canOpenSuperSettings = section === 'super-settings' && Array.isArray(allowed) && allowed.some((item) => superSettingsChildren.includes(item));
     if (Array.isArray(allowed) && allowed.length > 0 && !allowed.includes(section) && !canOpenSuperSettings) {
       redirect('/dashboard/b2b');
@@ -189,6 +191,14 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
             </table>
           </div>
         </div>
+      </SectionShell>
+    );
+  }
+
+  if (section === 'redirects') {
+    return (
+      <SectionShell title={SECTION_TITLES[section]} description="Manage custom URL redirects. Create redirects for old URLs, 404 errors, or URL structure changes.">
+        <B2BRedirectsClient />
       </SectionShell>
     );
   }

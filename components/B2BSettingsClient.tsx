@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Library, RefreshCcw, Save } from 'lucide-react';
 import { revalidateB2BContent } from '@/lib/revalidateFrontend';
 import B2BAccessClient from '@/components/B2BAccessClient';
+import B2BRedirectsClient from '@/components/B2BRedirectsClient';
 import MediaPicker from '@/components/MediaPicker';
 import type { B2BAuditRecord, B2BHeaderMenuItem, B2BSettings, B2BSectionKey } from '@/lib/b2bAdminStore';
 
@@ -20,7 +21,7 @@ type FrontendPullReport = {
   footerColumnsCreatedTitles: string[];
 };
 
-type Section = 'site' | 'header' | 'footer' | 'integrations' | '404-logs' | 'scripts' | 'smtp' | 'forms' | 'access' | 'launch' | 'audit';
+type Section = 'site' | 'header' | 'footer' | 'integrations' | '404-logs' | 'scripts' | 'smtp' | 'forms' | 'access' | 'launch' | 'audit' | 'redirects';
 
 type HeaderMenuKey = 'solutionsMenuItems' | 'productsMenuItems' | 'companyMenuItems';
 
@@ -241,6 +242,7 @@ const ALL_TABS: Array<{ key: Section; label: string }> = [
   { key: 'access', label: 'Access' },
   { key: 'launch', label: 'Launch' },
   { key: 'audit', label: 'Audit Trail' },
+  { key: 'redirects', label: 'Redirects' },
 ];
 
 export default function B2BSettingsClient({
@@ -1307,6 +1309,13 @@ export default function B2BSettingsClient({
               <span className="text-sm font-medium text-gray-700">Message</span>
               <textarea className={areaCls} value={settings.launch.message} onChange={(event) => setSettings((prev) => ({ ...prev, launch: { ...prev.launch, message: event.target.value } }))} />
             </label>
+          </div>
+        )}
+
+        {activeTab === 'redirects' && (
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-2">Redirects are managed in the dedicated Redirects section</p>
+            <a href="/dashboard/b2b/redirects" className="text-sky-600 hover:text-sky-800 underline">Go to Redirects →</a>
           </div>
         )}
 

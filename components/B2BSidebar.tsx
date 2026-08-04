@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Mail, Building2, House, FileText, Settings, Menu, X, ExternalLink, LogOut, BookOpenCheck, Lightbulb, ArrowLeftRight, Users } from 'lucide-react';
+import { LayoutDashboard, Mail, Building2, House, FileText, Settings, Menu, X, ExternalLink, LogOut, BookOpenCheck, Lightbulb, ArrowLeftRight, Users, ArrowRightLeft } from 'lucide-react';
 
 const MAIN_NAV = [
   { href: '/dashboard/b2b', label: 'Overview', icon: LayoutDashboard, exact: true, tooltip: 'B2B dashboard overview and stats' },
@@ -15,6 +15,7 @@ const MAIN_NAV = [
   { href: '/dashboard/b2b/case-studies', label: 'Case Studies', icon: BookOpenCheck, tooltip: 'Create and edit B2B case study showcases' },
   { href: '/dashboard/b2b/solutions', label: 'Solutions', icon: Lightbulb, tooltip: 'Configure B2B solution pages and product catalogs' },
   { href: '/dashboard/b2b/pages', label: 'Pages', icon: FileText, tooltip: 'Edit B2B static page content' },
+  { href: '/dashboard/b2b/redirects', label: 'Redirects', icon: ArrowRightLeft, tooltip: 'Manage URL redirects and fix 404 errors' },
   { href: '/dashboard/b2b/site-settings', label: 'Site Settings', icon: Settings, tooltip: 'Configure B2B site-wide settings' },
   { href: '/dashboard/b2b/super-settings', label: 'Super Settings', icon: Settings, tooltip: 'Advanced settings: scripts, SMTP, access control, audit logs' },
 ];
