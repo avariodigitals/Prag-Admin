@@ -8,10 +8,11 @@ export const metadata: Metadata = {
   title: 'PRAG Admin',
   description: 'PRAG Control Center — Developed by Avario Digitals',
   icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
     apple: '/favicon.png',
   },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

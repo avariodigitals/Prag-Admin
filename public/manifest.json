@@ -1,0 +1,17 @@
+{
+  "name": "PRAG Admin",
+  "short_name": "PRAG Admin",
+  "description": "PRAG Control Center — Developed by Avario Digitals",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0166a5",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "4567x4567",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
