@@ -293,9 +293,34 @@ export default function B2BSettingsClient({
   const [pullingFrontend, setPullingFrontend] = useState(false);
   const [pullFrontendError, setPullFrontendError] = useState('');
   const [pullFrontendReport, setPullFrontendReport] = useState<FrontendPullReport | null>(null);
+  const [redirectInputs, setRedirectInputs] = useState<Record<string, string>>({});
+  const [redirectSaving, setRedirectSaving] = useState<Record<string, boolean>>({});
+  const [redirectSaved, setRedirectSaved] = useState<Record<string, boolean>>({});
 
   const allAuditRecords = Array.isArray(auditRecords) ? auditRecords : [];
   const logs404 = allAuditRecords.filter((entry) => entry.action === '404.not-found');
+
+  async function createRedirectFrom404(entryId: string, source: string) {
+    const destination = (redirectInputs[entryId] ?? '').trim();
+    if (!destination) return;
+    setRedirectSaving((prev) => ({ ...prev, [entryId]: true }));
+    setRedirectSaved((prev) => ({ ...prev, [entryId]: false }));
+    try {
+      const res = await fetch('/api/admin/b2b/redirects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source, destination, permanent: true }),
+      });
+      if (res.ok) {
+        setRedirectSaved((prev) => ({ ...prev, [entryId]: true }));
+        setRedirectInputs((prev) => ({ ...prev, [entryId]: '' }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setRedirectSaving((prev) => ({ ...prev, [entryId]: false }));
+    }
+  }
 
   useEffect(() => {
     fetch('/api/admin/users', { cache: 'no-store' })
@@ -930,7 +955,7 @@ export default function B2BSettingsClient({
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Source</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Target</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Redirect</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Create Redirect</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -938,11 +963,28 @@ export default function B2BSettingsClient({
                     <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">No 404 logs yet.</td></tr>
                   ) : logs404.map((entry) => (
                     <tr key={entry.id}>
-                      <td className="px-6 py-4 text-gray-500">{new Date(entry.at).toLocaleString('en-GB')}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{entry.actor}</td>
-                      <td className="px-6 py-4 text-gray-600">{entry.target}</td>
+                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{new Date(entry.at).toLocaleString('en-GB')}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">{entry.target}</td>
                       <td className="px-6 py-4 text-gray-600">{entry.redirect ? <a href={entry.redirect} className="text-sky-600 hover:text-sky-800 underline">{entry.redirect}</a> : '-'}</td>
-                      <td className="px-6 py-4 text-gray-600">{entry.details ?? '-'}</td>
+                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={entry.details ?? ''}>{entry.details ?? '-'}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={redirectInputs[entry.id] ?? ''}
+                            onChange={(e) => setRedirectInputs((prev) => ({ ...prev, [entry.id]: e.target.value }))}
+                            placeholder="/new-url"
+                            className="w-32 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                          />
+                          <button
+                            onClick={() => createRedirectFrom404(entry.id, entry.target)}
+                            disabled={redirectSaving[entry.id] || !(redirectInputs[entry.id] ?? '').trim()}
+                            className="px-3 py-1.5 text-xs font-medium bg-sky-700 hover:bg-sky-800 text-white rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap"
+                          >
+                            {redirectSaving[entry.id] ? 'Saving...' : redirectSaved[entry.id] ? 'Saved!' : 'Add Redirect'}
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
