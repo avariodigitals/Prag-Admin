@@ -7,6 +7,16 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space
 export const metadata: Metadata = {
   title: 'PRAG Admin',
   description: 'PRAG Control Center — Developed by Avario Digitals',
+  // portal.prag.global is an admin app with zero SEO purpose.
+  // Exclude the entire site from indexing and crawling.
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
   icons: {
     icon: [
       { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
