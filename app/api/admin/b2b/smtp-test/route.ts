@@ -48,9 +48,9 @@ export async function POST(req: NextRequest) {
     await transporter.sendMail({
       from: smtp.fromName ? `${smtp.fromName} <${smtp.fromEmail}>` : smtp.fromEmail,
       to,
-      subject: 'PRAG B2B SMTP test email',
-      text: `This is a test email from PRAG B2B SMTP settings.\n\nSent at: ${new Date().toISOString()}`,
-      html: `<p>This is a test email from PRAG B2B SMTP settings.</p><p>Sent at: ${new Date().toISOString()}</p>`,
+      subject: 'PRAG SMTP test email',
+      text: `This is a test email from PRAG SMTP settings.\n\nSent at: ${new Date().toISOString()}`,
+      html: `<p>This is a test email from PRAG SMTP settings.</p><p>Sent at: ${new Date().toISOString()}</p>`,
     });
 
     await appendB2BAuditLog({

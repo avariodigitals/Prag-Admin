@@ -9,6 +9,7 @@ import B2BAccessClient from '@/components/B2BAccessClient';
 import B2BCaseStudiesClient from '@/components/B2BCaseStudiesClient';
 import B2BSolutionsClient from '@/components/B2BSolutionsClient';
 import B2BRedirectsClient from '@/components/B2BRedirectsClient';
+import B2BSeoClient from '@/components/B2BSeoClient';
 
 const SECTION_TITLES: Record<string, string> = {
   enquiries: 'Enquiries',
@@ -27,6 +28,7 @@ const SECTION_TITLES: Record<string, string> = {
   forms: 'Forms Routing',
   audit: '404 Logs',
   redirects: 'URL Redirects',
+  seo: 'SEO Overrides',
 };
 
 function SectionShell({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -199,6 +201,14 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
     return (
       <SectionShell title={SECTION_TITLES[section]} description="Manage custom URL redirects. Create redirects for old URLs, 404 errors, or URL structure changes.">
         <B2BRedirectsClient />
+      </SectionShell>
+    );
+  }
+
+  if (section === 'seo') {
+    return (
+      <SectionShell title={SECTION_TITLES[section]} description="Manually override SEO metadata for priority pages, product categories, products, and Knowledge Center articles. Overrides take priority over approved defaults and automatic fallbacks.">
+        <B2BSeoClient initialSeoOverrides={store.seoOverrides || {}} />
       </SectionShell>
     );
   }

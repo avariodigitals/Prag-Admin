@@ -106,7 +106,7 @@ export async function POST(req: Request) {
         });
 
         const senderEmail = (rule?.fromEmail || smtp.fromEmail || '').trim();
-        const senderName = (rule?.senderName || smtp.fromName || 'PRAG B2B').trim();
+        const senderName = (rule?.senderName || smtp.fromName || 'PRAG').trim();
         const subjectPrefix = rule?.formName?.trim() || (kind === 'distributor' ? 'Distributor Application' : kind === 'careers' ? 'Careers Application' : 'Contact Form');
         const subject = `${subjectPrefix}: ${record.name || 'New submission'}`;
 

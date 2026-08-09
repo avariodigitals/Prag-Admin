@@ -3,7 +3,7 @@ import path from 'node:path';
 import { cookies } from 'next/headers';
 
 export type B2BSubmissionKind = 'contact' | 'distributor' | 'careers' | 'support';
-export type B2BSectionKey = 'overview' | 'enquiries' | 'support' | 'distributors' | 'careers' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit' | 'redirects';
+export type B2BSectionKey = 'overview' | 'enquiries' | 'support' | 'distributors' | 'careers' | 'installations' | 'case-studies' | 'solutions' | 'pages' | 'site-settings' | 'access' | 'launch' | 'scripts' | 'smtp' | 'forms' | 'audit' | 'redirects' | 'seo';
 
 export type B2BCaseStudyCategory = 'Residential' | 'Commercial' | 'Industrial';
 
@@ -304,6 +304,21 @@ export interface B2BAuditRecord {
   redirect?: string;
 }
 
+export interface B2BSeoOverride {
+  seoTitle?: string;
+  seoDescription?: string;
+  primaryKeyword?: string;
+  secondaryKeywords?: string[];
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  canonicalOverride?: string;
+  robotsIndex?: boolean;
+  seoNotes?: string;
+}
+
+export type B2BSeoOverrideMap = Record<string, B2BSeoOverride>;
+
 export interface B2BAdminStore {
   enquiries: B2BSubmissionRecord[];
   distributorApplications: B2BSubmissionRecord[];
@@ -314,6 +329,7 @@ export interface B2BAdminStore {
   solutions: B2BSolutionsContent;
   pages: B2BPageRecord[];
   settings: B2BSettings;
+  seoOverrides: B2BSeoOverrideMap;
   audit: B2BAuditRecord[];
 }
 
@@ -797,6 +813,7 @@ const DEFAULT_SECTION_VISIBILITY: Record<B2BSectionKey, boolean> = {
   forms: true,
   audit: true,
   redirects: true,
+  seo: true,
 };
 
 const DEFAULT_SETTINGS: B2BSettings = {
@@ -814,7 +831,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
     },
   },
   header: {
-    brandLabel: 'PRAG B2B',
+    brandLabel: 'PRAG',
     announcement: '',
     ctaLabel: 'View Store',
     ctaHref: 'https://shop.prag.global',
@@ -970,12 +987,12 @@ const DEFAULT_SETTINGS: B2BSettings = {
     fromName: 'PRAG',
   },
   forms: [
-    { formKey: 'contact', formName: 'Contact Form', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
-    { formKey: 'free-power-assessment', formName: 'Free Power Assessment', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
-    { formKey: 'distributor', formName: 'Distributor Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
-    { formKey: 'careers', formName: 'Careers Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
+    { formKey: 'contact', formName: 'Contact Form', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG' },
+    { formKey: 'free-power-assessment', formName: 'Free Power Assessment', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG' },
+    { formKey: 'distributor', formName: 'Distributor Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG' },
+    { formKey: 'careers', formName: 'Careers Application', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG' },
     { formKey: 'technical-support', formName: 'Technical Support', recipients: ['support@prag.global'], fromEmail: 'support@prag.global', senderName: 'PRAG Support' },
-    { formKey: 'installations', formName: 'Installation Request', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG B2B' },
+    { formKey: 'installations', formName: 'Installation Request', recipients: ['sales@prag.global'], fromEmail: 'sales@prag.global', senderName: 'PRAG' },
   ],
   access: {
     administrator: { ...DEFAULT_SECTION_VISIBILITY },
@@ -997,6 +1014,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
       forms: true,
       audit: false,
       redirects: true,
+      seo: false,
     },
   },
   redirects: [],
@@ -1663,6 +1681,7 @@ const DEFAULT_STORE: B2BAdminStore = {
   solutions: DEFAULT_SOLUTIONS,
   pages: [],
   settings: DEFAULT_SETTINGS,
+  seoOverrides: {},
   audit: [],
 };
 
@@ -2331,6 +2350,7 @@ async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminS
     solutions: normalizeSolutionsContent(parsed.solutions),
     pages: normalizedPages,
     settings: mergeSettings(parsed.settings),
+    seoOverrides: parsed.seoOverrides && typeof parsed.seoOverrides === 'object' ? parsed.seoOverrides : {},
     audit: Array.isArray(parsed.audit) ? parsed.audit : [],
   };
 }

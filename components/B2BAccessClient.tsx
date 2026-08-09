@@ -29,6 +29,7 @@ const B2B_MENU_OPTIONS = [
   { key: 'case-studies', label: 'Case Studies' },
   { key: 'solutions', label: 'Solutions' },
   { key: 'pages', label: 'Pages' },
+  { key: 'seo', label: 'SEO Overrides' },
   { key: 'super-settings', label: 'Super Settings' },
   { key: 'site-settings', label: 'Site Settings' },
   { key: 'scripts', label: 'Scripts' },
