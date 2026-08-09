@@ -28,6 +28,7 @@ type FormRule = {
 type AdminModuleKey =
   | 'dashboard'
   | 'products'
+  | 'media'
   | 'orders'
   | 'reports'
   | 'customers'
@@ -79,6 +80,7 @@ type SettingsPayload = {
 const MODULE_LABELS: Array<{ key: AdminModuleKey; label: string }> = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'products', label: 'Products' },
+  { key: 'media', label: 'Media' },
   { key: 'orders', label: 'Orders' },
   { key: 'reports', label: 'Reports' },
   { key: 'customers', label: 'Customers' },

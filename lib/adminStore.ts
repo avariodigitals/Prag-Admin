@@ -86,6 +86,7 @@ export interface AuditRecord {
 export const ADMIN_MODULE_KEYS = [
   'dashboard',
   'products',
+  'media',
   'orders',
   'reports',
   'customers',
@@ -110,6 +111,7 @@ export interface AdminConfigStore {
 const FULL_ACCESS: Record<AdminModuleKey, boolean> = {
   dashboard: true,
   products: true,
+  media: true,
   orders: true,
   reports: true,
   customers: true,
@@ -212,6 +214,7 @@ const DEFAULT_STORE: AdminConfigStore = {
     shop_manager: {
       dashboard: true,
       products: true,
+      media: true,
       orders: true,
       reports: true,
       customers: true,
@@ -223,6 +226,7 @@ const DEFAULT_STORE: AdminConfigStore = {
     editor: {
       dashboard: true,
       products: false,
+      media: true,
       orders: false,
       reports: false,
       customers: false,

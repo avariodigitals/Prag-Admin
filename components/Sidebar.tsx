@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight, ChevronDown, FolderTree } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight, ChevronDown, FolderTree, Image as ImageIcon } from 'lucide-react';
 
 interface NavChild {
   href: string;
@@ -35,6 +35,7 @@ const NAV: NavItem[] = [
       { href: '/dashboard/products/categories', label: 'Category Visibility', tooltip: 'Toggle product categories on or off on the storefront' },
     ],
   },
+  { href: '/dashboard/media', label: 'Media', icon: ImageIcon, moduleKey: 'media', tooltip: 'Upload and browse images in the WordPress media library' },
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, moduleKey: 'orders', tooltip: 'View and manage customer orders' },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, moduleKey: 'reports', tooltip: 'View sales and performance reports' },
   { href: '/dashboard/customers', label: 'Customers', icon: Users, moduleKey: 'customers', tooltip: 'View and export customer list' },
