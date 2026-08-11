@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, Fragment } from 'react';
+import { useEffect, useState, useCallback, Fragment, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Eye, EyeOff, Loader2, ArrowUp, ArrowDown, Save, Pencil, Check, X } from 'lucide-react';
 
@@ -119,7 +119,7 @@ export default function CategoryVisibilityClient({ token }: { token: string }) {
   }
 
   function moveSubcategory(parentSlug: string, index: number, direction: 'up' | 'down') {
-    const current = subcategoryOrder[parentSlug] ?? childMap.get(parentCategories.find(p => p.slug === parentSlug)?.id ?? -1)?.map(c => c.slug) ?? [];
+    const current = subcategoryOrder[parentSlug] ?? childMap.get(categories.find(p => p.slug === parentSlug)?.id ?? -1)?.map(c => c.slug) ?? [];
     const newList = [...current];
     const swapIndex = direction === 'up' ? index - 1 : index + 1;
     if (swapIndex < 0 || swapIndex >= newList.length) return;
@@ -178,6 +178,50 @@ export default function CategoryVisibilityClient({ token }: { token: string }) {
     }
   }
   const hiddenCount = categories.filter((c) => c.hidden).length;
+
+  function orderedChildrenOf(cat: CategoryItem): CategoryItem[] {
+    const children = childMap.get(cat.id) ?? [];
+    const subOrder = subcategoryOrder[cat.slug] ?? children.map(c => c.slug);
+    const ordered = subOrder
+      .map(slug => children.find(c => c.slug === slug))
+      .filter((c): c is CategoryItem => Boolean(c));
+    // Append any children not in subOrder
+    const seenSlugs = new Set(ordered.map(c => c.slug));
+    for (const c of children) {
+      if (!seenSlugs.has(c.slug)) ordered.push(c);
+    }
+    return ordered;
+  }
+
+  function renderCategoryRows(cat: CategoryItem, depth: number, index: number, siblingCount: number, parentSlug: string | null): ReactNode {
+    const orderedChildren = orderedChildrenOf(cat);
+    return (
+      <Fragment key={cat.slug}>
+        <CategoryRow
+          cat={cat}
+          depth={depth}
+          toggling={togglingSlug === cat.slug}
+          onToggle={() => toggleCategory(cat.slug, cat.hidden)}
+          showOrderControls
+          canMoveUp={index > 0}
+          canMoveDown={index < siblingCount - 1}
+          onMoveUp={() => (depth === 0 ? moveCategory(index, 'up') : moveSubcategory(parentSlug!, index, 'up'))}
+          onMoveDown={() => (depth === 0 ? moveCategory(index, 'down') : moveSubcategory(parentSlug!, index, 'down'))}
+          displayIndex={index + 1}
+          isRenaming={renamingId === cat.id}
+          renameValue={renameValue}
+          onRenameChange={setRenameValue}
+          onConfirmRename={() => confirmRename(cat.id)}
+          onCancelRename={cancelRename}
+          onStartRename={() => startRename(cat)}
+          renaming={renaming}
+        />
+        {orderedChildren.map((child, childIndex) =>
+          renderCategoryRows(child, depth + 1, childIndex, orderedChildren.length, cat.slug)
+        )}
+      </Fragment>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -247,62 +291,9 @@ export default function CategoryVisibilityClient({ token }: { token: string }) {
               <tbody className="divide-y divide-gray-50">
                 {parentCategories.length === 0
                   ? <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">No categories found</td></tr>
-                  : parentCategories.map((cat, parentIndex) => {
-                      const children = childMap.get(cat.id) ?? [];
-                      const subOrder = subcategoryOrder[cat.slug] ?? children.map(c => c.slug);
-                      const orderedChildren = subOrder
-                        .map(slug => children.find(c => c.slug === slug))
-                        .filter((c): c is CategoryItem => Boolean(c));
-                      // Append any children not in subOrder
-                      const seenSlugs = new Set(orderedChildren.map(c => c.slug));
-                      for (const c of children) {
-                        if (!seenSlugs.has(c.slug)) orderedChildren.push(c);
-                      }
-                      return (
-                        <Fragment key={cat.slug}>
-                          <CategoryRow
-                            cat={cat}
-                            toggling={togglingSlug === cat.slug}
-                            onToggle={() => toggleCategory(cat.slug, cat.hidden)}
-                            showOrderControls
-                            canMoveUp={parentIndex > 0}
-                            canMoveDown={parentIndex < parentCategories.length - 1}
-                            onMoveUp={() => moveCategory(parentIndex, 'up')}
-                            onMoveDown={() => moveCategory(parentIndex, 'down')}
-                            displayIndex={parentIndex + 1}
-                            isRenaming={renamingId === cat.id}
-                            renameValue={renameValue}
-                            onRenameChange={setRenameValue}
-                            onConfirmRename={() => confirmRename(cat.id)}
-                            onCancelRename={cancelRename}
-                            onStartRename={() => startRename(cat)}
-                            renaming={renaming}
-                          />
-                          {orderedChildren.map((child, childIndex) => (
-                            <CategoryRow
-                              key={child.slug}
-                              cat={child}
-                              isChild
-                              toggling={togglingSlug === child.slug}
-                              onToggle={() => toggleCategory(child.slug, child.hidden)}
-                              showOrderControls
-                              canMoveUp={childIndex > 0}
-                              canMoveDown={childIndex < orderedChildren.length - 1}
-                              onMoveUp={() => moveSubcategory(cat.slug, childIndex, 'up')}
-                              onMoveDown={() => moveSubcategory(cat.slug, childIndex, 'down')}
-                              displayIndex={childIndex + 1}
-                              isRenaming={renamingId === child.id}
-                              renameValue={renameValue}
-                              onRenameChange={setRenameValue}
-                              onConfirmRename={() => confirmRename(child.id)}
-                              onCancelRename={cancelRename}
-                              onStartRename={() => startRename(child)}
-                              renaming={renaming}
-                            />
-                          ))}
-                        </Fragment>
-                      );
-                    })}
+                  : parentCategories.map((cat, parentIndex) =>
+                      renderCategoryRows(cat, 0, parentIndex, parentCategories.length, null)
+                    )}
               </tbody>
             </table>
           </div>
@@ -314,7 +305,7 @@ export default function CategoryVisibilityClient({ token }: { token: string }) {
 
 function CategoryRow({
   cat,
-  isChild,
+  depth = 0,
   toggling,
   onToggle,
   showOrderControls,
@@ -332,7 +323,7 @@ function CategoryRow({
   renaming,
 }: {
   cat: CategoryItem;
-  isChild?: boolean;
+  depth?: number;
   toggling: boolean;
   onToggle: () => void;
   showOrderControls?: boolean;
@@ -350,7 +341,7 @@ function CategoryRow({
   renaming?: boolean;
 }) {
   return (
-    <tr className={`hover:bg-gray-50 transition-colors ${isChild ? 'bg-gray-50/50' : ''}`}>
+    <tr className={`hover:bg-gray-50 transition-colors ${depth > 0 ? 'bg-gray-50/50' : ''}`}>
       <td className="px-4 py-4">
         {showOrderControls ? (
           <div className="flex items-center gap-1">
@@ -375,8 +366,8 @@ function CategoryRow({
         ) : null}
       </td>
       <td className="px-6 py-4">
-        <div className={`flex items-center gap-2 ${isChild ? 'pl-6' : ''}`}>
-          {isChild && <span className="text-gray-300">↳</span>}
+        <div className="flex items-center gap-2" style={depth > 0 ? { paddingLeft: depth * 24 } : undefined}>
+          {depth > 0 && <span className="text-gray-300">↳</span>}
           {isRenaming ? (
             <div className="flex items-center gap-1.5">
               <input
