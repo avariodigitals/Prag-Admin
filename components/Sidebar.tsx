@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight, ChevronDown, FolderTree, Image as ImageIcon } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight, ChevronDown, FolderTree, Image as ImageIcon, RefreshCw } from 'lucide-react';
 
 interface NavChild {
   href: string;
@@ -60,6 +60,7 @@ export default function Sidebar({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
+  const [cacheStatus, setCacheStatus] = useState<'idle' | 'clearing' | 'done' | 'error'>('idle');
   const allowed = new Set(allowedModules ?? []);
   const baseItems = NAV.filter((item) => allowed.size === 0 || allowed.has(item.moduleKey));
   const navItems: NavItem[] = canManageAccess && (allowed.size === 0 || allowed.has('adminSettings'))
@@ -85,6 +86,23 @@ export default function Sidebar({
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
+  }
+
+  async function clearCache() {
+    setCacheStatus('clearing');
+    try {
+      const res = await fetch('/api/admin/clear-cache', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope: 'all' }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setCacheStatus('done');
+      setTimeout(() => setCacheStatus('idle'), 3000);
+    } catch {
+      setCacheStatus('error');
+      setTimeout(() => setCacheStatus('idle'), 3000);
+    }
   }
 
   return (
@@ -183,6 +201,21 @@ export default function Sidebar({
               <Link href="/dashboard/b2b" onClick={() => setIsOpen(false)} title="Switch to the B2B admin portal" className="text-xs text-amber-700 hover:underline font-medium">Switch to B2B →</Link>
             </div>
           </div>
+          <button
+            onClick={clearCache}
+            disabled={cacheStatus === 'clearing'}
+            title="Clear the Next.js data cache on both shop.prag.global and www.prag.global"
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-60 ${
+              cacheStatus === 'done'
+                ? 'text-green-600 bg-green-50'
+                : cacheStatus === 'error'
+                ? 'text-red-500 bg-red-50'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            <RefreshCw size={16} className={cacheStatus === 'clearing' ? 'animate-spin' : ''} />
+            {cacheStatus === 'clearing' ? 'Clearing cache…' : cacheStatus === 'done' ? 'Cache cleared!' : cacheStatus === 'error' ? 'Failed — try again' : 'Clear Site Cache'}
+          </button>
           <a href="https://shop.prag.global" target="_blank" rel="noopener noreferrer" title="Open the PRAG storefront in a new tab"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors">
             <ExternalLink size={16} />
