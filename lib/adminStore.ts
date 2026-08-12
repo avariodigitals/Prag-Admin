@@ -4,6 +4,33 @@ import { cookies } from 'next/headers';
 
 export type PortalAccess = 'b2c' | 'b2b';
 
+// ─── B2C Page types (mirrors B2B page system) ───────────────────────────────
+export interface B2CPageSection {
+  id: string;
+  title: string;
+  type: string;
+  visible: boolean;
+  summary: string;
+  content?: string;
+  kicker?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  mobileImageUrl?: string;
+}
+
+export interface B2CPageRecord {
+  route: string;
+  title: string;
+  description: string;
+  published: boolean;
+  updatedAt: string;
+  sections: B2CPageSection[];
+}
+
 export const B2B_SECTION_KEYS = [
   'overview',
   'enquiries',
@@ -106,6 +133,7 @@ export interface AdminConfigStore {
   forms: FormRoutingRule[];
   roleModuleVisibility: RoleModuleVisibility;
   audit: AuditRecord[];
+  b2cPages?: B2CPageRecord[];
 }
 
 const FULL_ACCESS: Record<AdminModuleKey, boolean> = {
@@ -237,6 +265,7 @@ const DEFAULT_STORE: AdminConfigStore = {
     },
   },
   audit: [],
+  b2cPages: [],
 };
 
 function mergeWithDefaults(parsed: Partial<AdminConfigStore>): AdminConfigStore {
@@ -263,6 +292,7 @@ function mergeWithDefaults(parsed: Partial<AdminConfigStore>): AdminConfigStore 
       ...(parsed.roleModuleVisibility ?? {}),
     },
     audit: Array.isArray(parsed.audit) ? parsed.audit : [],
+    b2cPages: Array.isArray(parsed.b2cPages) ? parsed.b2cPages : [],
   };
 }
 
@@ -304,13 +334,6 @@ async function ensureStoreFile() {
   }
 }
 
-async function readFromFile(): Promise<AdminConfigStore> {
-  await ensureStoreFile();
-  const raw = await fs.readFile(STORE_PATH, 'utf8');
-  const parsed = JSON.parse(raw) as Partial<AdminConfigStore>;
-  return mergeWithDefaults(parsed);
-}
-
 async function writeToFile(data: AdminConfigStore): Promise<void> {
   await ensureStoreFile();
   await fs.writeFile(STORE_PATH, JSON.stringify(data, null, 2), 'utf8');
@@ -318,13 +341,16 @@ async function writeToFile(data: AdminConfigStore): Promise<void> {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
+// Reads ALWAYS come from production WordPress so local dev mirrors the live
+// site. Writes in dev go to the local sandbox file only and never reach
+// production — edits made locally will not "stick" because the next read
+// pulls from WordPress again. This is intentional: production is the single
+// source of truth and localhost content can never reach the live site.
 export async function readAdminStore(): Promise<AdminConfigStore> {
   try {
-    if (process.env.NODE_ENV === 'production') {
-      return await readFromWordPress();
-    }
-    return await readFromFile();
+    return await readFromWordPress();
   } catch {
+    if (process.env.NODE_ENV === 'production') throw new Error('Failed to read admin store from WordPress');
     return DEFAULT_STORE;
   }
 }
@@ -362,5 +388,33 @@ export async function appendAuditLog(record: Omit<AuditRecord, 'id' | 'at'>) {
       audit: [entry, ...current.audit].slice(0, 500),
     };
   });
+}
+
+// ─── B2C Pages helpers ───────────────────────────────────────────────────────
+
+export async function readB2CPages(): Promise<B2CPageRecord[]> {
+  const store = await readAdminStore();
+  return store.b2cPages ?? [];
+}
+
+export async function writeB2CPages(pages: B2CPageRecord[]): Promise<void> {
+  await updateAdminStore((current) => ({
+    ...current,
+    b2cPages: pages,
+  }));
+}
+
+export async function updateB2CPage(
+  route: string,
+  updater: (page: B2CPageRecord) => B2CPageRecord,
+): Promise<B2CPageRecord[]> {
+  const pages = await readB2CPages();
+  const idx = pages.findIndex((p) => p.route === route);
+  if (idx === -1) throw new Error(`B2C page not found: ${route}`);
+  const updated = updater(pages[idx]);
+  const nextPages = [...pages];
+  nextPages[idx] = { ...updated, updatedAt: new Date().toISOString() };
+  await writeB2CPages(nextPages);
+  return nextPages;
 }
 

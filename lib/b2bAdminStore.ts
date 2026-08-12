@@ -335,7 +335,7 @@ export interface B2BAdminStore {
 
 export interface B2BAdminHealthCheck {
   checkedAt: string;
-  storageMode: 'wordpress' | 'file';
+  storageMode: string;
   env: {
     hasWpApiUrl: boolean;
     hasWpAppUser: boolean;
@@ -2355,13 +2355,6 @@ async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminS
   };
 }
 
-async function readFromFile(): Promise<B2BAdminStore> {
-  await ensureStoreFile();
-  const raw = await fs.readFile(STORE_PATH, 'utf8');
-  const parsed = JSON.parse(raw) as Partial<B2BAdminStore>;
-  return normalizeStore(parsed);
-}
-
 async function writeToFile(data: B2BAdminStore): Promise<void> {
   await ensureStoreFile();
   await fs.writeFile(STORE_PATH, JSON.stringify(data, null, 2), 'utf8');
@@ -2554,12 +2547,14 @@ async function writeToWordPress(data: B2BAdminStore): Promise<void> {
   }
 }
 
+// Reads ALWAYS come from production WordPress so local dev mirrors the live
+// site. Writes in dev go to the local sandbox file only and never reach
+// production — edits made locally will not "stick" because the next read
+// pulls from WordPress again. This is intentional: production is the single
+// source of truth and localhost content can never reach the live site.
 export async function readB2BAdminStore(): Promise<B2BAdminStore> {
   try {
-    if (process.env.NODE_ENV === 'production') {
-      return await readFromWordPress();
-    }
-    return await readFromFile();
+    return await readFromWordPress();
   } catch (error) {
     if (process.env.NODE_ENV === 'production') {
       throw error;
@@ -2771,28 +2766,18 @@ function mergeMissingDefaultFooterColumns(settings: B2BSettings): { settings: B2
 }
 
 async function readRawStoreForStructureSync(): Promise<Partial<B2BAdminStore>> {
-  if (process.env.NODE_ENV === 'production') {
-    try {
-      const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
-        headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
-        cache: 'no-store',
-      });
-
-      if (!res.ok || res.status === 204 || res.status === 404) return {};
-
-      const parsed = (await res.json()) as Record<string, unknown>;
-      const nested = parsed?.b2bAdminStore;
-      return nested && typeof nested === 'object' ? nested as Partial<B2BAdminStore> : {};
-    } catch {
-      return {};
-    }
-  }
-
+  // Always read from production WordPress so local dev mirrors the live site.
   try {
-    await ensureStoreFile();
-    const raw = await fs.readFile(STORE_PATH, 'utf8');
-    const parsed = JSON.parse(raw) as Partial<B2BAdminStore>;
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    const res = await fetch(`${WP_API_URL}/prag-core/v1/admin-config`, {
+      headers: { 'Content-Type': 'application/json', ...(await buildWpAuthHeader()) },
+      cache: 'no-store',
+    });
+
+    if (!res.ok || res.status === 204 || res.status === 404) return {};
+
+    const parsed = (await res.json()) as Record<string, unknown>;
+    const nested = parsed?.b2bAdminStore;
+    return nested && typeof nested === 'object' ? nested as Partial<B2BAdminStore> : {};
   } catch {
     return {};
   }
@@ -2932,7 +2917,7 @@ export async function appendB2BAuditLog(record: Omit<B2BAuditRecord, 'id' | 'at'
 }
 
 export async function runB2BAdminHealthCheck(): Promise<B2BAdminHealthCheck> {
-  const storageMode: 'wordpress' | 'file' = process.env.NODE_ENV === 'production' ? 'wordpress' : 'file';
+  const storageMode: string = process.env.NODE_ENV === 'production' ? 'wordpress' : 'file (sandbox writes only; reads from WordPress)';
   const env = {
     hasWpApiUrl: Boolean(WP_API_URL),
     hasWpAppUser: Boolean(WP_APP_USER),

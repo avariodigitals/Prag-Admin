@@ -1,0 +1,453 @@
+{
+  "users": {
+    "2": {
+      "active": true,
+      "portals": [
+        "b2c",
+        "b2b"
+      ],
+      "b2bSections": [
+        "overview",
+        "enquiries",
+        "distributors",
+        "case-studies",
+        "solutions",
+        "pages",
+        "site-settings"
+      ],
+      "b2cModules": [
+        "dashboard",
+        "reports",
+        "products",
+        "orders",
+        "customers",
+        "stores",
+        "siteSettings",
+        "blog"
+      ]
+    },
+    "3": {
+      "active": true,
+      "portals": []
+    },
+    "4": {
+      "active": true,
+      "portals": [
+        "b2c",
+        "b2b"
+      ],
+      "b2cModules": [
+        "stores",
+        "reports",
+        "customers",
+        "blog",
+        "orders",
+        "products",
+        "dashboard"
+      ]
+    },
+    "101": {
+      "active": true,
+      "portals": [
+        "b2c"
+      ]
+    },
+    "119": {
+      "active": true,
+      "portals": [
+        "b2c"
+      ]
+    },
+    "130": {
+      "active": true,
+      "portals": [
+        "b2c"
+      ]
+    },
+    "150": {
+      "active": true,
+      "portals": [],
+      "b2cModules": []
+    },
+    "155": {
+      "active": false,
+      "portals": [
+        "b2c"
+      ]
+    },
+    "164": {
+      "active": true,
+      "portals": []
+    },
+    "165": {
+      "active": false,
+      "portals": [
+        "b2c"
+      ]
+    },
+    "168": {
+      "active": true,
+      "portals": [],
+      "b2cModules": []
+    },
+    "172": {
+      "active": true,
+      "portals": [
+        "b2c",
+        "b2b"
+      ]
+    },
+    "173": {
+      "active": true,
+      "portals": [
+        "b2c",
+        "b2b"
+      ],
+      "b2cModules": [
+        "dashboard",
+        "reports",
+        "customers",
+        "orders",
+        "products",
+        "blog"
+      ]
+    },
+    "182": {
+      "active": true,
+      "portals": []
+    },
+    "184": {
+      "active": true,
+      "portals": [
+        "b2c",
+        "b2b"
+      ]
+    },
+    "200": {
+      "active": true,
+      "portals": [
+        "b2c"
+      ]
+    },
+    "208": {
+      "active": true,
+      "portals": [
+        "b2c"
+      ]
+    }
+  },
+  "tracking": {
+    "ecommerceDomain": "shop.prag.global",
+    "googleAnalyticsId": "",
+    "googleTagManagerId": "",
+    "googleSearchConsoleVerification": "",
+    "metaPixelId": "",
+    "tiktokPixelId": "",
+    "whatsappChatEnabled": false,
+    "whatsappChatNumber": "",
+    "whatsappChatText": "Chat with us on WhatsApp",
+    "whatsappChatOptions": [
+      {
+        "label": "General Enquiries",
+        "subtitle": "Ask anything",
+        "prefill": "Hi, I have a general enquiry about your products.",
+        "number": "2348032170129"
+      },
+      {
+        "label": "Sales",
+        "subtitle": "Pricing & product advice",
+        "prefill": "Hi, I am interested in purchasing from PRAG.",
+        "number": "2347036463977"
+      },
+      {
+        "label": "Support",
+        "subtitle": "Technical help",
+        "prefill": "Hello, I need support from PRAG.",
+        "number": "2348111043239"
+      },
+      {
+        "label": "Delivery",
+        "subtitle": "Orders & logistics",
+        "prefill": "Hi, I need to inquire about delivery options.",
+        "number": "2347036463977"
+      }
+    ],
+    "customHeadScripts": "",
+    "customBodyScripts": "",
+    "customFooterScripts": ""
+  },
+  "smtp": {
+    "provider": "brevo",
+    "useWordPressMailer": false,
+    "host": "smtp-relay.brevo.com",
+    "port": 587,
+    "secure": false,
+    "username": "",
+    "password": "",
+    "fromEmail": "notifications@prag.global",
+    "fromName": "PRAG"
+  },
+  "forms": [
+    {
+      "formKey": "contact",
+      "formName": "Contact Form",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "distributor",
+      "formName": "Distributor Application",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "checkout",
+      "formName": "Checkout Notifications",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-contact-form-7-v1",
+      "formName": "/contact-form-7/v1",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-contact-form-7-v1-contact-forms",
+      "formName": "/contact-form-7/v1/contact-forms",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-contact-form-7-v1-contact-forms-p-id-d-",
+      "formName": "/contact-form-7/v1/contact-forms/(?P<id>\\d+)",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-contact-form-7-v1-contact-forms-p-id-d-feedback",
+      "formName": "/contact-form-7/v1/contact-forms/(?P<id>\\d+)/feedback",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-contact-form-7-v1-contact-forms-p-id-d-feedback-schema",
+      "formName": "/contact-form-7/v1/contact-forms/(?P<id>\\d+)/feedback/schema",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-contact-form-7-v1-contact-forms-p-id-d-refill",
+      "formName": "/contact-form-7/v1/contact-forms/(?P<id>\\d+)/refill",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-prag-core-v1-distributor",
+      "formName": "/prag-core/v1/distributor",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-wc-store-checkout",
+      "formName": "/wc/store/checkout",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-wc-store-checkout-p-id-d-",
+      "formName": "/wc/store/checkout/(?P<id>[\\d]+)",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-wc-store-v1-checkout",
+      "formName": "/wc/store/v1/checkout",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-wc-store-v1-checkout-p-id-d-",
+      "formName": "/wc/store/v1/checkout/(?P<id>[\\d]+)",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-wc-gla-mc-contact-information",
+      "formName": "/wc/gla/mc/contact-information",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    },
+    {
+      "formKey": "-prag-core-v1-contact",
+      "formName": "/prag-core/v1/contact",
+      "fromEmail": "",
+      "senderName": "",
+      "recipients": []
+    }
+  ],
+  "roleModuleVisibility": {
+    "administrator": {
+      "dashboard": true,
+      "products": true,
+      "orders": true,
+      "reports": true,
+      "customers": true,
+      "blog": true,
+      "stores": true,
+      "siteSettings": true,
+      "adminSettings": true
+    },
+    "shop_manager": {
+      "dashboard": true,
+      "products": true,
+      "orders": true,
+      "reports": true,
+      "customers": true,
+      "blog": true,
+      "stores": true,
+      "siteSettings": true,
+      "adminSettings": false
+    },
+    "editor": {
+      "dashboard": true,
+      "products": false,
+      "orders": false,
+      "reports": false,
+      "customers": false,
+      "blog": true,
+      "stores": false,
+      "siteSettings": false,
+      "adminSettings": false
+    }
+  },
+  "audit": [
+    {
+      "id": "cf87a8cd-23d1-4170-8431-9aca31422eb2",
+      "at": "2026-08-02T06:59:50.337Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "category.visibility",
+      "target": "category:pure-sine-wave-inverters",
+      "details": "Hid category pure-sine-wave-inverters"
+    },
+    {
+      "id": "6401b0b0-cf08-4283-9302-2c05e1d2e096",
+      "at": "2026-08-01T23:43:14.103Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "category.visibility",
+      "target": "category:lithium-ion",
+      "details": "Hid category lithium-ion"
+    },
+    {
+      "id": "a36a8ee8-409f-446e-a83f-a0f41aeb8457",
+      "at": "2026-08-01T19:46:42.669Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "category.visibility",
+      "target": "category:battery-rack",
+      "details": "Hid category battery-rack"
+    },
+    {
+      "id": "308f4b1c-3cb0-406e-849e-95f60690c83a",
+      "at": "2026-07-25T11:30:52.799Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60488",
+      "details": "Updated 5KWH/24V Lithium Battery"
+    },
+    {
+      "id": "cff80447-dd60-4730-b930-bbc156df2e20",
+      "at": "2026-07-25T11:30:51.186Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60488",
+      "details": "Updated 5KWH/24V Lithium Battery"
+    },
+    {
+      "id": "a4e9560d-36be-4217-bdda-acc762079292",
+      "at": "2026-07-25T11:30:45.295Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60498",
+      "details": "Updated 15KWH/48V Lithium Battery"
+    },
+    {
+      "id": "412e5c40-3206-4ac4-8f1b-aeb0b1777aaf",
+      "at": "2026-07-25T11:29:49.326Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60490",
+      "details": "Updated 6.3KVA/48V Heavy Duty Hybrid Inverter MPPT 6400W"
+    },
+    {
+      "id": "6e5e6675-257f-45d2-bc0d-595fb16c556e",
+      "at": "2026-07-25T11:29:25.464Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60485",
+      "details": "Updated 5.5KW/48V Hybrid Inverter (6000W-MPPT)"
+    },
+    {
+      "id": "dcf35013-8d6d-4b02-b867-ca4f16fdfc0a",
+      "at": "2026-07-25T11:29:16.950Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60491",
+      "details": "Updated 3.6KW/24V Hybrid Inverter MPPT 5000W"
+    },
+    {
+      "id": "ded77a5c-3c34-467f-91ca-eb1f40d15eae",
+      "at": "2026-07-25T11:28:58.364Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60462",
+      "details": "Updated 480W Jinko Mono Panel"
+    },
+    {
+      "id": "d9c6c8f5-2f74-4d7d-a31e-12f666175137",
+      "at": "2026-07-25T11:28:30.542Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60626",
+      "details": "Updated 15KVA Relay Voltage Stabilizer (45-280V)"
+    },
+    {
+      "id": "0151d5d5-58d9-4f01-8d84-b61d33f2bd51",
+      "at": "2026-07-25T11:28:28.470Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60624",
+      "details": "Updated 30KVA THYRISTOR Voltage Stabilizer (50-255V)"
+    },
+    {
+      "id": "8ab836eb-3375-4ffc-84ca-2d04dabfab23",
+      "at": "2026-07-25T11:28:25.946Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "product.updated",
+      "target": "product:60627",
+      "details": "Updated 25KVA Relay Voltage Stabilizer (45-280V)"
+    },
+    {
+      "id": "4a2e80b1-fcd6-451e-874a-283af94bf795",
+      "at": "2026-07-25T11:02:08.034Z",
+      "actorEmail": "avariodigitals@gmail.com",
+      "action": "audit.cleared",
+      "target": "audit",
+      "details": "Cleared 61 audit records."
+    }
+  ]
+}
