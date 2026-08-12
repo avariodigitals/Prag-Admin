@@ -87,7 +87,30 @@ export async function getProducts(page = 1, search = '', status = 'any', categor
     const start = (page - 1) * 20;
     return { data: sorted.slice(start, start + 20), total: sorted.length };
   }
-  const qs = new URLSearchParams({ per_page: '20', page: String(page), ...(search && { search }), ...(status !== 'any' && { status }), ...(category && { category }), ...(orderby && { orderby }), ...(order && { order }), ...(stockStatus && { stock_status: stockStatus }) });
+  // When searching, query both by name (search) and SKU (sku) in parallel,
+  // then merge + deduplicate. The WC API's `search` param only matches product
+  // names, not SKUs — so a separate `sku` query is needed for SKU matches.
+  if (search) {
+    const nameQs = new URLSearchParams({ per_page: '20', page: String(page), search, ...(status !== 'any' && { status }), ...(category && { category }), ...(orderby && { orderby }), ...(order && { order }), ...(stockStatus && { stock_status: stockStatus }) });
+    const skuQs = new URLSearchParams({ per_page: '20', page: '1', sku: search, ...(status !== 'any' && { status }), ...(category && { category }), ...(stockStatus && { stock_status: stockStatus }) });
+    const [nameResult, skuResult] = await Promise.all([
+      wcFetchWithTotal<WCProduct>(`/products?${nameQs}`, { cache: 'no-store' }),
+      wcFetchWithTotal<WCProduct>(`/products?${skuQs}`, { cache: 'no-store' }),
+    ]);
+    // Merge, deduplicate by product ID, preserving name matches first
+    const seen = new Set<number>();
+    const merged: WCProduct[] = [];
+    for (const p of [...nameResult.data, ...skuResult.data]) {
+      if (!seen.has(p.id)) {
+        seen.add(p.id);
+        merged.push(p);
+      }
+    }
+    const total = Math.max(nameResult.total, merged.length);
+    const start = (page - 1) * 20;
+    return { data: merged.slice(start, start + 20), total };
+  }
+  const qs = new URLSearchParams({ per_page: '20', page: String(page), ...(status !== 'any' && { status }), ...(category && { category }), ...(orderby && { orderby }), ...(order && { order }), ...(stockStatus && { stock_status: stockStatus }) });
   return wcFetchWithTotal<WCProduct>(`/products?${qs}`, { cache: 'no-store' });
 }
 

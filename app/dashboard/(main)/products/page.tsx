@@ -56,7 +56,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       </div>
 
       <form className="flex flex-col md:flex-row gap-3">
-        <input name="search" defaultValue={sp.search} placeholder="Search products..."
+        <input name="search" defaultValue={sp.search} placeholder="Search by name or SKU..."
           className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 w-full md:w-64" />
         <select name="status" defaultValue={sp.status ?? 'any'}
           className="h-10 px-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 w-full md:w-auto">
