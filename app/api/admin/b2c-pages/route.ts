@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession, isAdmin } from '@/lib/auth';
-import { readB2CPages, writeB2CPages, appendAuditLog } from '@/lib/adminStore';
+import { readB2CPages, updateAdminStore } from '@/lib/adminStore';
 
 export async function GET() {
   const session = await getSession();
@@ -18,15 +18,23 @@ export async function PUT(req: Request) {
 
   const body = await req.json();
   const pages = Array.isArray(body?.pages) ? body.pages : [];
+  const actorEmail = session.user?.user_email ?? 'admin';
 
-  await writeB2CPages(pages);
+  // Single read-modify-write to avoid race condition between
+  // writeB2CPages and appendAuditLog overwriting each other.
+  const now = new Date().toISOString();
+  const entryId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-  await appendAuditLog({
-    actorEmail: session.user?.user_email ?? 'admin',
-    action: 'update',
-    target: 'b2c pages',
-    details: `Saved ${pages.length} b2c pages`,
-  });
+  await updateAdminStore((current) => ({
+    ...current,
+    b2cPages: pages,
+    audit: [
+      { id: entryId, at: now, actorEmail, action: 'update', target: 'b2c pages', details: `Saved ${pages.length} b2c pages` },
+      ...current.audit,
+    ].slice(0, 500),
+  }));
 
   return NextResponse.json({ pages });
 }
