@@ -173,6 +173,7 @@ export interface SiteSettings {
   trust_signal_badges: TrustBadgeItem[];
   // Hero Slides
   hero_background: string;
+  slide_transition: string;
   slides: SlideItem[];
   // Category Grid
   categories: CategoryItem[];

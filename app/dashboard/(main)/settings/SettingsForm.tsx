@@ -94,6 +94,7 @@ const HARDCODED_DEFAULTS: SiteSettings = {
     { label: 'Secure Checkout' },
   ],
   hero_background: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png',
+  slide_transition: 'fade',
   socials: {
     facebook: 'https://www.facebook.com/pragpowersolutions',
     instagram: 'https://www.instagram.com/prag_ng/',
@@ -393,6 +394,27 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                   className="w-full h-28 object-cover rounded-xl border border-gray-100 mt-1" />
               )}
             </div>
+          </div>
+
+          <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Slide Transition Effect</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {(['fade', 'slide', 'zoom', 'flip'] as const).map((effect) => (
+                <button
+                  key={effect}
+                  type="button"
+                  onClick={() => setField('slide_transition', effect)}
+                  className={`px-4 py-2.5 rounded-xl border text-sm font-medium capitalize transition-all ${
+                    form.slide_transition === effect
+                      ? 'border-sky-700 bg-sky-50 text-sky-700'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {effect}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400">Choose how slides transition on the desktop hero banner. Fade = smooth crossfade, Slide = horizontal shift, Zoom = scale in/out, Flip = subtle rotation.</p>
           </div>
 
           <div className="flex items-center justify-between">
