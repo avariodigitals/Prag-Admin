@@ -62,6 +62,7 @@ export interface SlideItem {
   link: string;
   productImage: string;
   productAlt: string;
+  backgroundImage?: string;
 }
 
 export interface CategoryItem {
