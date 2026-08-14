@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useRef } from 'react';
-import type { SiteSettings, SlideItem, CategoryItem } from '@/lib/types';
+import type { SiteSettings, SlideItem, CategoryItem, CheckoutFaqItem, TestimonialItem, HomeNeedItem, TrustStatItem, TrustBadgeItem } from '@/lib/types';
 import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library, Loader2 } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 import { revalidateSettings } from '@/lib/revalidateFrontend';
@@ -11,10 +11,15 @@ const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm foc
 const labelCls = 'text-sm font-semibold text-gray-700';
 const sectionCls = 'space-y-4 pt-4 border-t border-gray-100 first:border-0 first:pt-0';
 
-const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Categories', 'Footer', 'Payments'];
+const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Checkout FAQ', 'Final CTA', 'Categories', 'Footer', 'Payments'];
 
 const DEFAULT_SLIDE: SlideItem = { title: '', description: '', cta: '', link: '/products', productImage: '', productAlt: '' };
 const DEFAULT_CATEGORY: CategoryItem = { name: '', slug: '', image: '' };
+const DEFAULT_FAQ_ITEM: CheckoutFaqItem = { question: '', answer: '' };
+const DEFAULT_TESTIMONIAL: TestimonialItem = { rating: 5, quote: '', name: '', location: '', product: '', image: '' };
+const DEFAULT_HOME_NEED: HomeNeedItem = { title: '', description: '', cta: 'Get Recommendations', link: '/products', icon: 'home', image: '' };
+const DEFAULT_TRUST_STAT: TrustStatItem = { value: '', label: '' };
+const DEFAULT_TRUST_BADGE: TrustBadgeItem = { label: '' };
 
 const HARDCODED_DEFAULTS: SiteSettings = {
   contact_phone: '+2348032170129',
@@ -28,11 +33,66 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   under_construction_title: 'We are coming back soon',
   under_construction_message: 'We are currently making improvements to serve you better. Please check back shortly.',
   footer_description: "Nigeria's leading power engineering company. We design, supply and install power solutions for homes, businesses and industrial facilities across the country.",
-  brand_banner_title: 'No Hype. Just Inverters That Deliver.',
-  brand_banner_description: 'Explore stabilizers, inverters, batteries, and complete power solutions designed to keep your home or business running without interruption.',
-  brand_banner_cta: 'Buy Inverters Built to Last',
-  brand_banner_link: '/products/inverters',
-  brand_banner_image: 'https://central.prag.global/wp-content/uploads/2026/04/f80b14a4d9e3fc153ae2e60c3d8d11a58ebe33fe.png',
+  brand_banner_kicker: 'HELP ME CHOOSE',
+  brand_banner_title: 'Not Sure What to Buy?',
+  brand_banner_description: 'Tell us what you want to power and we\'ll help you find the right PRAG setup.',
+  brand_banner_cta: 'Use Power Calculator',
+  brand_banner_link: '/power-calculator',
+  brand_banner_whatsapp_text: 'Ask PRAG on WhatsApp',
+  brand_banner_image: '',
+  final_cta_title: 'Ready for More Reliable Power?',
+  final_cta_subtitle: 'Shop PRAG power solutions for your home today.',
+  final_cta_shop_text: 'Shop Now',
+  final_cta_shop_link: '/products',
+  final_cta_whatsapp_text: 'Chat with PRAG on WhatsApp',
+  checkout_faq_kicker: 'FAQ',
+  checkout_faq_title: 'Still deciding? Here\'s what you need to know before you buy.',
+  checkout_faq_subtitle: 'Straight answers on sizing, warranty, delivery and installation — so you can shop with confidence and never second-guess your power setup.',
+  checkout_faq_link_text: 'Find your perfect inverter size',
+  checkout_faq_link_url: '/power-calculator',
+  checkout_faq_items: [
+    { question: 'Which inverter size should I buy?', answer: 'The right inverter size depends on the total wattage of the appliances you want to power and how long you need them running. Add up the wattage of your essential loads (fridge, lights, TV, fans) and add a 20–30% buffer for surge power. Use our Power Calculator for an instant recommendation, or chat with our team for a tailored sizing.' },
+    { question: 'How do I know what battery I need?', answer: 'Battery sizing depends on your inverter size, how long you want backup power, and your daily energy usage. A 12V system works for small setups, while 48V is better for larger loads. Lithium batteries last longer and charge faster than lead-acid. Use our Power Calculator or talk to our team to match the right battery capacity (Ah) to your inverter and runtime needs.' },
+    { question: 'How long will my battery last?', answer: 'Battery runtime depends on capacity (kWh), the load you are running, and battery chemistry. A 2.4kWh lithium battery powering a 300W load gives roughly 6–7 hours of backup. Lithium batteries typically last 5–10 years with proper use, while lead-acid batteries last 2–4 years. Our team can help you estimate runtime for your specific setup.' },
+    { question: 'Do PRAG products come with warranty?', answer: 'Yes. All PRAG products come with a manufacturer\'s warranty — typically 5 years for inverters and stabilizers, and up to 10 years for lithium batteries. Warranty covers manufacturing defects and component failures under normal use. Your warranty is activated automatically at purchase.' },
+    { question: 'Do you deliver nationwide?', answer: 'Yes, we deliver to all 36 states in Nigeria. Orders within Lagos arrive within 1–2 business days, while other states typically take 2–5 business days. Shipping is free on orders over ₦500,000. You will receive tracking details once your order is dispatched.' },
+    { question: 'Can I get help choosing the right product?', answer: 'Absolutely. You can use our Power Calculator for an instant recommendation, chat with us on WhatsApp, call our support line, or visit any PRAG store. Our team will guide you to the right inverter, battery, or solar setup based on your budget and power needs.' },
+    { question: 'Can PRAG help with installation?', answer: 'Yes. PRAG offers professional installation through our certified engineers and authorized partner network across Nigeria. We handle everything from residential inverter setups to full solar installations. Schedule an installation by contacting us or visiting a PRAG store after your purchase.' },
+  ],
+  checkout_faq_banner_enabled: true,
+  checkout_faq_banner_image: 'https://central.prag.global/wp-content/uploads/2026/04/eebd514c0d3e75e4f32cb8fd691c7b3613fd99d5.png',
+  checkout_faq_banner_link: '/products/inverters',
+  testimonial_enabled: true,
+  testimonial_title: 'Trusted in Homes Across Nigeria',
+  testimonial_subtitle: 'Real reviews from real PRAG customers who took control of their power.',
+  testimonial_items: [
+    { rating: 5, quote: 'I bought a 3.5kVA inverter and two lithium batteries for my flat. From the day it was installed, I have not had a single dark night. The team came, sized everything properly, and installed it clean. Worth every naira.', name: 'Chidi', location: 'Lekki, Lagos', product: '3.5kVA Inverter + Lithium Battery', image: '' },
+    { rating: 5, quote: 'The stabilizer saved my fridge and TV during the voltage spikes in our area. It has been running silently for eight months now — no issues at all. PRAG makes solid products.', name: 'Aisha', location: 'Kano', product: '5kVA Voltage Stabilizer', image: '' },
+    { rating: 5, quote: 'I was tired of spending on fuel. PRAG set up a solar system for my home and I barely touch my generator now. Installation was professional and the support team answered every question.', name: 'Emeka', location: 'Port Harcourt', product: 'Solar System Installation', image: '' },
+  ],
+  home_need_enabled: true,
+  home_need_title: 'Power Your Home Your Way',
+  home_need_subtitle: 'Whatever your setup, PRAG has a reliable power solution sized for how you actually live.',
+  home_need_items: [
+    { title: 'For Apartments', description: 'Compact inverter and battery combos that fit tight spaces and keep your essentials running through every outage.', cta: 'Get Recommendations', link: '/home-needs/apartments', icon: '', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80' },
+    { title: 'For Family Homes', description: 'Higher-capacity inverters with extended-life lithium batteries for longer runtime across more rooms and appliances.', cta: 'Get Recommendations', link: '/home-needs/family-homes', icon: '', image: 'https://images.unsplash.com/photo-1568605114967-8130f81a6e54?w=800&q=80' },
+    { title: 'For Home Offices', description: 'Quiet, clean power that keeps your laptop, internet router, and essential devices online without missing a beat.', cta: 'Get Recommendations', link: '/home-needs/home-offices', icon: '', image: 'https://images.unsplash.com/photo-1593696954577-ab3d39817b21?w=800&q=80' },
+    { title: 'For Solar Homes', description: 'Solar panels and hybrid inverters that cut your grid and generator dependence — and your fuel bill.', cta: 'Get Recommendations', link: '/home-needs/solar-homes', icon: '', image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&q=80' },
+  ],
+  trust_signal_enabled: true,
+  trust_signal_kicker: 'Why People Buy PRAG',
+  trust_signal_title: 'Buy With Confidence',
+  trust_signal_stats: [
+    { value: '36', label: 'States Covered' },
+    { value: '15+', label: 'Years Power Expertise' },
+    { value: '50K+', label: 'Installations' },
+  ],
+  trust_signal_badges: [
+    { label: 'Product Warranty' },
+    { label: 'Nationwide Delivery' },
+    { label: 'Expert Support' },
+    { label: 'Secure Checkout' },
+  ],
   hero_background: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png',
   socials: {
     facebook: 'https://www.facebook.com/pragpowersolutions',
@@ -67,6 +127,11 @@ function mergeWithDefaults(saved: SiteSettings | null): SiteSettings {
     socials: { ...HARDCODED_DEFAULTS.socials, ...(saved.socials ?? {}) },
     slides: Array.isArray(saved.slides) && saved.slides.length > 0 ? saved.slides : HARDCODED_DEFAULTS.slides,
     categories: Array.isArray(saved.categories) && saved.categories.length > 0 ? saved.categories : HARDCODED_DEFAULTS.categories,
+    checkout_faq_items: Array.isArray(saved.checkout_faq_items) && saved.checkout_faq_items.length > 0 ? saved.checkout_faq_items : HARDCODED_DEFAULTS.checkout_faq_items,
+    testimonial_items: Array.isArray(saved.testimonial_items) && saved.testimonial_items.length > 0 ? saved.testimonial_items : HARDCODED_DEFAULTS.testimonial_items,
+    home_need_items: Array.isArray(saved.home_need_items) && saved.home_need_items.length > 0 ? saved.home_need_items : HARDCODED_DEFAULTS.home_need_items,
+    trust_signal_stats: Array.isArray(saved.trust_signal_stats) && saved.trust_signal_stats.length > 0 ? saved.trust_signal_stats : HARDCODED_DEFAULTS.trust_signal_stats,
+    trust_signal_badges: Array.isArray(saved.trust_signal_badges) && saved.trust_signal_badges.length > 0 ? saved.trust_signal_badges : HARDCODED_DEFAULTS.trust_signal_badges,
     paystack_public_key: saved.paystack_public_key ?? '',
     hidden_categories: Array.isArray(saved.hidden_categories) ? saved.hidden_categories : [],
     category_order: Array.isArray(saved.category_order) ? saved.category_order : [],
@@ -112,6 +177,46 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
 
   function addCategory() { setField('categories', [...form.categories, { ...DEFAULT_CATEGORY }]); }
   function removeCategory(i: number) { setField('categories', form.categories.filter((_, idx) => idx !== i)); }
+
+  function setFaqItem(index: number, key: keyof CheckoutFaqItem, value: string) {
+    const items = [...form.checkout_faq_items];
+    items[index] = { ...items[index], [key]: value };
+    setField('checkout_faq_items', items);
+  }
+  function addFaqItem() { setField('checkout_faq_items', [...form.checkout_faq_items, { ...DEFAULT_FAQ_ITEM }]); }
+  function removeFaqItem(i: number) { setField('checkout_faq_items', form.checkout_faq_items.filter((_, idx) => idx !== i)); }
+
+  function setTestimonial(index: number, key: keyof TestimonialItem, value: string | number) {
+    const items = [...form.testimonial_items];
+    items[index] = { ...items[index], [key]: value };
+    setField('testimonial_items', items);
+  }
+  function addTestimonial() { setField('testimonial_items', [...form.testimonial_items, { ...DEFAULT_TESTIMONIAL }]); }
+  function removeTestimonial(i: number) { setField('testimonial_items', form.testimonial_items.filter((_, idx) => idx !== i)); }
+
+  function setHomeNeed(index: number, key: keyof HomeNeedItem, value: string) {
+    const items = [...form.home_need_items];
+    items[index] = { ...items[index], [key]: value };
+    setField('home_need_items', items);
+  }
+  function addHomeNeed() { setField('home_need_items', [...form.home_need_items, { ...DEFAULT_HOME_NEED }]); }
+  function removeHomeNeed(i: number) { setField('home_need_items', form.home_need_items.filter((_, idx) => idx !== i)); }
+
+  function setTrustStat(index: number, key: keyof TrustStatItem, value: string) {
+    const items = [...form.trust_signal_stats];
+    items[index] = { ...items[index], [key]: value };
+    setField('trust_signal_stats', items);
+  }
+  function addTrustStat() { setField('trust_signal_stats', [...form.trust_signal_stats, { ...DEFAULT_TRUST_STAT }]); }
+  function removeTrustStat(i: number) { setField('trust_signal_stats', form.trust_signal_stats.filter((_, idx) => idx !== i)); }
+
+  function setTrustBadge(index: number, value: string) {
+    const items = [...form.trust_signal_badges];
+    items[index] = { ...items[index], label: value };
+    setField('trust_signal_badges', items);
+  }
+  function addTrustBadge() { setField('trust_signal_badges', [...form.trust_signal_badges, { ...DEFAULT_TRUST_BADGE }]); }
+  function removeTrustBadge(i: number) { setField('trust_signal_badges', form.trust_signal_badges.filter((_, idx) => idx !== i)); }
 
   async function uploadMedia(file: File, fieldKey: string) {
     setUploadingField(fieldKey);
@@ -372,27 +477,37 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
       {activeTab === 'Brand Banner' && (
         <div className="space-y-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Mid-page Banner Section</p>
+          <p className="text-xs text-gray-400">A focused &quot;Help Me Choose&quot; banner shown after Featured Products. Captures unsure buyers with two clear paths: the Power Calculator or a WhatsApp chat. Upload a background image for a richer look — text stays legible via an automatic dark overlay.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5 md:col-span-2">
+              <label className={labelCls}>Kicker (eyebrow label)</label>
+              <input value={form.brand_banner_kicker} onChange={e => setField('brand_banner_kicker', e.target.value)} className={inputCls} placeholder="HELP ME CHOOSE" />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
               <label className={labelCls}>Title</label>
-              <input value={form.brand_banner_title} onChange={e => setField('brand_banner_title', e.target.value)} className={inputCls} placeholder="No Hype. Just Inverters That Deliver." />
+              <input value={form.brand_banner_title} onChange={e => setField('brand_banner_title', e.target.value)} className={inputCls} placeholder="Not Sure What to Buy?" />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <label className={labelCls}>Description</label>
               <textarea value={form.brand_banner_description} onChange={e => setField('brand_banner_description', e.target.value)} rows={3}
                 className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
-                placeholder="Explore stabilizers, inverters..." />
+                placeholder="Tell us what you want to power and we'll help you find the right PRAG setup." />
             </div>
             <div className="space-y-1.5">
-              <label className={labelCls}>CTA Button Text</label>
-              <input value={form.brand_banner_cta} onChange={e => setField('brand_banner_cta', e.target.value)} className={inputCls} placeholder="Buy Inverters Built to Last" />
+              <label className={labelCls}>Primary CTA Text (Power Calculator)</label>
+              <input value={form.brand_banner_cta} onChange={e => setField('brand_banner_cta', e.target.value)} className={inputCls} placeholder="Use Power Calculator" />
             </div>
             <div className="space-y-1.5">
-              <label className={labelCls}>CTA Link</label>
-              <input value={form.brand_banner_link} onChange={e => setField('brand_banner_link', e.target.value)} className={inputCls} placeholder="/products/inverters" />
+              <label className={labelCls}>Primary CTA Link</label>
+              <input value={form.brand_banner_link} onChange={e => setField('brand_banner_link', e.target.value)} className={inputCls} placeholder="/power-calculator" />
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <label className={labelCls}>Product Image</label>
+              <label className={labelCls}>WhatsApp CTA Text</label>
+              <input value={form.brand_banner_whatsapp_text} onChange={e => setField('brand_banner_whatsapp_text', e.target.value)} className={inputCls} placeholder="Ask PRAG on WhatsApp" />
+              <p className="text-xs text-gray-400">WhatsApp link is pulled from Socials &rarr; WhatsApp. No third option is shown.</p>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className={labelCls}>Background Image (optional)</label>
               <div className="flex gap-2">
                 <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
                   {uploadingField === 'brand-banner' ? 'Uploading...' : 'Upload Image'}
@@ -413,10 +528,528 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                   className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                   <Library size={15} /> Library
                 </button>
+                {form.brand_banner_image && (
+                  <button type="button" onClick={() => setField('brand_banner_image', '')}
+                    className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors">
+                    <Trash2 size={15} /> Clear
+                  </button>
+                )}
               </div>
-              {form.brand_banner_image && (
-                <Image src={form.brand_banner_image} alt="preview" width={192} height={96} unoptimized className="h-24 w-auto object-contain rounded-lg border border-gray-100 mt-1" />
+              {form.brand_banner_image ? (
+                <Image src={form.brand_banner_image} alt="preview" width={400} height={120} unoptimized className="w-full h-28 object-cover rounded-xl border border-gray-100 mt-1" />
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">No background uploaded — banner falls back to a clean gradient. Upload a wide image (e.g. 1600&times;600) for best results.</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Trust Signal ── */}
+      {activeTab === 'Trust Signal' && (
+        <div className="space-y-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Trust Signal (above Flash Sales)</p>
+          <p className="text-xs text-gray-400">A consumer-focused credibility block shown on the shop homepage, right before the discount/flash sales section. Keep it short and confidence-driven.</p>
+
+          {/* Header */}
+          <div className={sectionCls}>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <input type="checkbox" checked={form.trust_signal_enabled} onChange={e => setField('trust_signal_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500" />
+                Enable Trust Signal section
+              </label>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>Kicker</label>
+                <input value={form.trust_signal_kicker} onChange={e => setField('trust_signal_kicker', e.target.value)} className={inputCls} placeholder="Why People Buy PRAG" />
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>Title</label>
+                <input value={form.trust_signal_title} onChange={e => setField('trust_signal_title', e.target.value)} className={inputCls} placeholder="Buy With Confidence" />
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Stats ({form.trust_signal_stats.length})</p>
+              <button type="button" onClick={addTrustStat}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Stat
+              </button>
+            </div>
+
+            {form.trust_signal_stats.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">No stats yet. Click &quot;Add Stat&quot; to create one.</p>
+            )}
+
+            {form.trust_signal_stats.map((item, i) => (
+              <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">Stat {i + 1}</span>
+                  <button type="button" onClick={() => removeTrustStat(i)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>Value</label>
+                    <input value={item.value} onChange={e => setTrustStat(i, 'value', e.target.value)} className={inputCls} placeholder="36" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>Label</label>
+                    <input value={item.label} onChange={e => setTrustStat(i, 'label', e.target.value)} className={inputCls} placeholder="States Covered" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Badges */}
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Badges ({form.trust_signal_badges.length})</p>
+              <button type="button" onClick={addTrustBadge}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Badge
+              </button>
+            </div>
+
+            {form.trust_signal_badges.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">No badges yet. Click &quot;Add Badge&quot; to create one.</p>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {form.trust_signal_badges.map((item, i) => (
+                <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-700">Badge {i + 1}</span>
+                    <button type="button" onClick={() => removeTrustBadge(i)}
+                      className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>Label</label>
+                    <input value={item.label} onChange={e => setTrustBadge(i, e.target.value)} className={inputCls} placeholder="Product Warranty" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Home Needs ── */}
+      {activeTab === 'Home Needs' && (
+        <div className="space-y-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Shop by Home Need (above Testimonials)</p>
+          <p className="text-xs text-gray-400">Themed cards that route shoppers to the right product category by home type. Link to SEO-rich category pages or the power calculator for recommendations.</p>
+
+          {/* Header */}
+          <div className={sectionCls}>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <input type="checkbox" checked={form.home_need_enabled} onChange={e => setField('home_need_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500" />
+                Enable Home Needs section
+              </label>
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Section Title</label>
+              <input value={form.home_need_title} onChange={e => setField('home_need_title', e.target.value)} className={inputCls} placeholder="Power Your Home Your Way" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Section Subtitle</label>
+              <textarea value={form.home_need_subtitle} onChange={e => setField('home_need_subtitle', e.target.value)} rows={2}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Whatever your setup, PRAG has a reliable power solution..." />
+            </div>
+          </div>
+
+          {/* Cards */}
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Cards ({form.home_need_items.length})</p>
+              <button type="button" onClick={addHomeNeed}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Card
+              </button>
+            </div>
+
+            {form.home_need_items.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">No cards yet. Click &quot;Add Card&quot; to create one.</p>
+            )}
+
+            {form.home_need_items.map((item, i) => (
+              <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">Card {i + 1}</span>
+                  <button type="button" onClick={() => removeHomeNeed(i)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>Card Title</label>
+                    <input value={item.title} onChange={e => setHomeNeed(i, 'title', e.target.value)} className={inputCls} placeholder="For Apartments" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>CTA Button Text</label>
+                    <input value={item.cta} onChange={e => setHomeNeed(i, 'cta', e.target.value)} className={inputCls} placeholder="Get Recommendations" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Description</label>
+                  <textarea value={item.description} onChange={e => setHomeNeed(i, 'description', e.target.value)} rows={2}
+                    className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                    placeholder="Compact backup solutions..." />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className={labelCls}>CTA Link</label>
+                  <input value={item.link} onChange={e => setHomeNeed(i, 'link', e.target.value)} className={inputCls} placeholder="/home-needs/apartments" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Card Image (optional)</label>
+                  <div className="flex gap-2 items-start">
+                    <input
+                      value={item.image}
+                      onChange={e => setHomeNeed(i, 'image', e.target.value)}
+                      className={inputCls}
+                      placeholder="https://... product image URL"
+                    />
+                    <div className="shrink-0 flex gap-2">
+                      <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors whitespace-nowrap">
+                        {uploadingField === `home-need-${i}` ? 'Uploading...' : 'Upload'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (event) => {
+                            const file = event.target.files?.[0];
+                            if (!file) return;
+                            const url = await uploadMedia(file, `home-need-${i}`);
+                            if (url) setHomeNeed(i, 'image', url);
+                            event.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <button type="button" onClick={() => openMediaPicker((url) => setHomeNeed(i, 'image', url))}
+                        className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
+                        <Library size={15} /> Library
+                      </button>
+                    </div>
+                  </div>
+                  {item.image && (
+                    <Image src={item.image} alt="preview" width={192} height={96} unoptimized className="h-20 w-auto object-contain rounded-lg border border-gray-100 mt-1" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Testimonials ── */}
+      {activeTab === 'Testimonials' && (
+        <div className="space-y-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Customer Reviews (above Checkout FAQ)</p>
+          <p className="text-xs text-gray-400">Genuine reviews shown on every page. Up to 3 are displayed — add more in reserve and reorder by deleting/re-adding. Customer installation photos make reviews stronger.</p>
+
+          {/* Header */}
+          <div className={sectionCls}>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <input type="checkbox" checked={form.testimonial_enabled} onChange={e => setField('testimonial_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500" />
+                Enable testimonials section
+              </label>
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Section Title</label>
+              <input value={form.testimonial_title} onChange={e => setField('testimonial_title', e.target.value)} className={inputCls} placeholder="Trusted in Homes Across Nigeria" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Section Subtitle</label>
+              <textarea value={form.testimonial_subtitle} onChange={e => setField('testimonial_subtitle', e.target.value)} rows={2}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Real reviews from real PRAG customers..." />
+            </div>
+          </div>
+
+          {/* Review items */}
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Reviews ({form.testimonial_items.length})</p>
+              <button type="button" onClick={addTestimonial}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Review
+              </button>
+            </div>
+
+            {form.testimonial_items.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">No reviews yet. Click &quot;Add Review&quot; to create one.</p>
+            )}
+
+            {form.testimonial_items.map((item, i) => (
+              <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">Review {i + 1}</span>
+                  <button type="button" onClick={() => removeTestimonial(i)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                {/* Rating */}
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Star Rating (1–5)</label>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, starIdx) => (
+                      <button key={starIdx} type="button" onClick={() => setTestimonial(i, 'rating', starIdx + 1)}
+                        className="p-0.5 hover:scale-110 transition-transform">
+                        <svg width="24" height="24" viewBox="0 0 24 24"
+                          fill={starIdx < item.rating ? 'currentColor' : 'none'}
+                          stroke="currentColor" strokeWidth="1.5"
+                          className={starIdx < item.rating ? 'text-amber-400' : 'text-gray-300'}>
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    ))}
+                    <span className="ml-2 text-sm text-gray-500">{item.rating} / 5</span>
+                  </div>
+                </div>
+
+                                {/* Quote */}
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Review Quote</label>
+                  <textarea value={item.quote} onChange={e => setTestimonial(i, 'quote', e.target.value)} rows={3}
+                    className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                    placeholder="&ldquo;I bought a 3.5kVA inverter...&rdquo;" />
+                </div>
+
+                {/* Name + Location + Product */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>Customer First Name</label>
+                    <input value={item.name} onChange={e => setTestimonial(i, 'name', e.target.value)} className={inputCls} placeholder="Chidi" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>Location</label>
+                    <input value={item.location} onChange={e => setTestimonial(i, 'location', e.target.value)} className={inputCls} placeholder="Lekki, Lagos" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelCls}>Product Purchased</label>
+                    <input value={item.product} onChange={e => setTestimonial(i, 'product', e.target.value)} className={inputCls} placeholder="3.5kVA Inverter + Lithium Battery" />
+                  </div>
+                </div>
+
+                {/* Customer / installation photo */}
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Customer / Installation Photo (optional)</label>
+                  <p className="text-xs text-gray-400">Upload a customer photo or installation photo. Shown as a banner at the top of the review card. Leave empty to show initials avatar instead.</p>
+                  <div className="flex gap-2 items-start">
+                    <input
+                      value={item.image}
+                      onChange={e => setTestimonial(i, 'image', e.target.value)}
+                      className={inputCls}
+                      placeholder="https://... image URL (leave empty for initials avatar)"
+                    />
+                    <div className="shrink-0 flex gap-2">
+                      <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors whitespace-nowrap">
+                        {uploadingField === `testimonial-${i}` ? 'Uploading...' : 'Upload'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (event) => {
+                            const file = event.target.files?.[0];
+                            if (!file) return;
+                            const url = await uploadMedia(file, `testimonial-${i}`);
+                            if (url) setTestimonial(i, 'image', url);
+                            event.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <button type="button" onClick={() => openMediaPicker((url) => setTestimonial(i, 'image', url))}
+                        className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
+                        <Library size={15} /> Library
+                      </button>
+                    </div>
+                  </div>
+                  {item.image && (
+                    <Image src={item.image} alt="preview" width={192} height={96} unoptimized className="h-20 w-auto object-cover rounded-lg border border-gray-100 mt-1" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Checkout FAQ ── */}
+      {activeTab === 'Checkout FAQ' && (
+        <div className="space-y-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Checkout FAQ (above Final CTA)</p>
+          <p className="text-xs text-gray-400">Short, sales-focused answers that remove buying hesitation. Shown on every page above the Final CTA section.</p>
+
+          {/* Header text */}
+          <div className={sectionCls}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>Kicker</label>
+                <input value={form.checkout_faq_kicker} onChange={e => setField('checkout_faq_kicker', e.target.value)} className={inputCls} placeholder="FAQ" />
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>Link Text</label>
+                <input value={form.checkout_faq_link_text} onChange={e => setField('checkout_faq_link_text', e.target.value)} className={inputCls} placeholder="Find your perfect inverter size" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Title</label>
+              <input value={form.checkout_faq_title} onChange={e => setField('checkout_faq_title', e.target.value)} className={inputCls} placeholder="Still deciding? Here's what you need to know before you buy." />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Subtitle</label>
+              <textarea value={form.checkout_faq_subtitle} onChange={e => setField('checkout_faq_subtitle', e.target.value)} rows={2}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Straight answers on sizing, warranty, delivery and installation..." />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Link URL</label>
+              <input value={form.checkout_faq_link_url} onChange={e => setField('checkout_faq_link_url', e.target.value)} className={inputCls} placeholder="/power-calculator" />
+            </div>
+          </div>
+
+          {/* FAQ Items */}
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">FAQ Items ({form.checkout_faq_items.length})</p>
+              <button type="button" onClick={addFaqItem}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Question
+              </button>
+            </div>
+
+            {form.checkout_faq_items.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">No questions yet. Click &quot;Add Question&quot; to create one.</p>
+            )}
+
+            {form.checkout_faq_items.map((item, i) => (
+              <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">Question {i + 1}</span>
+                  <button type="button" onClick={() => removeFaqItem(i)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Question</label>
+                  <input value={item.question} onChange={e => setFaqItem(i, 'question', e.target.value)} className={inputCls} placeholder="Which inverter size should I buy?" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Answer</label>
+                  <textarea value={item.answer} onChange={e => setFaqItem(i, 'answer', e.target.value)} rows={3}
+                    className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                    placeholder="The right inverter size depends on..." />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Product Banner */}
+          <div className={sectionCls}>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Desktop Product Banner</p>
+            <p className="text-xs text-gray-400">Shown below the link on desktop only (hidden on mobile). Use a transparent PNG for best results.</p>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <input type="checkbox" checked={form.checkout_faq_banner_enabled} onChange={e => setField('checkout_faq_banner_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500" />
+                Enable banner
+              </label>
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Banner Image URL</label>
+              <div className="flex gap-2 items-start">
+                <input
+                  value={form.checkout_faq_banner_image}
+                  onChange={e => setField('checkout_faq_banner_image', e.target.value)}
+                  className={inputCls}
+                  placeholder="https://... product image URL"
+                />
+                <div className="shrink-0 flex gap-2">
+                  <label className="inline-flex items-center justify-center px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors whitespace-nowrap">
+                    {uploadingField === 'faq-banner' ? 'Uploading...' : 'Upload Image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        const url = await uploadMedia(file, 'faq-banner');
+                        if (url) setField('checkout_faq_banner_image', url);
+                        event.target.value = '';
+                      }}
+                    />
+                  </label>
+                  <button type="button" onClick={() => openMediaPicker((url) => setField('checkout_faq_banner_image', url))}
+                    className="inline-flex items-center gap-2 px-4 h-11 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
+                    <Library size={15} /> Library
+                  </button>
+                </div>
+              </div>
+              {form.checkout_faq_banner_image && (
+                <Image src={form.checkout_faq_banner_image} alt="preview" width={192} height={96} unoptimized className="h-24 w-auto object-contain rounded-lg border border-gray-100 mt-1" />
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Banner Link URL</label>
+              <input value={form.checkout_faq_banner_link} onChange={e => setField('checkout_faq_banner_link', e.target.value)} className={inputCls} placeholder="/products/inverters" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Final CTA ── */}
+      {activeTab === 'Final CTA' && (
+        <div className="space-y-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Final Conversion CTA (above footer)</p>
+          <p className="text-xs text-gray-400">Shown just before the footer on every page. The WhatsApp link uses the WhatsApp URL set under the Socials tab.</p>
+          <div className={sectionCls}>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Title</label>
+              <input value={form.final_cta_title} onChange={e => setField('final_cta_title', e.target.value)} className={inputCls} placeholder="Ready for More Reliable Power?" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Subtitle</label>
+              <textarea value={form.final_cta_subtitle} onChange={e => setField('final_cta_subtitle', e.target.value)} rows={2}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Shop PRAG power solutions for your home today." />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>Shop Button Text</label>
+                <input value={form.final_cta_shop_text} onChange={e => setField('final_cta_shop_text', e.target.value)} className={inputCls} placeholder="Shop Now" />
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>Shop Button Link</label>
+                <input value={form.final_cta_shop_link} onChange={e => setField('final_cta_shop_link', e.target.value)} className={inputCls} placeholder="/products" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>WhatsApp CTA Text</label>
+              <input value={form.final_cta_whatsapp_text} onChange={e => setField('final_cta_whatsapp_text', e.target.value)} className={inputCls} placeholder="Chat with PRAG on WhatsApp" />
             </div>
           </div>
         </div>

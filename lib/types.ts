@@ -70,6 +70,38 @@ export interface CategoryItem {
   image: string;
 }
 
+export interface CheckoutFaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface TestimonialItem {
+  rating: number;
+  quote: string;
+  name: string;
+  location: string;
+  product: string;
+  image: string;
+}
+
+export interface HomeNeedItem {
+  title: string;
+  description: string;
+  cta: string;
+  link: string;
+  icon: string;
+  image: string;
+}
+
+export interface TrustStatItem {
+  value: string;
+  label: string;
+}
+
+export interface TrustBadgeItem {
+  label: string;
+}
+
 export interface SocialLinks {
   facebook: string;
   instagram: string;
@@ -97,11 +129,45 @@ export interface SiteSettings {
   // Footer
   footer_description: string;
   // Brand Banner
+  brand_banner_kicker: string;
   brand_banner_title: string;
   brand_banner_description: string;
   brand_banner_cta: string;
   brand_banner_link: string;
+  brand_banner_whatsapp_text: string;
   brand_banner_image: string;
+  // Final Conversion CTA (above footer)
+  final_cta_title: string;
+  final_cta_subtitle: string;
+  final_cta_shop_text: string;
+  final_cta_shop_link: string;
+  final_cta_whatsapp_text: string;
+  // Checkout FAQ (above Final CTA)
+  checkout_faq_kicker: string;
+  checkout_faq_title: string;
+  checkout_faq_subtitle: string;
+  checkout_faq_link_text: string;
+  checkout_faq_link_url: string;
+  checkout_faq_items: CheckoutFaqItem[];
+  checkout_faq_banner_enabled: boolean;
+  checkout_faq_banner_image: string;
+  checkout_faq_banner_link: string;
+  // Testimonials / Reviews (above Checkout FAQ)
+  testimonial_enabled: boolean;
+  testimonial_title: string;
+  testimonial_subtitle: string;
+  testimonial_items: TestimonialItem[];
+  // Shop by Home Need (above Testimonials)
+  home_need_enabled: boolean;
+  home_need_title: string;
+  home_need_subtitle: string;
+  home_need_items: HomeNeedItem[];
+  // Trust Signal ("Why People Buy PRAG" / "Buy With Confidence") — above Flash Sales
+  trust_signal_enabled: boolean;
+  trust_signal_kicker: string;
+  trust_signal_title: string;
+  trust_signal_stats: TrustStatItem[];
+  trust_signal_badges: TrustBadgeItem[];
   // Hero Slides
   hero_background: string;
   slides: SlideItem[];

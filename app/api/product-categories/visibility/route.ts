@@ -81,15 +81,39 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to rename category', detail: errText }, { status: wcRes.status });
     }
     const updated = await wcRes.json();
+    const newSlug = updated.slug ?? slug;
+
+    // Sync the renamed category into settings.categories so the storefront
+    // CategoryGrid (which reads from prag-core/v1/settings) reflects the change.
+    try {
+      const settingsRes2 = await fetch(`${WP_API_URL}/prag-core/v1/settings`, { cache: 'no-store' });
+      if (settingsRes2.ok) {
+        const currentSettings = await settingsRes2.json();
+        const currentCats: Array<{ name: string; slug: string; image: string }> =
+          Array.isArray(currentSettings.categories) ? currentSettings.categories : [];
+        const updatedCats = currentCats.map((c) =>
+          c.slug === slug ? { ...c, name: rename.name, slug: newSlug } : c
+        );
+        await fetch(`${WP_API_URL}/prag-core/v1/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
+          body: JSON.stringify({ categories: updatedCats }),
+          cache: 'no-store',
+        });
+      }
+    } catch {
+      // Non-fatal: WC rename succeeded, settings sync is best-effort
+    }
+
     await appendAuditLog({
       actorEmail: session.user?.user_email ?? 'unknown',
       action: 'category.rename',
-      target: `category:${updated.slug ?? slug}`,
+      target: `category:${newSlug}`,
       details: `Renamed category to "${rename.name}"`,
     });
     // Trigger revalidation on both frontends
     await revalidateCategories();
-    return NextResponse.json({ success: true, id: rename.id, name: rename.name, slug: updated.slug ?? slug });
+    return NextResponse.json({ success: true, id: rename.id, name: rename.name, slug: newSlug });
   }
 
   // Handle subcategory order update
