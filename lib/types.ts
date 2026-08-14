@@ -64,6 +64,7 @@ export interface SlideItem {
   productAlt: string;
   backgroundImage?: string;
   showProductImage?: boolean;
+  enabled?: boolean;
 }
 
 export interface CategoryItem {

@@ -13,7 +13,7 @@ const sectionCls = 'space-y-4 pt-4 border-t border-gray-100 first:border-0 first
 
 const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Checkout FAQ', 'Final CTA', 'Categories', 'Footer', 'Payments'];
 
-const DEFAULT_SLIDE: SlideItem = { title: '', description: '', cta: '', link: '/products', productImage: '', productAlt: '', backgroundImage: '', showProductImage: true };
+const DEFAULT_SLIDE: SlideItem = { title: '', description: '', cta: '', link: '/products', productImage: '', productAlt: '', backgroundImage: '', showProductImage: true, enabled: true };
 const DEFAULT_CATEGORY: CategoryItem = { name: '', slug: '', image: '' };
 const DEFAULT_FAQ_ITEM: CheckoutFaqItem = { question: '', answer: '' };
 const DEFAULT_TESTIMONIAL: TestimonialItem = { rating: 5, quote: '', name: '', location: '', product: '', image: '' };
@@ -102,10 +102,10 @@ const HARDCODED_DEFAULTS: SiteSettings = {
     whatsapp: 'https://wa.me/2348032170129',
   },
   slides: [
-    { title: 'No Hype. Just Inverters That Deliver.', description: 'Choose inverters engineered for real-world loads. Shop reliable power systems today.', cta: 'Buy Inverters Built to Last', link: '/products', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/eebd514c0d3e75e4f32cb8fd691c7b3613fd99d5.png', productAlt: 'Heavy Duty Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true },
-    { title: 'Power Your Home. Power Your Business.', description: 'From residential to industrial applications. Trusted inverters for every power need.', cta: 'Explore Our Range', link: '/products', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/7ee70985fdddba92a39a6e67f80ec4773cbf34fd.png', productAlt: 'Residential Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true },
-    { title: 'Built Tough. Tested Tougher.', description: 'Heavy-duty inverters designed to handle the toughest loads without compromise.', cta: 'Shop Heavy Duty Inverters', link: '/inverter', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/b5564cf299de3eea9dbe804a547cf74e99bc41a7.png', productAlt: 'Industrial Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true },
-    { title: 'Reliable Power. Unbeatable Performance.', description: 'Experience consistent power delivery with inverters engineered for excellence.', cta: 'Get Started Today', link: '/products', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/dd4b835690b546ee636b7659added08cd02d9891.png', productAlt: 'Premium Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true },
+    { title: 'No Hype. Just Inverters That Deliver.', description: 'Choose inverters engineered for real-world loads. Shop reliable power systems today.', cta: 'Buy Inverters Built to Last', link: '/products', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/eebd514c0d3e75e4f32cb8fd691c7b3613fd99d5.png', productAlt: 'Heavy Duty Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true, enabled: true },
+    { title: 'Power Your Home. Power Your Business.', description: 'From residential to industrial applications. Trusted inverters for every power need.', cta: 'Explore Our Range', link: '/products', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/7ee70985fdddba92a39a6e67f80ec4773cbf34fd.png', productAlt: 'Residential Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true, enabled: true },
+    { title: 'Built Tough. Tested Tougher.', description: 'Heavy-duty inverters designed to handle the toughest loads without compromise.', cta: 'Shop Heavy Duty Inverters', link: '/inverter', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/b5564cf299de3eea9dbe804a547cf74e99bc41a7.png', productAlt: 'Industrial Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true, enabled: true },
+    { title: 'Reliable Power. Unbeatable Performance.', description: 'Experience consistent power delivery with inverters engineered for excellence.', cta: 'Get Started Today', link: '/products', productImage: 'https://central.prag.global/wp-content/uploads/2026/04/dd4b835690b546ee636b7659added08cd02d9891.png', productAlt: 'Premium Inverter', backgroundImage: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png', showProductImage: true, enabled: true },
   ],
   categories: [
     { name: 'Voltage Stabilizers', slug: 'voltage-stabilizers', image: 'https://central.prag.global/wp-content/uploads/2026/04/7ee70985fdddba92a39a6e67f80ec4773cbf34fd.png' },
@@ -408,16 +408,28 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
           )}
 
           {form.slides.map((slide, i) => (
-            <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-4">
+            <div key={i} className={`border rounded-xl p-4 space-y-4 ${slide.enabled === false ? 'border-gray-200 opacity-60' : 'border-gray-200'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <GripVertical size={16} className="text-gray-300" />
                   <span className="text-sm font-semibold text-gray-700">Slide {i + 1}</span>
+                  {slide.enabled === false && <span className="text-xs font-medium text-red-400 bg-red-50 px-2 py-0.5 rounded">Disabled</span>}
                 </div>
-                <button type="button" onClick={() => removeSlide(i)}
-                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                  <Trash2 size={14} />
-                </button>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={slide.enabled !== false}
+                      onChange={e => setSlide(i, 'enabled', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+                    />
+                    <span className="text-xs font-medium text-gray-600">Enabled</span>
+                  </label>
+                  <button type="button" onClick={() => removeSlide(i)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5 md:col-span-2">
