@@ -139,6 +139,8 @@ export interface SiteSettings {
   brand_banner_link: string;
   brand_banner_whatsapp_text: string;
   brand_banner_image: string;
+  brand_banner_enabled: boolean;
+  brand_banners: { image: string; link: string; enabled: boolean }[];
   // Final Conversion CTA (above footer)
   final_cta_title: string;
   final_cta_subtitle: string;

@@ -40,6 +40,8 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   brand_banner_link: '/power-calculator',
   brand_banner_whatsapp_text: 'Ask PRAG on WhatsApp',
   brand_banner_image: '',
+  brand_banner_enabled: true,
+  brand_banners: [],
   final_cta_title: 'Ready for More Reliable Power?',
   final_cta_subtitle: 'Shop PRAG power solutions for your home today.',
   final_cta_shop_text: 'Shop Now',
@@ -176,6 +178,14 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
     [slides[i], slides[j]] = [slides[j], slides[i]];
     setField('slides', slides);
   }
+
+  function setBanner(index: number, key: 'image' | 'link' | 'enabled', value: string | boolean) {
+    const banners = [...(form.brand_banners || [])];
+    banners[index] = { ...banners[index], [key]: value };
+    setField('brand_banners', banners);
+  }
+  function addBanner() { setField('brand_banners', [...(form.brand_banners || []), { image: '', link: '', enabled: true }]); }
+  function removeBanner(i: number) { setField('brand_banners', (form.brand_banners || []).filter((_, idx) => idx !== i)); }
 
   function setCategory(index: number, key: keyof CategoryItem, value: string) {
     const cats = [...form.categories];
@@ -406,7 +416,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
           <div className="border border-gray-200 rounded-xl p-4 space-y-3">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Slide Transition Effect</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {(['fade', 'slide', 'zoom', 'flip'] as const).map((effect) => (
+              {(['fade', 'slide', 'zoom', 'flip', 'slide-up', 'blur', 'skew', 'rotate-zoom'] as const).map((effect) => (
                 <button
                   key={effect}
                   type="button"
@@ -417,11 +427,11 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                       : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  {effect}
+                  {effect.replace('-', ' ')}
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-400">Choose how slides transition on the desktop hero banner. Fade = smooth crossfade, Slide = horizontal shift, Zoom = scale in/out, Flip = subtle rotation.</p>
+            <p className="text-xs text-gray-400">Choose how slides transition on the desktop hero. Fade = crossfade, Slide = horizontal shift, Zoom = scale, Flip = rotate, Slide Up = vertical shift, Blur = focus blur, Skew = diagonal tilt, Rotate Zoom = spin + scale.</p>
           </div>
 
           <div className="flex items-center justify-between">
@@ -572,6 +582,15 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
         <div className="space-y-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Mid-page Banner Section</p>
           <p className="text-xs text-gray-400">A focused &quot;Help Me Choose&quot; banner shown after Featured Products. Captures unsure buyers with two clear paths: the Power Calculator or a WhatsApp chat. Upload a background image for a richer look — text stays legible via an automatic dark overlay.</p>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.brand_banner_enabled !== false}
+              onChange={e => setField('brand_banner_enabled', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+            />
+            <span className="text-sm font-medium text-gray-700">Show Brand Banner on homepage</span>
+          </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5 md:col-span-2">
               <label className={labelCls}>Kicker (eyebrow label)</label>
@@ -635,6 +654,64 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                 <p className="text-xs text-gray-400 mt-1">No background uploaded — banner falls back to a clean gradient. Upload a wide image (e.g. 1600&times;600) for best results.</p>
               )}
             </div>
+          </div>
+
+          {/* Extra image-only banners */}
+          <div className="border-t border-gray-100 pt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Image-only Banners</p>
+                <p className="text-xs text-gray-400 mt-0.5">Add standalone banner images below the main banner. No text or buttons — just the image. Optionally link to a page.</p>
+              </div>
+              <button type="button" onClick={addBanner}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors shrink-0">
+                <Plus size={14} /> Add Banner
+              </button>
+            </div>
+
+            {(form.brand_banners || []).length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-6 border-2 border-dashed border-gray-200 rounded-xl">No extra banners. Click &quot;Add Banner&quot; to add one.</p>
+            )}
+
+            {(form.brand_banners || []).map((banner, i) => (
+              <div key={i} className={`border rounded-xl p-4 space-y-3 ${banner.enabled === false ? 'border-gray-200 opacity-60' : 'border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">Banner {i + 1}</span>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={banner.enabled !== false}
+                        onChange={e => setBanner(i, 'enabled', e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+                      />
+                      <span className="text-xs font-medium text-gray-600">Enabled</span>
+                    </label>
+                    <button type="button" onClick={() => removeBanner(i)}
+                      className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Image URL</label>
+                  <div className="flex gap-2">
+                    <input value={banner.image} onChange={e => setBanner(i, 'image', e.target.value)} className={inputCls} placeholder="https://..." />
+                    <button type="button" onClick={() => openMediaPicker((url) => setBanner(i, 'image', url))}
+                      className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
+                      <Library size={14} /> Library
+                    </button>
+                  </div>
+                  {banner.image && (
+                    <Image src={banner.image} alt="preview" width={400} height={120} unoptimized className="w-full h-20 object-cover rounded-xl border border-gray-100 mt-1" />
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Link URL (optional)</label>
+                  <input value={banner.link} onChange={e => setBanner(i, 'link', e.target.value)} className={inputCls} placeholder="/products or https://..." />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
