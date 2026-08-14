@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef } from 'react';
 import type { SiteSettings, SlideItem, CategoryItem, CheckoutFaqItem, TestimonialItem, HomeNeedItem, TrustStatItem, TrustBadgeItem } from '@/lib/types';
-import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library, Loader2 } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 import { revalidateSettings } from '@/lib/revalidateFrontend';
 
@@ -169,6 +169,13 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
 
   function addSlide() { setField('slides', [...form.slides, { ...DEFAULT_SLIDE }]); }
   function removeSlide(i: number) { setField('slides', form.slides.filter((_, idx) => idx !== i)); }
+  function moveSlide(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= form.slides.length) return;
+    const slides = [...form.slides];
+    [slides[i], slides[j]] = [slides[j], slides[i]];
+    setField('slides', slides);
+  }
 
   function setCategory(index: number, key: keyof CategoryItem, value: string) {
     const cats = [...form.categories];
@@ -438,6 +445,16 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                   {slide.enabled === false && <span className="text-xs font-medium text-red-400 bg-red-50 px-2 py-0.5 rounded">Disabled</span>}
                 </div>
                 <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-0.5">
+                    <button type="button" onClick={() => moveSlide(i, -1)} disabled={i === 0}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                      <ArrowUp size={14} />
+                    </button>
+                    <button type="button" onClick={() => moveSlide(i, 1)} disabled={i === form.slides.length - 1}
+                      className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                      <ArrowDown size={14} />
+                    </button>
+                  </div>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
