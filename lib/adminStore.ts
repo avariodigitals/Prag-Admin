@@ -119,6 +119,7 @@ export const ADMIN_MODULE_KEYS = [
   'customers',
   'blog',
   'stores',
+  'shipping',
   'siteSettings',
   'adminSettings',
 ] as const;
@@ -145,6 +146,7 @@ const FULL_ACCESS: Record<AdminModuleKey, boolean> = {
   customers: true,
   blog: true,
   stores: true,
+  shipping: true,
   siteSettings: true,
   adminSettings: true,
 };

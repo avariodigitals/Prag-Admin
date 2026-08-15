@@ -34,6 +34,7 @@ type AdminModuleKey =
   | 'customers'
   | 'blog'
   | 'stores'
+  | 'shipping'
   | 'siteSettings'
   | 'adminSettings';
 
@@ -86,6 +87,7 @@ const MODULE_LABELS: Array<{ key: AdminModuleKey; label: string }> = [
   { key: 'customers', label: 'Customers' },
   { key: 'blog', label: 'Blog Posts' },
   { key: 'stores', label: 'Stores' },
+  { key: 'shipping', label: 'Shipping' },
   { key: 'siteSettings', label: 'Site Settings' },
   { key: 'adminSettings', label: 'Admin Settings' },
 ];

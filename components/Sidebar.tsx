@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight, ChevronDown, FolderTree, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Users, Settings, FileText, LogOut, ExternalLink, Menu, X, MapPin, BarChart3, Shield, ArrowLeftRight, ChevronDown, FolderTree, Image as ImageIcon, RefreshCw, Truck } from 'lucide-react';
 
 interface NavChild {
   href: string;
@@ -42,6 +42,7 @@ const NAV: NavItem[] = [
   { href: '/dashboard/blog', label: 'Blog Posts', icon: FileText, moduleKey: 'blog', tooltip: 'Manage Knowledge Center blog posts' },
   { href: '/dashboard/pages', label: 'Pages', icon: FileText, moduleKey: 'pages', tooltip: 'Edit static page content (About, Contact, etc.)' },
   { href: '/dashboard/stores', label: 'Stores', icon: MapPin, moduleKey: 'stores', tooltip: 'Manage PRAG store locations' },
+  { href: '/dashboard/shipping', label: 'Shipping', icon: Truck, moduleKey: 'shipping', tooltip: 'Manage shipping options, city-based delivery zones and pricing' },
   { href: '/dashboard/settings', label: 'Site Settings', icon: Settings, moduleKey: 'siteSettings', tooltip: 'Configure site-wide settings' },
 ];
 

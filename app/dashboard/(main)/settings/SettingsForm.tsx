@@ -1659,7 +1659,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                   placeholder="Chat with our support team to arrange custom delivery..."
                 />
                 <p className="text-xs text-gray-400">
-                  Shown for any non-pickup, non-free-shipping method (e.g. flat rate, custom delivery). Let customers know to contact support for arrangements.
+                  Shown for any delivery method that isn&apos;t local pickup or conditional free shipping (e.g. flat rate, or the &ldquo;Custom Shipping&rdquo; method). Let customers know to contact support for arrangements.
                 </p>
               </div>
             </div>
