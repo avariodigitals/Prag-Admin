@@ -105,6 +105,21 @@ export interface TrustBadgeItem {
   label: string;
 }
 
+export interface FooterLink {
+  label: string;
+  link: string;
+}
+
+export interface FooterColumn {
+  title: string;
+  links: FooterLink[];
+}
+
+export interface HeaderLink {
+  label: string;
+  link: string;
+}
+
 export interface SocialLinks {
   facebook: string;
   instagram: string;
@@ -131,6 +146,8 @@ export interface SiteSettings {
   under_construction_message: string;
   // Footer
   footer_description: string;
+  footer_columns: FooterColumn[];
+  header_menu: HeaderLink[];
   // Brand Banner
   brand_banner_kicker: string;
   brand_banner_title: string;
@@ -187,6 +204,9 @@ export interface SiteSettings {
   subcategory_order: Record<string, string[]>;
   // Payments
   paystack_public_key: string;
+  // Shipping method descriptions (shown at checkout)
+  shipping_local_pickup_description: string;
+  shipping_custom_delivery_description: string;
 }
 
 export interface WPPost {

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useRef } from 'react';
-import type { SiteSettings, SlideItem, CategoryItem, CheckoutFaqItem, TestimonialItem, HomeNeedItem, TrustStatItem, TrustBadgeItem } from '@/lib/types';
+import type { SiteSettings, SlideItem, CategoryItem, CheckoutFaqItem, TestimonialItem, HomeNeedItem, TrustStatItem, TrustBadgeItem, FooterColumn, FooterLink, HeaderLink } from '@/lib/types';
 import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 import { revalidateSettings } from '@/lib/revalidateFrontend';
@@ -11,7 +11,7 @@ const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm foc
 const labelCls = 'text-sm font-semibold text-gray-700';
 const sectionCls = 'space-y-4 pt-4 border-t border-gray-100 first:border-0 first:pt-0';
 
-const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Checkout FAQ', 'Final CTA', 'Categories', 'Footer', 'Payments'];
+const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Checkout FAQ', 'Final CTA', 'Categories', 'Header', 'Footer', 'Payments', 'Shipping'];
 
 const DEFAULT_SLIDE: SlideItem = { title: '', description: '', cta: '', link: '/products', productImage: '', productAlt: '', backgroundImage: '', showProductImage: true, enabled: true };
 const DEFAULT_CATEGORY: CategoryItem = { name: '', slug: '', image: '' };
@@ -33,6 +33,41 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   under_construction_title: 'We are coming back soon',
   under_construction_message: 'We are currently making improvements to serve you better. Please check back shortly.',
   footer_description: "Nigeria's leading power engineering company. We design, supply and install power solutions for homes, businesses and industrial facilities across the country.",
+  footer_columns: [
+    { title: 'Products', links: [
+      { label: 'Batteries', link: '/products/batteries' },
+      { label: 'Stabilizers', link: '/products/voltage-stabilizers' },
+      { label: 'Inverter', link: '/products/inverters' },
+      { label: 'Solar', link: '/products/solar' },
+    ]},
+    { title: 'Company', links: [
+      { label: 'About us', link: '/about' },
+      { label: 'PRAG Stores', link: '/stores' },
+      { label: 'Knowledge Center', link: '/knowledge-center' },
+      { label: 'Become a Distributor', link: '/distributor' },
+    ]},
+    { title: 'Support', links: [
+      { label: 'Contact Us', link: '/contact' },
+      { label: 'FAQ', link: '/faq' },
+      { label: 'Power Calculator', link: '/power-calculator' },
+      { label: 'Compare Products', link: '/compare' },
+      { label: 'Technical Resources', link: '/resources' },
+      { label: 'Shipping Policy', link: '/shipping-policy' },
+      { label: 'Return policy', link: '/return-policy' },
+    ]},
+    { title: 'Socials', links: [
+      { label: 'Facebook', link: 'https://www.facebook.com/pragpowersolutions' },
+      { label: 'Instagram', link: 'https://www.instagram.com/prag_ng/' },
+      { label: 'LinkedIn', link: 'https://www.linkedin.com/company/prag/' },
+      { label: 'Twitter / X', link: 'https://x.com/PRAG_Ng' },
+    ]},
+  ],
+  header_menu: [
+    { label: 'Stabilizer', link: '/products/voltage-stabilizers' },
+    { label: 'Inverter', link: '/products/inverters' },
+    { label: 'Solar', link: '/products/solar' },
+    { label: 'Batteries', link: '/products/batteries' },
+  ],
   brand_banner_kicker: 'HELP ME CHOOSE',
   brand_banner_title: 'Not Sure What to Buy?',
   brand_banner_description: 'Tell us what you want to power and we\'ll help you find the right PRAG setup.',
@@ -113,12 +148,14 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   categories: [
     { name: 'Voltage Stabilizers', slug: 'voltage-stabilizers', image: 'https://central.prag.global/wp-content/uploads/2026/04/7ee70985fdddba92a39a6e67f80ec4773cbf34fd.png' },
     { name: 'Inverters',           slug: 'inverters',            image: 'https://central.prag.global/wp-content/uploads/2026/04/eebd514c0d3e75e4f32cb8fd691c7b3613fd99d5-1.png' },
-    { name: 'Solar Panels',        slug: 'solar',                image: 'https://central.prag.global/wp-content/uploads/2026/04/b5564cf299de3eea9dbe804a547cf74e99bc41a7.png' },
     { name: 'Batteries',           slug: 'batteries',            image: 'https://central.prag.global/wp-content/uploads/2026/04/dd4b835690b546ee636b7659added08cd02d9891.png' },
+    { name: 'Solar Panels',        slug: 'solar',                image: 'https://central.prag.global/wp-content/uploads/2026/04/b5564cf299de3eea9dbe804a547cf74e99bc41a7.png' },
   ],
   paystack_public_key: '',
+  shipping_local_pickup_description: 'Pick up your order from any of our PRAG showrooms in Lagos or Abuja. Choose the branch most convenient for you at checkout.',
+  shipping_custom_delivery_description: 'Need a tailored shipping arrangement? Chat with our support team to arrange delivery that fits your location and schedule. Shipping costs are calculated based on your destination — no flat-rate or free shipping applies.',
   hidden_categories: [],
-  category_order: [],
+  category_order: ['voltage-stabilizers', 'inverters', 'batteries', 'solar'],
   subcategory_order: {},
 };
 
@@ -135,9 +172,13 @@ function mergeWithDefaults(saved: SiteSettings | null): SiteSettings {
     home_need_items: Array.isArray(saved.home_need_items) && saved.home_need_items.length > 0 ? saved.home_need_items : HARDCODED_DEFAULTS.home_need_items,
     trust_signal_stats: Array.isArray(saved.trust_signal_stats) && saved.trust_signal_stats.length > 0 ? saved.trust_signal_stats : HARDCODED_DEFAULTS.trust_signal_stats,
     trust_signal_badges: Array.isArray(saved.trust_signal_badges) && saved.trust_signal_badges.length > 0 ? saved.trust_signal_badges : HARDCODED_DEFAULTS.trust_signal_badges,
+    footer_columns: Array.isArray(saved.footer_columns) && saved.footer_columns.length > 0 ? saved.footer_columns : HARDCODED_DEFAULTS.footer_columns,
+    header_menu: Array.isArray(saved.header_menu) && saved.header_menu.length > 0 ? saved.header_menu : HARDCODED_DEFAULTS.header_menu,
     paystack_public_key: saved.paystack_public_key ?? '',
+    shipping_local_pickup_description: saved.shipping_local_pickup_description ?? '',
+    shipping_custom_delivery_description: saved.shipping_custom_delivery_description ?? '',
     hidden_categories: Array.isArray(saved.hidden_categories) ? saved.hidden_categories : [],
-    category_order: Array.isArray(saved.category_order) ? saved.category_order : [],
+    category_order: Array.isArray(saved.category_order) && saved.category_order.length > 0 ? saved.category_order : HARDCODED_DEFAULTS.category_order,
     subcategory_order: saved.subcategory_order && typeof saved.subcategory_order === 'object' ? saved.subcategory_order : {},
   };
 }
@@ -148,6 +189,10 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
   const [status, setStatus] = useState<'idle' | 'saving' | 'revalidating' | 'success' | 'error'>('idle');
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [dragColIdx, setDragColIdx] = useState<number | null>(null);
+  const [dragOverColIdx, setDragOverColIdx] = useState<number | null>(null);
+  const [dragHeaderIdx, setDragHeaderIdx] = useState<number | null>(null);
+  const [dragOverHeaderIdx, setDragOverHeaderIdx] = useState<number | null>(null);
   const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
 
   function openMediaPicker(callback: (url: string) => void) {
@@ -235,6 +280,63 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
   }
   function addTrustBadge() { setField('trust_signal_badges', [...form.trust_signal_badges, { ...DEFAULT_TRUST_BADGE }]); }
   function removeTrustBadge(i: number) { setField('trust_signal_badges', form.trust_signal_badges.filter((_, idx) => idx !== i)); }
+
+  // Footer columns
+  function setFooterColumnTitle(index: number, title: string) {
+    const cols = [...form.footer_columns];
+    cols[index] = { ...cols[index], title };
+    setField('footer_columns', cols);
+  }
+  function setFooterLink(colIndex: number, linkIndex: number, key: keyof FooterLink, value: string) {
+    const cols = [...form.footer_columns];
+    const links = [...cols[colIndex].links];
+    links[linkIndex] = { ...links[linkIndex], [key]: value };
+    cols[colIndex] = { ...cols[colIndex], links };
+    setField('footer_columns', cols);
+  }
+  function addFooterLink(colIndex: number) {
+    const cols = [...form.footer_columns];
+    cols[colIndex] = { ...cols[colIndex], links: [...cols[colIndex].links, { label: '', link: '' }] };
+    setField('footer_columns', cols);
+  }
+  function removeFooterLink(colIndex: number, linkIndex: number) {
+    const cols = [...form.footer_columns];
+    cols[colIndex] = { ...cols[colIndex], links: cols[colIndex].links.filter((_, idx) => idx !== linkIndex) };
+    setField('footer_columns', cols);
+  }
+  function addFooterColumn() {
+    setField('footer_columns', [...form.footer_columns, { title: 'New Column', links: [] }]);
+  }
+  function removeFooterColumn(colIndex: number) {
+    setField('footer_columns', form.footer_columns.filter((_, idx) => idx !== colIndex));
+  }
+  function moveFooterColumn(from: number, to: number) {
+    if (from === to || from < 0 || to < 0 || from >= form.footer_columns.length || to >= form.footer_columns.length) return;
+    const cols = [...form.footer_columns];
+    const [moved] = cols.splice(from, 1);
+    cols.splice(to, 0, moved);
+    setField('footer_columns', cols);
+  }
+
+  // Header menu
+  function setHeaderLink(index: number, key: keyof HeaderLink, value: string) {
+    const items = [...form.header_menu];
+    items[index] = { ...items[index], [key]: value };
+    setField('header_menu', items);
+  }
+  function addHeaderLink() {
+    setField('header_menu', [...form.header_menu, { label: '', link: '' }]);
+  }
+  function removeHeaderLink(i: number) {
+    setField('header_menu', form.header_menu.filter((_, idx) => idx !== i));
+  }
+  function moveHeaderLink(from: number, to: number) {
+    if (from === to || from < 0 || to < 0 || from >= form.header_menu.length || to >= form.header_menu.length) return;
+    const items = [...form.header_menu];
+    const [moved] = items.splice(from, 1);
+    items.splice(to, 0, moved);
+    setField('header_menu', items);
+  }
 
   async function uploadMedia(file: File, fieldKey: string) {
     setUploadingField(fieldKey);
@@ -1292,15 +1394,136 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
         </div>
       )}
 
+      {/* ── Header ── */}
+      {activeTab === 'Header' && (
+        <div className="space-y-5">
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Header Menu Links</p>
+              <button type="button" onClick={addHeaderLink}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-semibold hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Link
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">Add, edit, remove, or reorder the links shown in the header navigation bar. Drag the handle to reorder.</p>
+
+            <div className="space-y-2">
+              {form.header_menu.map((lnk, idx) => (
+                <div
+                  key={idx}
+                  draggable
+                  onDragStart={() => setDragHeaderIdx(idx)}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverHeaderIdx(idx); }}
+                  onDragLeave={() => setDragOverHeaderIdx(null)}
+                  onDrop={() => { if (dragHeaderIdx !== null) moveHeaderLink(dragHeaderIdx, idx); setDragHeaderIdx(null); setDragOverHeaderIdx(null); }}
+                  onDragEnd={() => { setDragHeaderIdx(null); setDragOverHeaderIdx(null); }}
+                  className={`flex items-center gap-2 border rounded-xl p-3 transition-all cursor-grab active:cursor-grabbing ${
+                    dragOverHeaderIdx === idx ? 'border-sky-500 ring-2 ring-sky-200' : 'border-gray-200'
+                  } ${dragHeaderIdx === idx ? 'opacity-50' : ''}`}
+                >
+                  <GripVertical size={16} className="text-gray-400 shrink-0" />
+                  <input
+                    value={lnk.label}
+                    onChange={e => setHeaderLink(idx, 'label', e.target.value)}
+                    className="w-32 h-10 px-3 rounded-lg border border-gray-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="Label"
+                  />
+                  <input
+                    value={lnk.link}
+                    onChange={e => setHeaderLink(idx, 'link', e.target.value)}
+                    className="flex-1 h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="/products/voltage-stabilizers or https://..."
+                  />
+                  <button type="button" onClick={() => removeHeaderLink(idx)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove link">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Footer ── */}
       {activeTab === 'Footer' && (
-        <div className="space-y-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Footer Content</p>
-          <div className="space-y-1.5">
-            <label className={labelCls}>Company Description</label>
-            <textarea value={form.footer_description} onChange={e => setField('footer_description', e.target.value)} rows={4}
-              className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
-              placeholder="Nigeria's leading power engineering company..." />
+        <div className="space-y-5">
+          <div className={sectionCls}>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Footer Content</p>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Company Description</label>
+              <textarea value={form.footer_description} onChange={e => setField('footer_description', e.target.value)} rows={4}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Nigeria's leading power engineering company..." />
+            </div>
+          </div>
+
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Footer Menu Columns</p>
+              <button type="button" onClick={addFooterColumn}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-semibold hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Column
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">Add, edit, or remove the link columns shown in the footer. Drag the handle to reorder columns.</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {form.footer_columns.map((col, colIdx) => (
+                <div
+                  key={colIdx}
+                  draggable
+                  onDragStart={() => setDragColIdx(colIdx)}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverColIdx(colIdx); }}
+                  onDragLeave={() => setDragOverColIdx(null)}
+                  onDrop={() => { if (dragColIdx !== null) moveFooterColumn(dragColIdx, colIdx); setDragColIdx(null); setDragOverColIdx(null); }}
+                  onDragEnd={() => { setDragColIdx(null); setDragOverColIdx(null); }}
+                  className={`border rounded-xl p-4 space-y-3 transition-all cursor-grab active:cursor-grabbing ${
+                    dragOverColIdx === colIdx ? 'border-sky-500 ring-2 ring-sky-200' : 'border-gray-200'
+                  } ${dragColIdx === colIdx ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <GripVertical size={16} className="text-gray-400 shrink-0" />
+                    <input
+                      value={col.title}
+                      onChange={e => setFooterColumnTitle(colIdx, e.target.value)}
+                      className="flex-1 h-10 px-3 rounded-lg border border-gray-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Column title"
+                    />
+                    <button type="button" onClick={() => removeFooterColumn(colIdx)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove column">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {col.links.map((lnk, lnkIdx) => (
+                      <div key={lnkIdx} className="flex items-center gap-2">
+                        <input
+                          value={lnk.label}
+                          onChange={e => setFooterLink(colIdx, lnkIdx, 'label', e.target.value)}
+                          className="w-28 h-9 px-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          placeholder="Label"
+                        />
+                        <input
+                          value={lnk.link}
+                          onChange={e => setFooterLink(colIdx, lnkIdx, 'link', e.target.value)}
+                          className="flex-1 h-9 px-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          placeholder="/path or https://..."
+                        />
+                        <button type="button" onClick={() => removeFooterLink(colIdx, lnkIdx)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove link">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => addFooterLink(colIdx)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-sky-700 text-xs font-semibold hover:bg-sky-50 rounded-lg transition-colors">
+                      <Plus size={14} /> Add Link
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -1323,6 +1546,45 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                   Paystack dashboard → Settings → API Keys
                 </a>.
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Shipping' && (
+        <div className="space-y-5">
+          <div className={sectionCls}>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Shipping Method Descriptions</p>
+            <p className="text-xs text-gray-400">
+              These descriptions appear under each shipping method at checkout. Update them to guide customers on what each option means.
+            </p>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>Local Pickup Description</label>
+                <textarea
+                  value={form.shipping_local_pickup_description}
+                  onChange={e => setField('shipping_local_pickup_description', e.target.value)}
+                  rows={3}
+                  className={inputCls}
+                  placeholder="Pick up your order from any of our PRAG showrooms..."
+                />
+                <p className="text-xs text-gray-400">
+                  Shown for the &ldquo;Local pickup&rdquo; shipping method. Tell customers they can collect from any PRAG store.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>Custom Delivery Description</label>
+                <textarea
+                  value={form.shipping_custom_delivery_description}
+                  onChange={e => setField('shipping_custom_delivery_description', e.target.value)}
+                  rows={3}
+                  className={inputCls}
+                  placeholder="Chat with our support team to arrange custom delivery..."
+                />
+                <p className="text-xs text-gray-400">
+                  Shown for any non-pickup, non-free-shipping method (e.g. flat rate, custom delivery). Let customers know to contact support for arrangements.
+                </p>
+              </div>
             </div>
           </div>
         </div>
