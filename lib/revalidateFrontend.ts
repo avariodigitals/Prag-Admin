@@ -69,7 +69,7 @@ export async function revalidateFrontend(options: RevalidateOptions = {}) {
 
 export async function revalidateProducts() {
   await revalidateFrontend({
-    paths: ['/', '/products', '/sitemap.xml'],
+    paths: ['/', '/products', '/products/voltage-stabilizers', '/products/inverters', '/products/batteries', '/products/solar', '/sitemap.xml'],
     tags: [
       'products-list', 'product-by-slug', 'featured-products', 'flash-sale-products',
       'product-categories', 'all-product-slugs', 'product-custom-tabs', 'tech-documents',
