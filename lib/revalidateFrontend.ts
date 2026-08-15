@@ -1,5 +1,5 @@
-const PRAG_URL = 'https://shop.prag.global';
-const B2B_URL = 'https://prag.global';
+const PRAG_URL = process.env.NEXT_PUBLIC_B2C_URL || 'https://shop.prag.global';
+const B2B_URL = process.env.NEXT_PUBLIC_B2B_URL || 'https://prag.global';
 
 type RevalidateOptions = {
   paths?: string[];
