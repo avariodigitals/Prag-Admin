@@ -157,7 +157,13 @@ export interface SiteSettings {
   brand_banner_whatsapp_text: string;
   brand_banner_image: string;
   brand_banner_enabled: boolean;
+  brand_banner_mode: 'text' | 'image';
   brand_banners: { image: string; link: string; enabled: boolean }[];
+  // Slide-out chat (product pages)
+  slideout_chat_enabled: boolean;
+  slideout_chat_title: string;
+  slideout_chat_subtitle: string;
+  slideout_chat_message: string;
   // Final Conversion CTA (above footer)
   final_cta_title: string;
   final_cta_subtitle: string;

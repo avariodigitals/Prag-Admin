@@ -76,7 +76,12 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   brand_banner_whatsapp_text: 'Ask PRAG on WhatsApp',
   brand_banner_image: '',
   brand_banner_enabled: true,
+  brand_banner_mode: 'text',
   brand_banners: [],
+  slideout_chat_enabled: true,
+  slideout_chat_title: 'Not sure what to pick?',
+  slideout_chat_subtitle: 'Chat with us',
+  slideout_chat_message: 'Hi PRAG team, I was browsing your product pages and need help choosing the right product. Can you assist?',
   final_cta_title: 'Ready for More Reliable Power?',
   final_cta_subtitle: 'Shop PRAG power solutions for your home today.',
   final_cta_shop_text: 'Shop Now',
@@ -693,8 +698,45 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
               onChange={e => setField('brand_banner_enabled', e.target.checked)}
               className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
             />
-            <span className="text-sm font-medium text-gray-700">Show Brand Banner on homepage</span>
+            <span className="text-sm font-medium text-gray-700">Show Brand Banner section on homepage</span>
           </label>
+
+          {/* Mode toggle: text-based vs image-only */}
+          <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-gray-700">Banner Type</p>
+              <p className="text-xs text-gray-400 mt-0.5">Choose whether to show the text-based banner (with title, description, and CTAs) or image-only banners.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setField('brand_banner_mode', 'text')}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border-2 transition-colors ${
+                  (form.brand_banner_mode ?? 'text') === 'text'
+                    ? 'border-sky-700 bg-sky-50 text-sky-700'
+                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                }`}
+              >
+                Text Banner
+                <span className="block text-xs font-normal mt-0.5 opacity-70">Title, description & CTA buttons</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setField('brand_banner_mode', 'image')}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border-2 transition-colors ${
+                  form.brand_banner_mode === 'image'
+                    ? 'border-sky-700 bg-sky-50 text-sky-700'
+                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                }`}
+              >
+                Image Banners
+                <span className="block text-xs font-normal mt-0.5 opacity-70">Standalone images only, no text</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Text banner fields — only show when mode is 'text' */}
+          {(form.brand_banner_mode ?? 'text') === 'text' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5 md:col-span-2">
               <label className={labelCls}>Kicker (eyebrow label)</label>
@@ -759,13 +801,14 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
               )}
             </div>
           </div>
+          )}
 
-          {/* Extra image-only banners */}
+          {/* Image-only banners — always available, primary content when mode is 'image' */}
           <div className="border-t border-gray-100 pt-4 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Image-only Banners</p>
-                <p className="text-xs text-gray-400 mt-0.5">Add standalone banner images below the main banner. No text or buttons — just the image. Optionally link to a page.</p>
+                <p className="text-xs text-gray-400 mt-0.5">Add standalone banner images. No text or buttons — just the image. Optionally link to a page. {form.brand_banner_mode === 'image' ? 'These are the primary banners shown on the homepage.' : 'Shown below the main text banner.'}</p>
               </div>
               <button type="button" onClick={addBanner}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors shrink-0">
@@ -817,10 +860,42 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
               </div>
             ))}
           </div>
+
+          {/* Slide-out Chat */}
+          <div className="border-t border-gray-100 pt-4 space-y-4">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Slide-out Chat (Product Pages)</p>
+              <p className="text-xs text-gray-400 mt-0.5">A WhatsApp chat prompt that slides in from the right side on product listing and category pages after the user scrolls. Wired to your sales WhatsApp number.</p>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.slideout_chat_enabled !== false}
+                onChange={e => setField('slideout_chat_enabled', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Show slide-out chat on product pages</span>
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>Title Text</label>
+                <input value={form.slideout_chat_title} onChange={e => setField('slideout_chat_title', e.target.value)} className={inputCls} placeholder="Not sure what to pick?" />
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>Subtitle Text</label>
+                <input value={form.slideout_chat_subtitle} onChange={e => setField('slideout_chat_subtitle', e.target.value)} className={inputCls} placeholder="Chat with us" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Pre-filled WhatsApp Message</label>
+              <textarea value={form.slideout_chat_message} onChange={e => setField('slideout_chat_message', e.target.value)} rows={3}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Hi PRAG team, I was browsing your product pages and need help choosing the right product. Can you assist?" />
+              <p className="text-xs text-gray-400">This message is automatically included when the user opens WhatsApp, so your sales team knows it came from the product page slide-out.</p>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* ── Trust Signal ── */}
       {activeTab === 'Trust Signal' && (
         <div className="space-y-6">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Trust Signal (above Flash Sales)</p>

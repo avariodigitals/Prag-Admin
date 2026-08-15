@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ExternalLink, ImagePlus, Library, Save, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
+import { revalidateFrontend } from '@/lib/revalidateFrontend';
 import type { B2CPageRecord, B2CPageSection } from '@/lib/adminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500';
@@ -79,6 +80,15 @@ export default function B2CPagesClient({ initialPages, selectedRoute }: { initia
       setStatus('success');
       if (Array.isArray(data?.pages)) {
         setPages(data.pages as B2CPageRecord[]);
+      }
+      // Revalidate the B2C frontend so changes appear immediately
+      try {
+        await revalidateFrontend({
+          paths: ['/distributor', '/about', '/contact', '/faq', '/stores', '/knowledge-center', '/'],
+          tags: ['b2c-public-content'],
+        });
+      } catch {
+        // revalidation failure doesn't mean save failed
       }
     } catch {
       setStatus('error');
