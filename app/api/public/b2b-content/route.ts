@@ -11,6 +11,7 @@ export async function GET() {
       settings: store.settings,
       caseStudies: store.caseStudies,
       solutions: store.solutions,
+      solutionBodies: store.solutionBodies,
       pages: store.pages,
       seoOverrides: store.seoOverrides,
       updatedAt: store.audit[0]?.at ?? new Date().toISOString(),

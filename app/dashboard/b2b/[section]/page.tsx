@@ -230,7 +230,7 @@ export default async function B2BAdminSectionPage({ params }: { params: Promise<
         title={SECTION_TITLES[section]}
         description="Manage residential, commercial, and industrial solution problems from one backend module with sorting controls."
       >
-        <B2BSolutionsClient initialSolutions={store.solutions} />
+        <B2BSolutionsClient initialSolutions={store.solutions} initialSolutionBodies={store.solutionBodies} />
       </SectionShell>
     );
   }

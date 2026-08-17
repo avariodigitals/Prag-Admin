@@ -319,6 +319,25 @@ export interface B2BSeoOverride {
 
 export type B2BSeoOverrideMap = Record<string, B2BSeoOverride>;
 
+export interface B2BSolutionBodySection {
+  id?: string;
+  heading: string;
+  body: string;
+  list?: string[];
+}
+
+export interface B2BSolutionBodyFaq {
+  question: string;
+  answer: string;
+}
+
+export interface B2BSolutionBodyOverride {
+  sections: B2BSolutionBodySection[];
+  faqs: B2BSolutionBodyFaq[];
+}
+
+export type B2BSolutionBodyOverrideMap = Record<string, B2BSolutionBodyOverride>;
+
 export interface B2BAdminStore {
   enquiries: B2BSubmissionRecord[];
   distributorApplications: B2BSubmissionRecord[];
@@ -327,6 +346,7 @@ export interface B2BAdminStore {
   installations: B2BInstallationRecord[];
   caseStudies: B2BCaseStudiesContent;
   solutions: B2BSolutionsContent;
+  solutionBodies: B2BSolutionBodyOverrideMap;
   pages: B2BPageRecord[];
   settings: B2BSettings;
   seoOverrides: B2BSeoOverrideMap;
@@ -1671,6 +1691,176 @@ const DEFAULT_SOLUTIONS: B2BSolutionsContent = {
   ],
 };
 
+const DEFAULT_SOLUTION_BODIES: B2BSolutionBodyOverrideMap = {
+  'backup-power': {
+    sections: [
+      {
+        id: 'section-1',
+        heading: 'The Backup Power Problem in Nigeria',
+        body: 'Frequent outages interrupt daily life and business operations, while running generators brings fuel cost, noise, and maintenance burden. A properly designed backup system delivers quiet, automatic power the moment the grid drops — without refuelling.',
+      },
+      {
+        id: 'section-2',
+        heading: 'The PRAG Approach',
+        body: 'PRAG builds backup systems around an inverter and a correctly sized battery bank, with solar added where it makes sense. The inverter converts stored DC battery power into clean AC, and the battery bank determines how long your essential loads stay powered. See PRAG inverters, PRAG batteries and PRAG lithium batteries for the components involved.',
+      },
+      {
+        id: 'section-3',
+        heading: 'System Sizing & Backup Duration',
+        body: 'Backup runtime depends on your total load and battery capacity. PRAG sizes the bank to the hours of backup you actually need, so you don\u2019t pay for capacity you won\u2019t use or fall short when it matters. Solar can be added to extend runtime and reduce generator use.',
+      },
+      {
+        id: 'section-4',
+        heading: 'Applications',
+        body: 'Homes keep lights, fridges, fans, and internet running through outages. Offices protect computers, networking, and point-of-sale systems. Industrial sites keep critical processes and controls alive. Explore residential solutions, commercial solutions and industrial solutions for audience-specific guidance.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'What size inverter and battery do I need for backup?',
+        answer: 'It depends on the appliances you want to back up and for how long. PRAG calculates this from your load list and target runtime, then sizes the inverter and battery bank together.',
+      },
+      {
+        question: 'How long can a backup system run?',
+        answer: 'Runtime scales with battery capacity and drops with load. A larger bank runs the same load longer; adding solar extends daytime runtime. PRAG designs to your required hours of backup.',
+      },
+      {
+        question: 'Can solar be added to a backup system later?',
+        answer: 'Yes — especially if you start with a hybrid inverter. PRAG can design the backup system so solar panels can be added in a later phase without replacing the core equipment.',
+      },
+    ],
+  },
+  'solar-energy': {
+    sections: [
+      {
+        id: 'section-1',
+        heading: 'Solar as a Solution',
+        body: 'Solar energy reduces generator dependence and fuel cost by generating your own electricity from sunlight. A PRAG solar system is designed as a complete solution — not just panels — with sizing, installation, and support included.',
+      },
+      {
+        id: 'section-2',
+        heading: 'Design & Installation Process',
+        body: 'PRAG follows a clear process: site assessment, system design, professional installation, and ongoing support. We size the array and battery bank to your actual usage so the system covers the load you care about.',
+      },
+      {
+        id: 'section-3',
+        heading: 'System Components',
+        body: 'A complete solar system combines solar panels, solar charge controllers, hybrid inverters or a compatible inverter, PRAG lithium batteries storage, and protective devices. Browse the individual components in solar products if you prefer to assemble a system yourself.',
+      },
+      {
+        id: 'section-4',
+        heading: 'Residential, Commercial & Industrial Applications',
+        body: 'Homes reduce fuel bills and gain quieter power. Businesses lower operating costs and reduce downtime. Industrial sites offset heavy daytime loads. See residential solutions, commercial solutions and industrial solutions for audience-specific design.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'How much solar do I need to run my home?',
+        answer: 'It depends on your daily energy use and how much of it you want solar to cover. PRAG sizes the array and battery from your appliance usage and site conditions.',
+      },
+      {
+        question: 'Can solar eliminate generator use?',
+        answer: 'A well-sized solar-battery system can eliminate or drastically reduce generator use for most loads. The result depends on your load profile, available roof space, and budget.',
+      },
+      {
+        question: 'What does a PRAG solar installation include?',
+        answer: 'Site assessment, system design, panels, charge controller, inverter, battery storage, protective devices, cabling, installation, and commissioning — plus ongoing support.',
+      },
+    ],
+  },
+  'voltage-stabilization-protection': {
+    sections: [
+      {
+        id: 'section-1',
+        heading: 'Voltage Fluctuation as a Nigerian Problem',
+        body: 'High, low, and fluctuating voltage damages appliances and equipment, shortens lifespan, and causes unplanned downtime. For businesses and households on unstable supply or generator networks, voltage stabilization is a protection investment, not an optional extra.',
+      },
+      {
+        id: 'section-2',
+        heading: 'Engineering Approach',
+        body: 'PRAG starts with a site survey and load analysis, then specifies the right stabilizer technology and capacity for each circuit or facility. The goal is stable, safe voltage matched to your real load profile — not a generic unit.',
+      },
+      {
+        id: 'section-3',
+        heading: 'Types Deployed',
+        body: 'PRAG deploys relay stabilizers, servo stabilizers, thyristor stabilizers and advanced stabilizers depending on the load sensitivity and environment. See PRAG voltage stabilizers for the full range.',
+      },
+      {
+        id: 'section-4',
+        heading: 'Facility-Wide vs Equipment-Level Protection',
+        body: 'Some sites need a main stabilizer for the whole facility; others are better served by point-of-use protection on sensitive equipment. PRAG advises which combination is right for your site and budget.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'How do I know if my facility needs voltage stabilization?',
+        answer: 'If you see flickering lights, appliances failing early, or measured voltage outside the safe range, your facility likely needs stabilization. A PRAG site survey confirms it and specifies the right unit.',
+      },
+      {
+        question: 'What stabilizer capacity is right for a factory?',
+        answer: 'Factory sizing depends on total load, motor inrush currents, and phase requirements. PRAG sizes industrial stabilizers from a measured load profile rather than a nameplate estimate.',
+      },
+    ],
+  },
+  'residential': {
+    sections: [
+      {
+        id: 'section-1',
+        heading: 'How PRAG Designs Home Power Systems',
+        body: 'PRAG designs residential systems around your actual household usage — the appliances you want to run, for how long, and whether you want solar now or later. The result is a matched setup of PRAG inverters, PRAG lithium batteries and PRAG voltage stabilizers sized for your home, not a generic bundle.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'What is the best backup power system for a Nigerian home?',
+        answer: 'The best system depends on your essential loads and runtime needs. A PRAG assessment identifies the right inverter capacity, battery bank, and whether solar or stabilization should be included.',
+      },
+      {
+        question: 'How much does a home solar system cost?',
+        answer: 'Cost depends on system size, battery capacity, and whether it includes backup. PRAG quotes from your actual load profile after a free assessment.',
+      },
+    ],
+  },
+  'commercial': {
+    sections: [
+      {
+        id: 'section-1',
+        heading: 'Power for Growing Businesses',
+        body: 'PRAG commercial systems keep offices, retail, and service businesses running through outages and unstable voltage. Designs combine PRAG inverters, solar products and PRAG voltage stabilizers to protect productivity, equipment, and customer experience.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'How do I protect business equipment from voltage fluctuations?',
+        answer: 'A correctly sized voltage stabilizer protects sensitive business equipment. PRAG specifies the right technology and capacity after a site assessment.',
+      },
+      {
+        question: 'Can a commercial building run entirely on solar?',
+        answer: 'Partial solar is common and cost-effective; full solar independence depends on roof space, load profile, and battery budget. PRAG models the options during a free assessment.',
+      },
+    ],
+  },
+  'industrial': {
+    sections: [
+      {
+        id: 'section-1',
+        heading: 'Engineered Power for Heavy-Duty Operations',
+        body: 'PRAG industrial systems are engineered for continuous, critical loads — production lines, motors, controls, and infrastructure that cannot tolerate downtime. Designs combine PRAG voltage stabilizers, solar products and heavy-duty power equipment sized to your facility\u2019s operational requirements.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'What power-quality problems do factories face?',
+        answer: 'Voltage fluctuations, surges, outages, and harmonic issues. These cause equipment damage, downtime, and quality defects. PRAG diagnoses and specifies the right stabilization and backup.',
+      },
+      {
+        question: 'How is an industrial stabilizer sized?',
+        answer: 'From the measured load profile, including motor inrush currents and phase requirements, rather than a nameplate estimate. PRAG performs a site survey to size correctly.',
+      },
+    ],
+  },
+};
+
 const DEFAULT_STORE: B2BAdminStore = {
   enquiries: [],
   distributorApplications: [],
@@ -1679,6 +1869,7 @@ const DEFAULT_STORE: B2BAdminStore = {
   installations: [],
   caseStudies: DEFAULT_CASE_STUDIES,
   solutions: DEFAULT_SOLUTIONS,
+  solutionBodies: DEFAULT_SOLUTION_BODIES,
   pages: [],
   settings: DEFAULT_SETTINGS,
   seoOverrides: {},
@@ -1830,6 +2021,46 @@ export function normalizeSolutionsContent(content?: Partial<B2BSolutionsContent>
   });
 
   return { categories };
+}
+
+export function normalizeSolutionBodies(content?: Partial<B2BSolutionBodyOverrideMap> | null): B2BSolutionBodyOverrideMap {
+  // Merge defaults with incoming overrides — incoming takes priority per key
+  const result: B2BSolutionBodyOverrideMap = {};
+  for (const [key, value] of Object.entries(DEFAULT_SOLUTION_BODIES)) {
+    result[key] = {
+      sections: value.sections.map((s) => ({ ...s })),
+      faqs: value.faqs.map((f) => ({ ...f })),
+    };
+  }
+  if (!content || typeof content !== 'object') return result;
+  for (const [key, value] of Object.entries(content)) {
+    if (!value || typeof value !== 'object') continue;
+    const sections = Array.isArray(value.sections)
+      ? value.sections
+          .map((section, index) => ({
+            id: String(section?.id ?? `section-${index + 1}`).trim(),
+            heading: String(section?.heading ?? '').trim(),
+            body: String(section?.body ?? '').trim(),
+            list: Array.isArray(section?.list) ? section.list.map((item) => String(item).trim()).filter(Boolean) : undefined,
+          }))
+          .filter((section) => section.heading || section.body)
+      : [];
+    const faqs = Array.isArray(value.faqs)
+      ? value.faqs
+          .map((faq) => ({
+            question: String(faq?.question ?? '').trim(),
+            answer: String(faq?.answer ?? '').trim(),
+          }))
+          .filter((faq) => faq.question || faq.answer)
+      : [];
+    // If incoming has content, use it; otherwise keep defaults
+    if (sections.length > 0 || faqs.length > 0) {
+      result[key] = { sections, faqs };
+    } else if (!(key in result)) {
+      result[key] = { sections, faqs };
+    }
+  }
+  return result;
 }
 
 function mergeSettings(settings?: Partial<B2BSettings> | null): B2BSettings {
@@ -2348,6 +2579,7 @@ async function normalizeStore(parsed: Partial<B2BAdminStore>): Promise<B2BAdminS
     installations: Array.isArray(parsed.installations) ? parsed.installations : [],
     caseStudies: normalizeCaseStudiesContent(parsed.caseStudies),
     solutions: normalizeSolutionsContent(parsed.solutions),
+    solutionBodies: normalizeSolutionBodies(parsed.solutionBodies),
     pages: normalizedPages,
     settings: mergeSettings(parsed.settings),
     seoOverrides: parsed.seoOverrides && typeof parsed.seoOverrides === 'object' ? parsed.seoOverrides : {},

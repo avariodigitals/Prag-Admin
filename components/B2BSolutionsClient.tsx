@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Plus, Save, Trash2, Library } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
-import type { B2BSolutionsContent } from '@/lib/b2bAdminStore';
+import type { B2BSolutionsContent, B2BSolutionBodyOverrideMap, B2BSolutionBodyOverride, B2BSolutionBodySection, B2BSolutionBodyFaq } from '@/lib/b2bAdminStore';
 
 const inputCls = 'w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
 const areaCls = 'w-full min-h-24 p-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
@@ -52,8 +52,9 @@ function makeCategory(): B2BSolutionsContent['categories'][number] {
   };
 }
 
-export default function B2BSolutionsClient({ initialSolutions }: { initialSolutions: B2BSolutionsContent }) {
+export default function B2BSolutionsClient({ initialSolutions, initialSolutionBodies }: { initialSolutions: B2BSolutionsContent; initialSolutionBodies?: B2BSolutionBodyOverrideMap }) {
   const [data, setData] = useState<B2BSolutionsContent>(initialSolutions);
+  const [solutionBodies, setSolutionBodies] = useState<B2BSolutionBodyOverrideMap>(initialSolutionBodies ?? {});
   const [activeCategory, setActiveCategory] = useState<string>(initialSolutions.categories[0]?.key ?? '');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -152,13 +153,14 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
       const res = await fetch('/api/admin/b2b/solutions', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ solutions: data }),
+        body: JSON.stringify({ solutions: data, solutionBodies }),
       });
 
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(payload?.error || 'Failed to save solutions');
 
       setData(payload.solutions || data);
+      setSolutionBodies(payload.solutionBodies || solutionBodies);
       setStatus('success');
     } catch {
       setStatus('error');
@@ -506,6 +508,13 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
         </div>
       </div>
 
+      {/* Body Sections + FAQs Editor */}
+      <SolutionBodyEditor
+        categoryKey={category.key}
+        solutionBodies={solutionBodies}
+        setSolutionBodies={setSolutionBodies}
+      />
+
       <div className="sticky bottom-4 z-10">
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 flex flex-wrap items-center gap-3">
           <button
@@ -534,5 +543,210 @@ export default function B2BSolutionsClient({ initialSolutions }: { initialSoluti
         }}
       />
     </>
+  );
+}
+
+function makeSection(): B2BSolutionBodySection {
+  return { id: `section-${Date.now()}`, heading: '', body: '', list: [] };
+}
+
+function makeFaq(): B2BSolutionBodyFaq {
+  return { question: '', answer: '' };
+}
+
+function SolutionBodyEditor({
+  categoryKey,
+  solutionBodies,
+  setSolutionBodies,
+}: {
+  categoryKey: string;
+  solutionBodies: B2BSolutionBodyOverrideMap;
+  setSolutionBodies: React.Dispatch<React.SetStateAction<B2BSolutionBodyOverrideMap>>;
+}) {
+  const body: B2BSolutionBodyOverride = solutionBodies[categoryKey] ?? { sections: [], faqs: [] };
+
+  function updateBody(updater: (current: B2BSolutionBodyOverride) => B2BSolutionBodyOverride) {
+    setSolutionBodies((prev) => {
+      const current = prev[categoryKey] ?? { sections: [], faqs: [] };
+      const next = updater(current);
+      const hasContent = next.sections.length > 0 || next.faqs.length > 0;
+      const result = { ...prev };
+      if (hasContent) {
+        result[categoryKey] = next;
+      } else {
+        delete result[categoryKey];
+      }
+      return result;
+    });
+  }
+
+  function addSection() {
+    updateBody((current) => ({ ...current, sections: [...current.sections, makeSection()] }));
+  }
+
+  function updateSection(index: number, patch: Partial<B2BSolutionBodySection>) {
+    updateBody((current) => ({
+      ...current,
+      sections: current.sections.map((section, i) => (i === index ? { ...section, ...patch } : section)),
+    }));
+  }
+
+  function deleteSection(index: number) {
+    updateBody((current) => ({
+      ...current,
+      sections: current.sections.filter((_, i) => i !== index),
+    }));
+  }
+
+  function moveSection(index: number, direction: -1 | 1) {
+    updateBody((current) => {
+      const copy = [...current.sections];
+      const target = index + direction;
+      if (target < 0 || target >= copy.length) return current;
+      [copy[index], copy[target]] = [copy[target], copy[index]];
+      return { ...current, sections: copy };
+    });
+  }
+
+  function addFaq() {
+    updateBody((current) => ({ ...current, faqs: [...current.faqs, makeFaq()] }));
+  }
+
+  function updateFaq(index: number, patch: Partial<B2BSolutionBodyFaq>) {
+    updateBody((current) => ({
+      ...current,
+      faqs: current.faqs.map((faq, i) => (i === index ? { ...faq, ...patch } : faq)),
+    }));
+  }
+
+  function deleteFaq(index: number) {
+    updateBody((current) => ({
+      ...current,
+      faqs: current.faqs.filter((_, i) => i !== index),
+    }));
+  }
+
+  function moveFaq(index: number, direction: -1 | 1) {
+    updateBody((current) => {
+      const copy = [...current.faqs];
+      const target = index + direction;
+      if (target < 0 || target >= copy.length) return current;
+      [copy[index], copy[target]] = [copy[target], copy[index]];
+      return { ...current, faqs: copy };
+    });
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Body Content (Sections & FAQs)</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Edits the content that appears after the cards on the <code className="text-xs bg-gray-100 px-1 rounded">/{categoryKey}</code> solutions page.
+            Leave empty to use the default hardcoded content.
+          </p>
+        </div>
+      </div>
+
+      {/* Sections */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700">Body Sections</h3>
+          <button
+            type="button"
+            onClick={addSection}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            <Plus size={14} />
+            Add Section
+          </button>
+        </div>
+
+        {body.sections.length === 0 && (
+          <p className="text-sm text-gray-400 italic py-4 text-center border border-dashed border-gray-200 rounded-lg">
+            No custom sections — the default hardcoded content will be used.
+          </p>
+        )}
+
+        {body.sections.map((section, index) => (
+          <div key={section.id ?? index} className="rounded-xl border border-gray-200 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Section {index + 1}</p>
+              <div className="flex items-center gap-2">
+                <button type="button" disabled={index === 0} onClick={() => moveSection(index, -1)} className="px-2 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-sky-700 disabled:opacity-40">
+                  <ArrowUp size={14} />
+                </button>
+                <button type="button" disabled={index >= body.sections.length - 1} onClick={() => moveSection(index, 1)} className="px-2 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-sky-700 disabled:opacity-40">
+                  <ArrowDown size={14} />
+                </button>
+                <button type="button" onClick={() => deleteSection(index)} className="px-2 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-gray-700">Heading</span>
+              <input className={inputCls} value={section.heading} onChange={(e) => updateSection(index, { heading: e.target.value })} placeholder="Section heading" />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-gray-700">Body text</span>
+              <textarea className={areaCls} value={section.body} onChange={(e) => updateSection(index, { body: e.target.value })} placeholder="Paragraph text for this section" />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-gray-700">Bullet list items (one per line, optional)</span>
+              <textarea className={areaCls} value={(section.list ?? []).join('\n')} onChange={(e) => updateSection(index, { list: e.target.value.split('\n').map((item) => item.trim()).filter(Boolean) })} placeholder="One item per line" />
+            </label>
+          </div>
+        ))}
+      </div>
+
+      {/* FAQs */}
+      <div className="space-y-3 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700">FAQs</h3>
+          <button
+            type="button"
+            onClick={addFaq}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            <Plus size={14} />
+            Add FAQ
+          </button>
+        </div>
+
+        {body.faqs.length === 0 && (
+          <p className="text-sm text-gray-400 italic py-4 text-center border border-dashed border-gray-200 rounded-lg">
+            No custom FAQs — the default hardcoded FAQs will be used.
+          </p>
+        )}
+
+        {body.faqs.map((faq, index) => (
+          <div key={index} className="rounded-xl border border-gray-200 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-xs uppercase tracking-wide text-gray-500">FAQ {index + 1}</p>
+              <div className="flex items-center gap-2">
+                <button type="button" disabled={index === 0} onClick={() => moveFaq(index, -1)} className="px-2 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-sky-700 disabled:opacity-40">
+                  <ArrowUp size={14} />
+                </button>
+                <button type="button" disabled={index >= body.faqs.length - 1} onClick={() => moveFaq(index, 1)} className="px-2 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-sky-700 disabled:opacity-40">
+                  <ArrowDown size={14} />
+                </button>
+                <button type="button" onClick={() => deleteFaq(index)} className="px-2 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-gray-700">Question</span>
+              <input className={inputCls} value={faq.question} onChange={(e) => updateFaq(index, { question: e.target.value })} placeholder="FAQ question" />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-gray-700">Answer</span>
+              <textarea className={areaCls} value={faq.answer} onChange={(e) => updateFaq(index, { answer: e.target.value })} placeholder="FAQ answer" />
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

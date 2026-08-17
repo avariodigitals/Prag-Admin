@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession, isAdmin } from '@/lib/auth';
-import { appendB2BAuditLog, normalizeSolutionsContent, readB2BAdminStore, updateB2BAdminStore } from '@/lib/b2bAdminStore';
+import { appendB2BAuditLog, normalizeSolutionsContent, normalizeSolutionBodies, readB2BAdminStore, updateB2BAdminStore } from '@/lib/b2bAdminStore';
 
 export async function GET() {
   const session = await getSession();
@@ -8,7 +8,7 @@ export async function GET() {
   if (!(await isAdmin(session.token))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const store = await readB2BAdminStore();
-  return NextResponse.json({ solutions: store.solutions });
+  return NextResponse.json({ solutions: store.solutions, solutionBodies: store.solutionBodies });
 }
 
 export async function PUT(req: Request) {
@@ -18,10 +18,12 @@ export async function PUT(req: Request) {
 
   const body = await req.json();
   const nextSolutions = normalizeSolutionsContent(body?.solutions ?? body);
+  const nextSolutionBodies = normalizeSolutionBodies(body?.solutionBodies);
 
   const store = await updateB2BAdminStore((current) => ({
     ...current,
     solutions: nextSolutions,
+    solutionBodies: nextSolutionBodies,
   }));
 
   const totalProblems = store.solutions.categories.reduce((count, category) => count + category.problems.length, 0);
@@ -29,8 +31,8 @@ export async function PUT(req: Request) {
     actor: session.user?.user_email ?? 'admin',
     action: 'update',
     target: 'b2b solutions',
-    details: `Saved ${totalProblems} solution problems`,
+    details: `Saved ${totalProblems} solution problems, ${Object.keys(store.solutionBodies).length} solution body overrides`,
   });
 
-  return NextResponse.json({ solutions: store.solutions });
+  return NextResponse.json({ solutions: store.solutions, solutionBodies: store.solutionBodies });
 }
