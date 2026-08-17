@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useRef } from 'react';
-import type { SiteSettings, SlideItem, CategoryItem, CheckoutFaqItem, TestimonialItem, HomeNeedItem, TrustStatItem, TrustBadgeItem, FooterColumn, FooterLink, HeaderLink } from '@/lib/types';
+import type { SiteSettings, SlideItem, CategoryItem, CheckoutFaqItem, PowerCalculatorItem, TestimonialItem, HomeNeedItem, TrustStatItem, TrustBadgeItem, FooterColumn, FooterLink, HeaderLink } from '@/lib/types';
 import { Save, CheckCircle2, AlertCircle, Plus, Trash2, GripVertical, Library, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 import { revalidateSettings } from '@/lib/revalidateFrontend';
@@ -11,11 +11,12 @@ const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm foc
 const labelCls = 'text-sm font-semibold text-gray-700';
 const sectionCls = 'space-y-4 pt-4 border-t border-gray-100 first:border-0 first:pt-0';
 
-const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Checkout FAQ', 'Final CTA', 'Categories', 'Header', 'Footer', 'Payments', 'Shipping'];
+const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Checkout FAQ', 'Power Calculator', 'Final CTA', 'Homepage Sections', 'Categories', 'Header', 'Footer', 'Payments', 'Shipping'];
 
 const DEFAULT_SLIDE: SlideItem = { title: '', description: '', cta: '', link: '/products', productImage: '', productAlt: '', backgroundImage: '', showProductImage: true, enabled: true };
 const DEFAULT_CATEGORY: CategoryItem = { name: '', slug: '', image: '' };
 const DEFAULT_FAQ_ITEM: CheckoutFaqItem = { question: '', answer: '' };
+const DEFAULT_POWER_CALC_ITEM: PowerCalculatorItem = { question: '', answer: '' };
 const DEFAULT_TESTIMONIAL: TestimonialItem = { rating: 5, quote: '', name: '', location: '', product: '', image: '' };
 const DEFAULT_HOME_NEED: HomeNeedItem = { title: '', description: '', cta: 'Get Recommendations', link: '/products', icon: 'home', image: '' };
 const DEFAULT_TRUST_STAT: TrustStatItem = { value: '', label: '' };
@@ -82,6 +83,14 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   slideout_chat_title: 'Not sure what to pick?',
   slideout_chat_subtitle: 'Chat with us',
   slideout_chat_message: 'Hi PRAG team, I was browsing your product pages and need help choosing the right product. Can you assist?',
+  checkout_faq_enabled: true,
+  shop_by_need_enabled: true,
+  flash_sales_enabled: true,
+  best_sellers_enabled: true,
+  featured_section_enabled: true,
+  product_assurance_enabled: true,
+  product_stats_enabled: true,
+  product_showrooms_enabled: true,
   final_cta_title: 'Ready for More Reliable Power?',
   final_cta_subtitle: 'Shop PRAG power solutions for your home today.',
   final_cta_shop_text: 'Shop Now',
@@ -135,6 +144,20 @@ const HARDCODED_DEFAULTS: SiteSettings = {
     { label: 'Expert Support' },
     { label: 'Secure Checkout' },
   ],
+  power_calculator_enabled: true,
+  power_calculator_kicker: 'POWER CALCULATOR',
+  power_calculator_title: 'Not sure what size you need? Let\u2019s work it out.',
+  power_calculator_subtitle: 'Answer a few quick questions about what you want to power and we\u2019ll recommend the right inverter, battery, and solar setup in seconds \u2014 no guesswork.',
+  power_calculator_link_text: 'Open the Power Calculator',
+  power_calculator_link_url: '/power-calculator',
+  power_calculator_items: [
+    { question: 'How does the Power Calculator work?', answer: 'Tell us which appliances you want to run and for how long. The calculator adds up your total wattage, factors in surge power and backup runtime, then recommends a PRAG inverter and battery combination sized to your actual load \u2014 no guesswork.' },
+    { question: 'What do I need to know before I start?', answer: 'Have a rough list of the appliances you want to power (fridge, lights, TV, fans) and an idea of how many hours of backup you need. You don\u2019t need exact wattage \u2014 our calculator uses typical values and lets you adjust.' },
+    { question: 'Will it recommend the right battery too?', answer: 'Yes. Based on your inverter size and desired runtime, the calculator suggests a battery capacity (Ah) and chemistry \u2014 lithium or lead-acid \u2014 so your backup lasts as long as you need it to.' },
+    { question: 'Can it size a solar setup?', answer: 'Yes. If you want to reduce your grid or generator use, the calculator can recommend solar panels and a hybrid inverter sized to your daily energy usage and location.' },
+    { question: 'What if I\u2019m not sure about my load?', answer: 'No problem. Start with your essentials \u2014 lights, fans, TV, and a fridge \u2014 and add from there. You can also chat with our team on WhatsApp and a PRAG engineer will help you build your load list.' },
+    { question: 'Is the recommendation a quote?', answer: 'It\u2019s a sizing guide. Once you have your recommendation, you can shop the suggested products directly, request a formal quote, or schedule a free consultation with our team.' },
+  ],
   hero_background: 'https://central.prag.global/wp-content/uploads/2026/04/421db5e8efbc14b105a33a6db7182652503c3fdd.png',
   slide_transition: 'fade',
   socials: {
@@ -175,6 +198,7 @@ function mergeWithDefaults(saved: SiteSettings | null): SiteSettings {
     slides: Array.isArray(saved.slides) ? saved.slides : HARDCODED_DEFAULTS.slides,
     categories: Array.isArray(saved.categories) ? saved.categories : HARDCODED_DEFAULTS.categories,
     checkout_faq_items: Array.isArray(saved.checkout_faq_items) ? saved.checkout_faq_items : HARDCODED_DEFAULTS.checkout_faq_items,
+    power_calculator_items: Array.isArray(saved.power_calculator_items) ? saved.power_calculator_items : HARDCODED_DEFAULTS.power_calculator_items,
     testimonial_items: Array.isArray(saved.testimonial_items) ? saved.testimonial_items : HARDCODED_DEFAULTS.testimonial_items,
     home_need_items: Array.isArray(saved.home_need_items) ? saved.home_need_items : HARDCODED_DEFAULTS.home_need_items,
     trust_signal_stats: Array.isArray(saved.trust_signal_stats) ? saved.trust_signal_stats : HARDCODED_DEFAULTS.trust_signal_stats,
@@ -200,6 +224,8 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
   const [dragOverColIdx, setDragOverColIdx] = useState<number | null>(null);
   const [dragHeaderIdx, setDragHeaderIdx] = useState<number | null>(null);
   const [dragOverHeaderIdx, setDragOverHeaderIdx] = useState<number | null>(null);
+  const [dragCatIdx, setDragCatIdx] = useState<number | null>(null);
+  const [dragOverCatIdx, setDragOverCatIdx] = useState<number | null>(null);
   const mediaPickerCallback = useRef<((url: string) => void) | null>(null);
 
   function openMediaPicker(callback: (url: string) => void) {
@@ -247,6 +273,16 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
 
   function addCategory() { setField('categories', [...form.categories, { ...DEFAULT_CATEGORY }]); }
   function removeCategory(i: number) { setField('categories', form.categories.filter((_, idx) => idx !== i)); }
+  function moveCategory(from: number, to: number) {
+    if (from === to || from < 0 || to < 0 || from >= form.categories.length || to >= form.categories.length) return;
+    const cats = [...form.categories];
+    const [moved] = cats.splice(from, 1);
+    cats.splice(to, 0, moved);
+    // Keep category_order in sync with the visible category order so the
+    // homepage grid and product tabs respect the drag order after save.
+    const newOrder = cats.map((c) => c.slug).filter(Boolean);
+    setForm((p) => ({ ...p, categories: cats, category_order: newOrder }));
+  }
 
   function setFaqItem(index: number, key: keyof CheckoutFaqItem, value: string) {
     const items = [...form.checkout_faq_items];
@@ -255,6 +291,14 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
   }
   function addFaqItem() { setField('checkout_faq_items', [...form.checkout_faq_items, { ...DEFAULT_FAQ_ITEM }]); }
   function removeFaqItem(i: number) { setField('checkout_faq_items', form.checkout_faq_items.filter((_, idx) => idx !== i)); }
+
+  function setPowerCalcItem(index: number, key: keyof PowerCalculatorItem, value: string) {
+    const items = [...form.power_calculator_items];
+    items[index] = { ...items[index], [key]: value };
+    setField('power_calculator_items', items);
+  }
+  function addPowerCalcItem() { setField('power_calculator_items', [...form.power_calculator_items, { ...DEFAULT_POWER_CALC_ITEM }]); }
+  function removePowerCalcItem(i: number) { setField('power_calculator_items', form.power_calculator_items.filter((_, idx) => idx !== i)); }
 
   function setTestimonial(index: number, key: keyof TestimonialItem, value: string | number) {
     const items = [...form.testimonial_items];
@@ -991,6 +1035,52 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
               ))}
             </div>
           </div>
+
+          {/* Product page section visibility */}
+          <div className={sectionCls}>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Single Product Page Sections</p>
+            <p className="text-xs text-gray-400">Control which supporting cards appear on individual product pages. Disabling a card hides it completely; its content (e.g. stats) is still managed above.</p>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={form.product_assurance_enabled !== false}
+                  onChange={e => setField('product_assurance_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-gray-700 block">Why shop with PRAG</span>
+                  <span className="text-xs text-gray-400">The assurance card listing genuine products, nationwide delivery, and after-sales support.</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={form.product_stats_enabled !== false}
+                  onChange={e => setField('product_stats_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-gray-700 block">Stats strip</span>
+                  <span className="text-xs text-gray-400">The small stats bar (States Covered, Years, Installations) shown beneath the share buttons. Uses the same stats configured above.</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={form.product_showrooms_enabled !== false}
+                  onChange={e => setField('product_showrooms_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-gray-700 block">Visit a showroom (Location)</span>
+                  <span className="text-xs text-gray-400">The &quot;Visit a showroom&quot; card listing Lagos &amp; Abuja offices with map links.</span>
+                </div>
+              </label>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1251,6 +1341,15 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
         <div className="space-y-6">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Checkout FAQ (above Final CTA)</p>
           <p className="text-xs text-gray-400">Short, sales-focused answers that remove buying hesitation. Shown on every page above the Final CTA section.</p>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.checkout_faq_enabled !== false}
+              onChange={e => setField('checkout_faq_enabled', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+            />
+            <span className="text-sm font-medium text-gray-700">Show FAQ section on the homepage</span>
+          </label>
 
           {/* Header text */}
           <div className={sectionCls}>
@@ -1371,6 +1470,88 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
         </div>
       )}
 
+      {/* ── Power Calculator Q&A ── */}
+      {activeTab === 'Power Calculator' && (
+        <div className="space-y-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Power Calculator Q&amp;A (above Final CTA, homepage only)</p>
+          <p className="text-xs text-gray-400">A conversion-focused Q&amp;A accordion that answers sizing questions and drives visitors to the Power Calculator. Shown on the homepage only, just before the Final CTA.</p>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.power_calculator_enabled !== false}
+              onChange={e => setField('power_calculator_enabled', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+            />
+            <span className="text-sm font-medium text-gray-700">Show Power Calculator Q&amp;A on the homepage</span>
+          </label>
+
+          {/* Header text */}
+          <div className={sectionCls}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>Kicker</label>
+                <input value={form.power_calculator_kicker} onChange={e => setField('power_calculator_kicker', e.target.value)} className={inputCls} placeholder="POWER CALCULATOR" />
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>Button Text</label>
+                <input value={form.power_calculator_link_text} onChange={e => setField('power_calculator_link_text', e.target.value)} className={inputCls} placeholder="Open the Power Calculator" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Title</label>
+              <input value={form.power_calculator_title} onChange={e => setField('power_calculator_title', e.target.value)} className={inputCls} placeholder="Not sure what size you need? Let's work it out." />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Subtitle</label>
+              <textarea value={form.power_calculator_subtitle} onChange={e => setField('power_calculator_subtitle', e.target.value)} rows={2}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Answer a few quick questions about what you want to power..." />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Button Link URL</label>
+              <input value={form.power_calculator_link_url} onChange={e => setField('power_calculator_link_url', e.target.value)} className={inputCls} placeholder="/power-calculator" />
+            </div>
+          </div>
+
+          {/* Q&A Items */}
+          <div className={sectionCls}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Q&amp;A Items ({form.power_calculator_items.length})</p>
+              <button type="button" onClick={addPowerCalcItem}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-700 text-white rounded-lg text-xs font-medium hover:bg-sky-800 transition-colors">
+                <Plus size={14} /> Add Question
+              </button>
+            </div>
+
+            {form.power_calculator_items.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">No questions yet. Click &quot;Add Question&quot; to create one.</p>
+            )}
+
+            {form.power_calculator_items.map((item, i) => (
+              <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">Question {i + 1}</span>
+                  <button type="button" onClick={() => removePowerCalcItem(i)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Question</label>
+                  <input value={item.question} onChange={e => setPowerCalcItem(i, 'question', e.target.value)} className={inputCls} placeholder="How does the Power Calculator work?" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={labelCls}>Answer</label>
+                  <textarea value={item.answer} onChange={e => setPowerCalcItem(i, 'answer', e.target.value)} rows={3}
+                    className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                    placeholder="Tell us which appliances you want to run..." />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Final CTA ── */}
       {activeTab === 'Final CTA' && (
         <div className="space-y-4">
@@ -1405,6 +1586,68 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
         </div>
       )}
 
+      {/* ── Homepage Sections (toggles) ── */}
+      {activeTab === 'Homepage Sections' && (
+        <div className="space-y-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Homepage Section Visibility</p>
+          <p className="text-xs text-gray-400">Turn entire homepage sections on or off without deleting their content. Disabled sections stay hidden on the live site but keep their configured content here.</p>
+
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+              <input
+                type="checkbox"
+                checked={form.shop_by_need_enabled !== false}
+                onChange={e => setField('shop_by_need_enabled', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+              />
+              <div>
+                <span className="text-sm font-semibold text-gray-700 block">Shop by What You Need</span>
+                <span className="text-xs text-gray-400">The &quot;What do you need help with?&quot; card grid linking to product categories.</span>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+              <input
+                type="checkbox"
+                checked={form.flash_sales_enabled !== false}
+                onChange={e => setField('flash_sales_enabled', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+              />
+              <div>
+                <span className="text-sm font-semibold text-gray-700 block">Deals (Today&apos;s PRAG Deals)</span>
+                <span className="text-xs text-gray-400">The flash-sale carousel of discounted, in-stock products.</span>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+              <input
+                type="checkbox"
+                checked={form.best_sellers_enabled !== false}
+                onChange={e => setField('best_sellers_enabled', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+              />
+              <div>
+                <span className="text-sm font-semibold text-gray-700 block">Best Sellers</span>
+                <span className="text-xs text-gray-400">The &quot;Most Popular Right Now&quot; grid showing up to 8 featured products.</span>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+              <input
+                type="checkbox"
+                checked={form.featured_section_enabled !== false}
+                onChange={e => setField('featured_section_enabled', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+              />
+              <div>
+                <span className="text-sm font-semibold text-gray-700 block">Featured (classic layout)</span>
+                <span className="text-xs text-gray-400">A second featured-products section using the classic 4-product layout. Independent of Best Sellers.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      )}
+
       {/* ── Categories ── */}
       {activeTab === 'Categories' && (
         <div className="space-y-6">
@@ -1415,15 +1658,30 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
               <Plus size={14} /> Add Category
             </button>
           </div>
+          <p className="text-xs text-gray-400">Drag a category card by its handle to reorder. The order here controls the homepage &quot;Shop by Categories&quot; grid and the product page tabs.</p>
 
           {form.categories.length === 0 && (
             <p className="text-sm text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">No categories yet.</p>
           )}
 
           {form.categories.map((cat, i) => (
-            <div key={i} className="border border-gray-200 rounded-xl p-4 space-y-4">
+            <div
+              key={i}
+              draggable
+              onDragStart={() => setDragCatIdx(i)}
+              onDragOver={(e) => { e.preventDefault(); setDragOverCatIdx(i); }}
+              onDragLeave={() => setDragOverCatIdx(null)}
+              onDrop={() => { if (dragCatIdx !== null) moveCategory(dragCatIdx, i); setDragCatIdx(null); setDragOverCatIdx(null); }}
+              onDragEnd={() => { setDragCatIdx(null); setDragOverCatIdx(null); }}
+              className={`border rounded-xl p-4 space-y-4 transition-all ${
+                dragOverCatIdx === i ? 'border-sky-500 ring-2 ring-sky-200' : 'border-gray-200'
+              } ${dragCatIdx === i ? 'opacity-50' : ''}`}
+            >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-700">Category {i + 1}</span>
+                <div className="flex items-center gap-2 cursor-grab active:cursor-grabbing">
+                  <GripVertical size={16} className="text-gray-400" />
+                  <span className="text-sm font-semibold text-gray-700">Category {i + 1}</span>
+                </div>
                 <button type="button" onClick={() => removeCategory(i)}
                   className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                   <Trash2 size={14} />

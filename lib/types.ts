@@ -78,6 +78,11 @@ export interface CheckoutFaqItem {
   answer: string;
 }
 
+export interface PowerCalculatorItem {
+  question: string;
+  answer: string;
+}
+
 export interface TestimonialItem {
   rating: number;
   quote: string;
@@ -164,6 +169,16 @@ export interface SiteSettings {
   slideout_chat_title: string;
   slideout_chat_subtitle: string;
   slideout_chat_message: string;
+  // Homepage section visibility toggles
+  checkout_faq_enabled: boolean;
+  shop_by_need_enabled: boolean;
+  flash_sales_enabled: boolean;
+  best_sellers_enabled: boolean;
+  featured_section_enabled: boolean;
+  // Single product page section visibility toggles
+  product_assurance_enabled: boolean;
+  product_stats_enabled: boolean;
+  product_showrooms_enabled: boolean;
   // Final Conversion CTA (above footer)
   final_cta_title: string;
   final_cta_subtitle: string;
@@ -196,6 +211,15 @@ export interface SiteSettings {
   trust_signal_title: string;
   trust_signal_stats: TrustStatItem[];
   trust_signal_badges: TrustBadgeItem[];
+  // Power Calculator Q&A (homepage, above Final CTA) — conversion-focused
+  // accordion that answers sizing questions and drives users to the calculator.
+  power_calculator_enabled: boolean;
+  power_calculator_kicker: string;
+  power_calculator_title: string;
+  power_calculator_subtitle: string;
+  power_calculator_link_text: string;
+  power_calculator_link_url: string;
+  power_calculator_items: PowerCalculatorItem[];
   // Hero Slides
   hero_background: string;
   slide_transition: string;
