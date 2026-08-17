@@ -312,7 +312,7 @@ export async function getReportsTrend(params: { date_min?: string; date_max?: st
 // ── Site Settings ──────────────────────────────────────────
 export async function getSiteSettings(): Promise<SiteSettings | null> {
   try {
-    const res = await fetchWithTimeout(`${WP_API_URL}/prag-core/v1/settings`, { next: { revalidate: 60 } }, 1);
+    const res = await fetchWithTimeout(`${WP_API_URL}/prag-core/v1/settings`, { cache: 'no-store' }, 1);
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }

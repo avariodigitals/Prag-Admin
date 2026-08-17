@@ -11,7 +11,7 @@ const inputCls = 'w-full h-11 px-4 rounded-xl border border-gray-200 text-sm foc
 const labelCls = 'text-sm font-semibold text-gray-700';
 const sectionCls = 'space-y-4 pt-4 border-t border-gray-100 first:border-0 first:pt-0';
 
-const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Checkout FAQ', 'Power Calculator', 'Final CTA', 'Homepage Sections', 'Categories', 'Header', 'Footer', 'Payments', 'Shipping'];
+const TABS = ['Contact', 'Socials', 'Hero Slides', 'Brand Banner', 'Trust Signal', 'Home Needs', 'Testimonials', 'Best Sellers', 'Checkout FAQ', 'Power Calculator', 'Final CTA', 'Homepage Sections', 'Categories', 'Header', 'Footer', 'Payments', 'Shipping'];
 
 const DEFAULT_SLIDE: SlideItem = { title: '', description: '', cta: '', link: '/products', productImage: '', productAlt: '', backgroundImage: '', showProductImage: true, enabled: true };
 const DEFAULT_CATEGORY: CategoryItem = { name: '', slug: '', image: '' };
@@ -88,6 +88,11 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   flash_sales_enabled: true,
   best_sellers_enabled: true,
   featured_section_enabled: true,
+  best_sellers_kicker: 'Best Sellers',
+  best_sellers_title: 'Most Popular Right Now',
+  best_sellers_subtitle: 'Now we\u2019re ready to sell.',
+  best_sellers_view_all_text: 'View all products',
+  best_sellers_view_all_link: '/products',
   product_assurance_enabled: true,
   product_stats_enabled: true,
   product_showrooms_enabled: true,
@@ -1332,6 +1337,50 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Best Sellers ── */}
+      {activeTab === 'Best Sellers' && (
+        <div className="space-y-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Best Sellers (homepage)</p>
+          <p className="text-xs text-gray-400">The &quot;Most Popular Right Now&quot; section on the homepage. The products shown are the WooCommerce &quot;Featured&quot; products (up to 8) — mark products as Featured in WooCommerce to control which appear here. The toggle, header text, and View-all button are editable below.</p>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.best_sellers_enabled !== false}
+              onChange={e => setField('best_sellers_enabled', e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-sky-700 focus:ring-sky-500"
+            />
+            <span className="text-sm font-medium text-gray-700">Show Best Sellers section on the homepage</span>
+          </label>
+
+          <div className={sectionCls}>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Kicker</label>
+              <input value={form.best_sellers_kicker} onChange={e => setField('best_sellers_kicker', e.target.value)} className={inputCls} placeholder="Best Sellers" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Title</label>
+              <input value={form.best_sellers_title} onChange={e => setField('best_sellers_title', e.target.value)} className={inputCls} placeholder="Most Popular Right Now" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Subtitle</label>
+              <textarea value={form.best_sellers_subtitle} onChange={e => setField('best_sellers_subtitle', e.target.value)} rows={2}
+                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
+                placeholder="Now we're ready to sell." />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>View All Button Text</label>
+                <input value={form.best_sellers_view_all_text} onChange={e => setField('best_sellers_view_all_text', e.target.value)} className={inputCls} placeholder="View all products" />
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>View All Button Link</label>
+                <input value={form.best_sellers_view_all_link} onChange={e => setField('best_sellers_view_all_link', e.target.value)} className={inputCls} placeholder="/products" />
+              </div>
+            </div>
           </div>
         </div>
       )}

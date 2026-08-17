@@ -175,6 +175,12 @@ export interface SiteSettings {
   flash_sales_enabled: boolean;
   best_sellers_enabled: boolean;
   featured_section_enabled: boolean;
+  // Best Sellers section content (homepage "Most Popular Right Now")
+  best_sellers_kicker: string;
+  best_sellers_title: string;
+  best_sellers_subtitle: string;
+  best_sellers_view_all_text: string;
+  best_sellers_view_all_link: string;
   // Single product page section visibility toggles
   product_assurance_enabled: boolean;
   product_stats_enabled: boolean;
