@@ -162,6 +162,7 @@ export interface B2BIntegrationsConfig {
   searchConsoleVerification: string;
   zohoOneScript: string;
   customDomainHook: string;
+  metaPixelId: string;
   whatsappChatEnabled: boolean;
   whatsappChatNumber: string;
   whatsappChatText: string;
@@ -975,6 +976,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
     searchConsoleVerification: '',
     zohoOneScript: '',
     customDomainHook: '',
+    metaPixelId: '',
     whatsappChatEnabled: false,
     whatsappChatNumber: '',
     whatsappChatText: 'Chat with us on WhatsApp',

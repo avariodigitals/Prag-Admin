@@ -1003,6 +1003,10 @@ export default function B2BSettingsClient({
               <span className="text-sm font-medium text-gray-700">Google Tag Manager ID</span>
               <input className={inputCls} placeholder="GTM-XXXXXXX" value={settings.integrations.googleTagManagerId} onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, googleTagManagerId: event.target.value } }))} />
             </label>
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-gray-700">Meta Pixel ID</span>
+              <input className={inputCls} placeholder="123456789012345" value={settings.integrations.metaPixelId ?? ''} onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, metaPixelId: event.target.value } }))} />
+            </label>
             <label className="space-y-1 md:col-span-2">
               <span className="text-sm font-medium text-gray-700">Search Console Verification Code</span>
               <input className={inputCls} placeholder="google-site-verification token" value={settings.integrations.searchConsoleVerification} onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, searchConsoleVerification: event.target.value } }))} />
