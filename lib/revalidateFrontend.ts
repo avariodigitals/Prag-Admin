@@ -1,3 +1,5 @@
+'use server';
+
 const PRAG_URL = process.env.NEXT_PUBLIC_B2C_URL || 'https://shop.prag.global';
 const B2B_URL = process.env.NEXT_PUBLIC_B2B_URL || 'https://prag.global';
 
@@ -39,7 +41,7 @@ const B2B_TAGS = [
 ];
 
 export async function revalidateFrontend(options: RevalidateOptions = {}) {
-  const secret = process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret';
+  const secret = process.env.REVALIDATE_SECRET || process.env.NEXT_PUBLIC_REVALIDATE_SECRET || 'dev-secret';
   const { paths, tags, b2bOnly, b2cOnly } = options;
 
   const body = JSON.stringify({
@@ -58,12 +60,19 @@ export async function revalidateFrontend(options: RevalidateOptions = {}) {
   if (!b2cOnly) targets.push(B2B_URL);
 
   await Promise.allSettled(
-    targets.map((base) =>
-      fetch(`${base}/api/revalidate?secret=${secret}`, {
-        ...fetchOpts,
-        signal: AbortSignal.timeout(10_000),
-      }).catch(() => {})
-    )
+    targets.map(async (base) => {
+      try {
+        const res = await fetch(`${base}/api/revalidate?secret=${secret}`, {
+          ...fetchOpts,
+          signal: AbortSignal.timeout(10_000),
+        });
+        if (!res.ok) {
+          console.warn(`[revalidate] ${base} responded ${res.status}`);
+        }
+      } catch (err) {
+        console.warn(`[revalidate] ${base} failed:`, err);
+      }
+    })
   );
 }
 
@@ -73,8 +82,9 @@ export async function revalidateProducts() {
     tags: [
       'products-list', 'product-by-slug', 'featured-products', 'flash-sale-products',
       'product-categories', 'all-product-slugs', 'product-custom-tabs', 'tech-documents',
+      'wc-products', 'wordpress-content', 'product-reviews',
       'b2b-products-list', 'b2b-product-by-slug', 'b2b-categories', 'b2b-all-product-slugs',
-      'b2b-product-custom-tabs', 'b2b-tech-documents',
+      'b2b-product-custom-tabs', 'b2b-tech-documents', 'b2b-product-reviews',
     ],
   });
 }

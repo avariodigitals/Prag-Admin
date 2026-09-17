@@ -178,7 +178,6 @@ export interface SiteSettings {
   // Best Sellers section content (homepage "Most Popular Right Now")
   best_sellers_kicker: string;
   best_sellers_title: string;
-  best_sellers_subtitle: string;
   best_sellers_view_all_text: string;
   best_sellers_view_all_link: string;
   // Single product page section visibility toggles
@@ -215,6 +214,7 @@ export interface SiteSettings {
   trust_signal_enabled: boolean;
   trust_signal_kicker: string;
   trust_signal_title: string;
+  trust_signal_banner_heading: string;
   trust_signal_stats: TrustStatItem[];
   trust_signal_badges: TrustBadgeItem[];
   // Power Calculator Q&A (homepage, above Final CTA) — conversion-focused

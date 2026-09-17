@@ -90,7 +90,6 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   featured_section_enabled: true,
   best_sellers_kicker: 'Best Sellers',
   best_sellers_title: 'Most Popular Right Now',
-  best_sellers_subtitle: 'Now we\u2019re ready to sell.',
   best_sellers_view_all_text: 'View all products',
   best_sellers_view_all_link: '/products',
   product_assurance_enabled: true,
@@ -138,10 +137,11 @@ const HARDCODED_DEFAULTS: SiteSettings = {
   trust_signal_enabled: true,
   trust_signal_kicker: 'Why People Buy PRAG',
   trust_signal_title: 'Buy With Confidence',
+  trust_signal_banner_heading: 'Trusted by thousands of homes & businesses across Nigeria',
   trust_signal_stats: [
     { value: '36', label: 'States Covered' },
-    { value: '15+', label: 'Years Power Expertise' },
-    { value: '50K+', label: 'Installations' },
+    { value: '15+', label: 'Years of Power Industry Experience' },
+    { value: '50K+', label: 'Systems Installed' },
   ],
   trust_signal_badges: [
     { label: 'Product Warranty' },
@@ -969,6 +969,11 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
                 <input value={form.trust_signal_title} onChange={e => setField('trust_signal_title', e.target.value)} className={inputCls} placeholder="Buy With Confidence" />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>Banner Heading</label>
+              <input value={form.trust_signal_banner_heading} onChange={e => setField('trust_signal_banner_heading', e.target.value)} className={inputCls} placeholder="Trusted by thousands of homes & businesses across Nigeria" />
+              <p className="text-xs text-gray-400">The heading text on the landscape banner (with the product image cluster). Independent from the Title above.</p>
+            </div>
           </div>
 
           {/* Stats */}
@@ -1364,12 +1369,6 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Sit
             <div className="space-y-1.5">
               <label className={labelCls}>Title</label>
               <input value={form.best_sellers_title} onChange={e => setField('best_sellers_title', e.target.value)} className={inputCls} placeholder="Most Popular Right Now" />
-            </div>
-            <div className="space-y-1.5">
-              <label className={labelCls}>Subtitle</label>
-              <textarea value={form.best_sellers_subtitle} onChange={e => setField('best_sellers_subtitle', e.target.value)} rows={2}
-                className="w-full p-4 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all resize-none"
-                placeholder="Now we're ready to sell." />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
