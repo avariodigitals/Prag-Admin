@@ -161,6 +161,10 @@ export interface B2BIntegrationsConfig {
   googleTagManagerId: string;
   searchConsoleVerification: string;
   zohoOneScript: string;
+  /** Zoho SalesIQ widget code hash (e.g. "siq7f354a..."). Rendered as the two-tag
+   *  SalesIQ embed on the b2b site — kept separate from zohoOneScript because the
+   *  SalesIQ snippet must load as two distinct <script> tags. */
+  zohoSalesIqCode: string;
   customDomainHook: string;
   metaPixelId: string;
   whatsappChatEnabled: boolean;
@@ -975,6 +979,7 @@ const DEFAULT_SETTINGS: B2BSettings = {
     googleTagManagerId: '',
     searchConsoleVerification: '',
     zohoOneScript: '',
+    zohoSalesIqCode: '',
     customDomainHook: '',
     metaPixelId: '',
     whatsappChatEnabled: false,

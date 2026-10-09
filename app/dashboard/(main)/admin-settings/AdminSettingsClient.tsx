@@ -60,6 +60,7 @@ type SettingsPayload = {
     customHeadScripts: string;
     customBodyScripts: string;
     customFooterScripts: string;
+    zohoSalesIqCode: string;
   };
   smtp: {
     provider: 'brevo' | 'microsoft365';
@@ -993,6 +994,18 @@ export default function AdminSettingsClient() {
             <textarea className={areaCls} value={settings.tracking.customHeadScripts} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, customHeadScripts: e.target.value } } : p)} placeholder="Custom scripts for <head>" />
             <textarea className={areaCls} value={settings.tracking.customBodyScripts} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, customBodyScripts: e.target.value } } : p)} placeholder="Custom scripts after opening <body>" />
             <textarea className={areaCls} value={settings.tracking.customFooterScripts} onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, customFooterScripts: e.target.value } } : p)} placeholder="Custom scripts before </body>" />
+            <label className="space-y-1 block">
+              <span className="text-sm font-medium text-gray-700">Zoho SalesIQ Widget Code</span>
+              <span className="text-xs text-gray-500 block">
+                Paste only the widget code hash (e.g. <code>siq7f354a9f8f29eefa04acd8f76de79b15389e83109974604f61f319f</code>), not the full script tag. The SalesIQ embed is built automatically on the storefront.
+              </span>
+              <input
+                className={inputCls}
+                value={settings.tracking.zohoSalesIqCode}
+                onChange={(e) => setSettings((p) => p ? { ...p, tracking: { ...p.tracking, zohoSalesIqCode: e.target.value } } : p)}
+                placeholder="siq..."
+              />
+            </label>
           </div>
         )}
 

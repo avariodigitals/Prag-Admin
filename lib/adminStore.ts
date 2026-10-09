@@ -79,6 +79,10 @@ export interface TrackingConfig {
   customHeadScripts: string;
   customBodyScripts: string;
   customFooterScripts: string;
+  /** Zoho SalesIQ widget code hash (e.g. "siq7f354a..."). Rendered as the two-tag
+   *  SalesIQ embed on the storefront; kept separate from custom*Scripts because
+   *  the SalesIQ snippet must load as two distinct <script> tags. */
+  zohoSalesIqCode: string;
 }
 
 export interface SmtpConfig {
@@ -204,6 +208,7 @@ const DEFAULT_STORE: AdminConfigStore = {
     customHeadScripts: '',
     customBodyScripts: '',
     customFooterScripts: '',
+    zohoSalesIqCode: '',
   },
   smtp: {
     provider: 'brevo',

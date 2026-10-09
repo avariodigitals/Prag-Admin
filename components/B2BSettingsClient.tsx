@@ -1015,6 +1015,18 @@ export default function B2BSettingsClient({
               <span className="text-sm font-medium text-gray-700">Zoho One Script</span>
               <textarea className={areaCls} placeholder="Paste Zoho One embed script or snippet" value={settings.integrations.zohoOneScript} onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, zohoOneScript: event.target.value } }))} />
             </label>
+            <label className="space-y-1 md:col-span-2">
+              <span className="text-sm font-medium text-gray-700">Zoho SalesIQ Widget Code</span>
+              <span className="text-xs text-gray-500 block">
+                Paste only the widget code hash (e.g. <code>siq7f354a9f8f29eefa04acd8f76de79b15389e83109974604f61f319f</code>), not the full script tag. The SalesIQ embed is built automatically on the B2B site.
+              </span>
+              <input
+                className={inputCls}
+                value={settings.integrations.zohoSalesIqCode}
+                onChange={(event) => setSettings((prev) => ({ ...prev, integrations: { ...prev.integrations, zohoSalesIqCode: event.target.value } }))}
+                placeholder="siq..."
+              />
+            </label>
             <div className="md:col-span-2 rounded-xl border border-gray-200 p-4 space-y-3 bg-gray-50">
               <div className="flex items-center justify-between gap-3">
                 <div>
