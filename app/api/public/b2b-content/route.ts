@@ -6,9 +6,22 @@ export const revalidate = 0;
 
 export async function GET() {
   const store = await readB2BAdminStore();
+  // PUBLIC payload — whitelist only what the frontend sites consume.
+  // Never expose settings.smtp (contains the SMTP/Brevo password), forms
+  // routing, access-control map, redirects, or any submission records.
+  const settings = store.settings;
   return NextResponse.json(
     {
-      settings: store.settings,
+      settings: settings
+        ? {
+            contact: settings.contact,
+            header: settings.header,
+            footer: settings.footer,
+            integrations: settings.integrations,
+            launch: settings.launch,
+            scripts: settings.scripts,
+          }
+        : undefined,
       caseStudies: store.caseStudies,
       solutions: store.solutions,
       solutionBodies: store.solutionBodies,
